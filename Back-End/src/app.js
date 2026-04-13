@@ -8,6 +8,7 @@ if (!process.env.DB_NAME) {
 
 const express = require('express');
 const app = express();
+const authRoutes = require('./routes/authRoutes');
 
 // Middleware para ler JSON no corpo das requisições
 app.use(express.json());
@@ -16,6 +17,9 @@ app.use(express.json());
 app.get('/', (req, res) => {
   res.status(200).send({ message: 'API funcionando!' });
 });
+
+// Rotas de autenticação
+app.use('/auth', authRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
