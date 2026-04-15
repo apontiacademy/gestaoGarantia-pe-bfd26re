@@ -1,0 +1,28 @@
+{
+  "development": {
+    "username": "seu_usuario",
+    "password": "sua_senha",
+    "database": "nome_do_banco_dev",
+    "host": "127.0.0.1",
+    "dialect": "postgres",
+    "port": 5432
+  },
+  "test": {
+    "username": "seu_usuario",
+    "password": "sua_senha",
+    "database": "nome_do_banco_teste",
+    "host": "127.0.0.1",
+    "dialect": "postgres",
+    "port": 5432
+  },
+  "production": {
+    "use_env_variable": "DATABASE_URL",
+    "dialect": "postgres",
+    "dialectOptions": {
+      "ssl": {
+        "require": true,
+        "rejectUnauthorized": false
+      }
+    }
+  }
+}
