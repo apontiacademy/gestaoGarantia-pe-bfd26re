@@ -17,7 +17,6 @@ if (!process.env.JWT_SECRET) {
 
 const express = require('express');
 const app = express();
-const authRoutes = require('./routes/authRoutes');
 
 // Middleware para ler JSON no corpo das requisições
 app.use(express.json());
@@ -28,7 +27,11 @@ app.get('/', (req, res) => {
 });
 
 // Rotas de autenticação
-app.use('/auth', authRoutes);
+const routesRegister = require('./routes/routesRegister');
+app.use(routesRegister)
+
+const routeLogin = require('./routes/loginAuth');
+app.use(routeLogin);  
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

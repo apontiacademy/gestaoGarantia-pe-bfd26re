@@ -20,20 +20,20 @@ function autenticarToken(req, res, next) {
 }
 
 // Rota de Registro
-router.post('/register', (req, res) => {
+router.post('/auth/register', (req, res) => {
   res.status(201).json({ message: 'Página de registro' });
 });
 
 // Rota de Login
-router.post('/login', (req, res) => {
+router.post('/auth/login', (req, res) => {
   res.status(200).json({ message: 'Página de login' });
 });
 
 // Rota de Recuperação de Senha
-router.post('/forgot-password', autenticarToken, (req, res) => {
+/* router.post('/forgot-password', autenticarToken, (req, res) => {
   res.status(200).json({ message: 'Página de recuperação de senha',
     user: req.user
    })
-});
+}); */
 
 module.exports = router;
