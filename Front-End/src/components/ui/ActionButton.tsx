@@ -9,10 +9,11 @@ interface ActionButtonProps {
   action: ActionType;
   variant: ButtonVariant;
   onClick?: () => void;
-  label?: string; // Opcional, caso queira texto junto ao ícone
+  label?: string;
+  showIcon?: boolean; // Opção para mostrar ou ocultar o ícone
 }
 
-const ActionButton: React.FC<ActionButtonProps> = ({ action, variant, onClick, label }) => {
+const ActionButton: React.FC<ActionButtonProps> = ({ action, variant, onClick, label, showIcon }) => {
   
   // 1. Mapeamento de Ícones
   const icons: Record<ActionType, LucideIcon> = {
@@ -42,7 +43,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({ action, variant, onClick, l
         ${variantStyles[variant]}
       `}
     >
-      <Icon size={20} />
+      {showIcon && <Icon size={20} />} {/* Exibe o ícone se showIcon for true */  }
       {label && <span>{label}</span>}
     </button>
   );
