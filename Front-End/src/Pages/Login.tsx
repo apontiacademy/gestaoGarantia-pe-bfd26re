@@ -1,6 +1,7 @@
 import React from 'react';
 import Input from '../components/ui/Input';
 import ActionButton from '../components/ui/ActionButton';
+import logo from '../assets/logo.jpg';
 
 const Login: React.FC = () => {
   return (
@@ -9,10 +10,7 @@ const Login: React.FC = () => {
       {/* Logo e Texto de Boas-vindas */}
       <div className="flex flex-col items-center mb-8 text-center">
         <div className="mb-2">
-            {/*colocar imagem  */}
-            <h1 className="text-4xl font-bold text-[#8A5CF5] flex items-center gap-2">
-            <span className="rotate-45 block">◇</span> aponti
-          </h1>
+            <img src={logo} alt="Logo Aponti" title='Logo Aponti' width={250} />
         </div>
         <p className="text-gray-500 text-sm max-w-50">
           Faça login para começar gerenciar suas garantias!
