@@ -1,5 +1,5 @@
 // BOTÃO USADO QUE CONTENHAM APENAS O NOME (LOGIN, CADASTRO, SALVAR...)
-import "../../styles/variables.css"
+import "../../styles/global.css"
 
 //PROPRIEDADES DO BOTÃO
 type ButtonProps = {
@@ -21,8 +21,8 @@ export default function Button({
     // ATRIBUIR CORES, QUE VAI DEFINIR A VARIAÇÃO
     const variants: Record<NonNullable<ButtonProps["variant"]>, string> = {
     primary: "bg-gradient-to-r from-[var(--color-primary-start)] to-[var(--color-primary-end)] text-white", // VARIAÇÃO PARA TELAS ANTES DO LOGIN (COM DEGRADE)
-    secondary: "bg-white text-black", //VARIAÇÃO COM FUNDO BRANCO
-    ghost: "bg-transparent text-black border" //VARIAÇÃO GHOST (SEM COR DE FUNDO)
+    ghost: "bg-white text-black border", //VARIAÇÃO GHOST (SEM COR DE FUNDO)
+    secondary: "bg-gray text-black " //VARIAÇÃO COM FUNDO CINZA
 };
 
 return (
@@ -31,7 +31,7 @@ return (
         onClick={onClick}
         className={`
         ${variants[variant]}
-        hover:brightness-110 hover:shadow-lg
+        hover:brightness-110 hover:shadow-l
         active:scale-95 active:brightness-90
         transition-all duration-200
         font-medium 
