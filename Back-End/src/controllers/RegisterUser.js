@@ -12,7 +12,7 @@ async function registerUser(req, res) {
 
     const hash = await bcrypt.hash(senha, 10);
 
-    const emailExistente = await Usuario.findOne({ where: { emailNormalizado } });
+    const emailExistente = await Usuario.findOne({ where: { email: emailNormalizado } }); // Verificar se o email já existe no banco de dados
     if (emailExistente) {
         return res.status(400).json({ error: "Email já registrado" });
     }
