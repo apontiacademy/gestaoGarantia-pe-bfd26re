@@ -1,4 +1,5 @@
 import { X } from "lucide-react"
+
 type SidebarProps = {
     isOpen: boolean;
     onClose: () => void;
@@ -33,7 +34,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
                     <button
                         onClick={onClose}
-                        className="text-sm px-3 py-1 rounded hover:bg-gray-100"
+                        className="text-sm px-3 py-1 rounded hover:bg-gray-medium"
                     >
                         <X/>
                     </button>
@@ -41,15 +42,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
                 {/* CONTEÚDO */}
                 <nav className="p-4 space-y-3">
-                    <button className="block w-full text-left hover:bg-gray-100 p-2 rounded">
+                    <button className="block w-full text-left hover:bg-gray-medium p-2 rounded">
                         Minhas Garantias
                     </button>
 
-                    <button className="block w-full text-left hover:bg-gray-100 p-2 rounded">
+                    <button className="block w-full text-left hover:bg-gray-medium p-2 rounded">
                         Lixeira
                     </button>
 
-                    <button className="block w-full text-left hover:bg-gray-100 p-2 rounded">
+                    <button className="block w-full text-left hover:bg-gray-medium p-2 rounded">
                         Configurações
                     </button>
                 </nav>
