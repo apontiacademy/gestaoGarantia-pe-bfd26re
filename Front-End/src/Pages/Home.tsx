@@ -4,6 +4,7 @@ import LayoutHome from "../layout/LayoutHome";
 import Dashboard from "../components/Dashboard";
 import Button from "../components/ui/Button";
 import FloatingButton from "../components/ui/FloatingButton";
+import WarrantyCard from "../components/ui/WarrantyCard"
 
 export default function Home() {
     return (
@@ -45,12 +46,29 @@ export default function Home() {
 
 
             {/* GARANTIAS/GRUPOS DE GARANTIAS */}
-            <div className="
-                flex justify-center items-center 
-                m-4 py-16 rounded-lg
-                bg-white
-            ">
-                <p>Nenhuma Garantia Cadastrada</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 m-2 p-6 rounded-lg bg-white">
+                {/*<p>Nenhuma Garantia Cadastrada</p>*/}
+                <WarrantyCard
+                    title="Notbook Samsung"
+                    type="individual"
+                    status="ativa"
+                    details={[
+                        {label: "Fornecedor", value: "Samsung"},
+                        { label: "Vencimento", value: "01/01/2026" },
+                        { label: "Valor", value: "R$ 1.500,00" },
+                    ]}
+                    onViewMore={() => console.log("Ver mais")}
+                />
+                <WarrantyCard
+                    title="Garantias do FAP 2026"
+                    type="group"
+                    status="A Vencer"
+                    details={[
+                        {label: "Qtd. Itens", value: "5"},
+                        { label: "Vencimento", value: "15/03/2026" },
+                    ]}
+                    onViewMore={() => console.log("Ver mais")}
+                />
             </div>
 
         </LayoutHome>
