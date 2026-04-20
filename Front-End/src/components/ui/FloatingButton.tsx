@@ -21,7 +21,7 @@ const FloatingButton: React.FC<FloatingButtonProps> = ({
       className={`
         flex items-center justify-center 
         w-14 h-14 
-        bg-[#FFE796] hover:bg-[#DB9200] 
+        bg-yellow-button hover:bg-yellow-hover
         text-black 
         rounded-full 
         shadow-lg 
