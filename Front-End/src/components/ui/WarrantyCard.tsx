@@ -23,12 +23,12 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
   const Icon = type === 'individual' ? FileText : Files;
 
   return (
-    <div className="bg-[#D9D9D9] rounded-lg p-4 shadow-sm mb-4 w-full max-w-md">
+    <div className="bg-gray rounded-lg p-4 shadow-sm mb-4 w-full max-w-md">
       {/* Header do Card */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-2">
-          <Icon size={24} className="text-gray-700" />
-          <h3 className="font-bold text-lg text-gray-800">{title}</h3>
+          <Icon size={24} className="text-gray-secondary" />
+          <h3 className="font-bold text-lg text-gray-dark">{title}</h3>
         </div>
         <span className="bg-white px-3 py-1 rounded-md text-xs font-semibold shadow-sm">
           {status}
@@ -38,7 +38,7 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
       {/* Detalhes/Conteúdo */}
       <div className="space-y-1 mb-4">
         {details.map((item, index) => (
-          <p key={index} className="text-sm text-gray-700">
+          <p key={index} className="text-sm text-gray-dark">
             <span className="font-bold">{item.label}:</span> {item.value}
           </p>
         ))}
