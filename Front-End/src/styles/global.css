@@ -1,1 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&display=swap');
 @import "tailwindcss";
+
+@theme {
+    /* FONTE */
+    --font-sans: "Kantumruy Pro", sans-serif;
+
+    /* CORES PRINCIPAIS */
+    --color-primary: #6518ea;
+    --color-secondary: #ad7dff;
+    --color-pink: #dd90dd;
+    --color-pink-light: #ffb7ff;
+    --color-gray: #d9d9d9;
+    --color-gray-secondary: #374151;
+    --color-gray-dark: #1f2937;
+    --color-gray-medium: #9ca3af;
+    --color-fundo: #f8f7fc;
+    --color-yellow-button: #ffe796;
+    --color-yellow-hover: #db9200;
+
+
+    /* CORES DE ALERTAS */
+    --color-red: #d41414;
+    --color-yellow: #c99503;
+    --color-green: #478e2c;
+
+    /* CORES DO GRADIENTE */
+    --color-primary-start: #6518ea;
+    --color-primary-end: #dd90dd;
+}
+
+@layer base {
+    body {
+        font-family: var(--font-sans);
+    }
+}
