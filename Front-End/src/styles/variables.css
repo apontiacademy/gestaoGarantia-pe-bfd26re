@@ -1,7 +1,0 @@
-@import "tailwindcss";
-
-:root {
-    /* CORES DO GRADIENTE*/
-    --color-primary-start: #6518ea;
-    --color-primary-end: #dd90dd;
-}
