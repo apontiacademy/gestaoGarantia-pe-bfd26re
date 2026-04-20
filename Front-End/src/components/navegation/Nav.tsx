@@ -23,7 +23,7 @@ export default function Nav({
         <nav
             className="
         flex items-center justify-between
-        bg-[#AD7DFF]/30 backdrop-blur-md
+        bg-white backdrop-blur-md
         px-4 py-3"
         >
             {/* LEFT */}
