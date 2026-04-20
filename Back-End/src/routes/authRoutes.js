@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const controllerRegister = require('../controllers/RegisterUser');
+const controllerLogin = require('../controllers/loginAuth');
+const listarUsuarios = require('../controllers/RegisterUser');
 
 //MIDDLEWARE DE AUTENTICAÇÃO
 function autenticarToken(req, res, next) {
@@ -19,17 +22,18 @@ function autenticarToken(req, res, next) {
   }
 }
 
+
 // Rota de Registro
-router.post('/auth/register', (req, res) => {
-  res.status(201).json({ message: 'Página de registro' });
-});
+router.post('/auth/register', controllerRegister.registerUser);
 
 // Rota de Login
-router.post('/auth/login', (req, res) => {
-  res.status(200).json({ message: 'Página de login' });
-});
+router.post('/auth/login', controllerLogin.Login);
 
-// Rota de Recuperação de Senha
+// Rota para listar usuários (protegida por autenticação)
+router.get('/listar', controllerRegister.listarUsuarios);
+
+
+// Rota de Recuperação de Senha placeholder (a ser implementada)
 /* router.post('/forgot-password', autenticarToken, (req, res) => {
   res.status(200).json({ message: 'Página de recuperação de senha',
     user: req.user

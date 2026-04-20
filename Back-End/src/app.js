@@ -1,4 +1,6 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+console.log("Variáveis carregadas:", process.env.DB_NAME);
 
 const jwt = require('jsonwebtoken');
 
@@ -27,11 +29,8 @@ app.get('/', (req, res) => {
 });
 
 // Rotas de autenticação
-const routesRegister = require('./routes/routesRegister');
-app.use(routesRegister)
-
-const routeLogin = require('./routes/loginAuth');
-app.use(routeLogin);  
+const authRoutes = require('./routes/authRoutes');
+app.use('/', authRoutes);  
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

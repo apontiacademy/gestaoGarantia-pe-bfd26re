@@ -1,11 +1,13 @@
-{
+require('dotenv').config();
+
+module.exports = {
   "development": {
-    "username": "seu_usuario",
-    "password": "sua_senha",
-    "database": "nome_do_banco_dev",
-    "host": "127.0.0.1",
+    "username": process.env.DB_USER,
+    "password": process.env.DB_PASSWORD,
+    "database": process.env.DB_NAME,
+    "host": process.env.DB_HOST,
     "dialect": "postgres",
-    "port": 5432
+    "port": process.env.DB_PORT
   },
   "test": {
     "username": "seu_usuario",
