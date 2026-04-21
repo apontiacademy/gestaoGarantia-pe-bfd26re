@@ -1,7 +1,7 @@
 import React from 'react';
 import Input from '../components/ui/Input';
 import ActionButton from '../components/ui/ActionButton';
-import logo from '../assets/logo.jpg';
+import logo from '../assets/logos/logo.jpg';
 
 const Login: React.FC = () => {
   return (
