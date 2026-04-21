@@ -17,6 +17,7 @@
     --color-fundo: #f8f7fc;
     --color-yellow-button: #ffe796;
     --color-yellow-hover: #db9200;
+    --color-yellow-light: #fef9c3;
 
 
     /* CORES DE ALERTAS */
@@ -25,8 +26,8 @@
     --color-green: #478e2c;
 
     /* CORES DO GRADIENTE */
-    --color-primary-start: #6518ea;
-    --color-primary-end: #dd90dd;
+    --color-primary-start: #8A5CF5;
+    --color-primary-end: #B16CFA;
 }
 
 @layer base {
