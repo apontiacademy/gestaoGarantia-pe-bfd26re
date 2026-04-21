@@ -39,7 +39,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({ action, variant, onClick, l
       className={`
         flex items-center justify-center gap-2 
         px-4 py-2 rounded-lg font-medium 
-        transition-all active:scale-95 
+        transition-all active:scale-95 cursor-pointer
         ${variantStyles[variant]}
       `}
     >
