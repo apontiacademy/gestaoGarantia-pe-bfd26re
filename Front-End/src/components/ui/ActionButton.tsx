@@ -26,11 +26,11 @@ const ActionButton: React.FC<ActionButtonProps> = ({ action, variant, onClick, l
   // 2. Mapeamento de Estilos (Variantes da Priscila)
   const variantStyles: Record<ButtonVariant, string> = {
     // Roxo degradê (Login)
-    primary: "bg-gradient-to-r from-[#8A5CF5] to-[#B16CFA] text-white border-none",
+    primary: "bg-gradient-to-r from-[var(--color-primary-start)] to-[var(--color-primary-end)] text-white border-none",
     // Branco com borda (Salvar Garantia)
-    secondary: "bg-white text-gray-800 border border-gray-300 shadow-sm",
+    secondary: "bg-gray text-black border border-gray-300 shadow-sm",
     // Cinza (Cancelar)
-    ghost: "bg-[#E0E0E0] text-gray-700 border-none hover:bg-gray-300",
+    ghost: "bg-white text-black border hover:bg-gray",
   };
 
   return (
