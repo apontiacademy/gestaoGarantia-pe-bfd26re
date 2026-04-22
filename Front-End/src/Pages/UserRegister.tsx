@@ -2,7 +2,7 @@ import { useState } from "react";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import { Link } from "react-router-dom";
-import logobranco from "../assets/logos/logobranco2.svg"
+import logobranco from "../Assets/logos/logobranco2.svg"
 import { Eye, EyeOff } from "lucide-react";
 
 export default function UserRegister() {

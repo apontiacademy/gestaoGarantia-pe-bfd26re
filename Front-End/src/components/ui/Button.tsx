@@ -8,6 +8,8 @@ type ButtonProps = {
     type?: "button" | "submit" | "reset";
     variant?: "primary" | "secondary" | "ghost";
     className?: string;
+    disabled?: boolean;
+    loading?: boolean;
 };
 
 export default function Button({
@@ -15,8 +17,12 @@ export default function Button({
     onClick,
     type = "button", // VALOR INICIAL ATRIBUIDO BUTTON (PODE MUDAR PARA SUBMIT OU RESET, SE NECESSÁRIO)
     variant = "primary", // VALOR INICIAL ATRIBUIDO COMO PRIMEIRA VARIANTE (COM DEGARDE DE FUNDO)
-    className = ""
+    className = "",
+    disabled = false,
+    loading = false
 }: ButtonProps) {
+
+    const isDisabled = disabled || loading;
 
     // ATRIBUIR CORES, QUE VAI DEFINIR A VARIAÇÃO
     const variants: Record<NonNullable<ButtonProps["variant"]>, string> = {
@@ -29,6 +35,7 @@ return (
     <button
         type={type}
         onClick={onClick}
+        disabled={isDisabled}
         className={`
         ${variants[variant]}
         hover:brightness-110 hover:shadow-l
