@@ -2,6 +2,7 @@ const{ Usuario } = require('../models');
 const jwt = require('jsonwebtoken');
 const{ compararSenha }= require("../utils/hash");
 
+// Função para autenticar usuário e gerar token JWT
 async function Login(req, res) {
     const { email, senha } = req.body;
 

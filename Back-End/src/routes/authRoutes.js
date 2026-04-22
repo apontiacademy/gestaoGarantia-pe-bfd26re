@@ -3,6 +3,7 @@ const router = express.Router();
 const controllerRegister = require('../controllers/RegisterUser');
 const controllerLogin = require('../controllers/loginAuth');
 const listarUsuarios = require('../controllers/RegisterUser');
+const controllerProduto = require('../controllers/RegisterEquipments');
 
 //MIDDLEWARE DE AUTENTICAÇÃO
 function autenticarToken(req, res, next) {
@@ -32,6 +33,9 @@ router.post('/auth/login', controllerLogin.Login);
 // Rota para listar usuários (protegida por autenticação)
 router.get('/listar', controllerRegister.listarUsuarios);
 
+// Rota de provisória de produtos
+router.post('/produtos/:idUsuario', controllerProduto.RegistrarProduto);
+router.get('/produtos', controllerProduto.listarProdutos);
 
 // Rota de Recuperação de Senha placeholder (a ser implementada)
 /* router.post('/forgot-password', autenticarToken, (req, res) => {

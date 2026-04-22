@@ -1,6 +1,7 @@
 const{Usuario} = require('../models');
 const bcrypt = require('bcrypt');
 
+// Função para registrar um novo usuário
 async function registerUser(req, res) {
   const { nomeCompleto, email, senha } = req.body;
 
@@ -35,7 +36,7 @@ async function registerUser(req, res) {
   }
 }
 
-
+// Função para listar usuários (protegida por autenticação)
 async function listarUsuarios(req, res) {
     try{
         const usuarios = await Usuario.findAll();
