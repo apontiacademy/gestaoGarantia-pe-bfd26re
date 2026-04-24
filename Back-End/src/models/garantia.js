@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      this.belongsTo(models.Produto,{foreignKey:'produto_id', as: 'produtos'}); //Associal com model Produto
+      this.belongsTo(models.Produto,{foreignKey:'produto_id', as: 'produto'}); //Associal com model Produto
     }
   }
   Garantia.init({

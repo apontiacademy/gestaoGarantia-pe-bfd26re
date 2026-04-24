@@ -149,3 +149,9 @@ exports.excluirGarantia = async (req, res) => {
     return res.status(504).json({ erro: error.message });
   }
 };
+
+//Validação do tipo
+const tiposValidos = ['Normal', 'Estendida'];
+if (!tiposValidos. includes(req.body.tipo)){
+  return res.status(400).json({erro: 'Tipo inválido'})
+} 

@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Garantia', {
+    await queryInterface.createTable('Garantias', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -13,7 +13,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Produto',
+          model: 'Produtos',
           key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -31,9 +31,6 @@ module.exports = {
       tipo: {
         type: Sequelize.STRING,
         allowNull: false,
-        validate: {
-          isIn: [['Normal', 'Estendida']]
-        }
       },
       data_cadastro: {
         type: Sequelize.DATE
