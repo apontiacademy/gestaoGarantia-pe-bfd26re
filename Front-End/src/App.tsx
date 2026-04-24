@@ -6,6 +6,7 @@ import Login from "./Pages/Login";
 import UserRegister from "./Pages/UserRegister";
 import Home from "./Pages/Home";
 import ForgotPassword from "./Pages/ForgotPassword";
+import CreateWarranty from "./Pages/CreatreWarranty";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/create-warranty" element={<CreateWarranty />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
