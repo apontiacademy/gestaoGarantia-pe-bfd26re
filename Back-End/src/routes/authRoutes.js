@@ -45,6 +45,7 @@ router.get('/garantias', controllerGarantia.listarGarantias);
 //listar Garantia por id
 router.get('/garantias/:id', controllerGarantia.listarGarantiaPorId);
 router.put('/garantias/:id', controllerGarantia.atualizarGarantia);
+router.patch('/garantias/:id', controllerGarantia.atualizarStatusGarantia);
 router.delete('/garantias/:id', controllerGarantia.excluirGarantia);
 
 
