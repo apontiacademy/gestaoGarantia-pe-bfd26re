@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       this.belongsTo(models.Usuario, { foreignKey: 'idUsuario', as: 'usuario' }); // Associação com o modelo Usuario, usando idUsuario como chave estrangeira
-      this.hasMany(models.Garantia, {foreignKey: 'produto_id', as:'Garantia'}); //  Associação com modelo Garantia
+      this.hasMany(models.Garantia, {foreignKey: 'produto_id', as:'garantia'}); //  Associação com modelo Garantia
     }
   }
   Produto.init({
