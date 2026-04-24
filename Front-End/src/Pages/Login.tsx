@@ -76,7 +76,7 @@ export default function Login() {
           </Button>
         </div>
 
-        <button className="text-sm text-gray-dark hover:underline text-center">
+        <button className="text-sm text-gray-dark hover:underline text-center" onClick={() => navigate("/forgot-password")}>
           Esqueceu a senha?
         </button>
 
@@ -89,6 +89,14 @@ export default function Login() {
         <Button variant="primary" onClick={() => navigate("/register")}>
           Criar nova conta
         </Button>
+
+        <Button
+          variant="primary"
+          onClick={() => navigate("/home-demo")}
+        >
+          Entrar como visitante
+        </Button>
+
       </div>
     </div>
   );

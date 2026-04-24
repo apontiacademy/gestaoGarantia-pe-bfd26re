@@ -1,4 +1,5 @@
 import React from 'react';
+import logoAponti from '../Assets/logos/logoAponti.svg';
 import { useNavigate } from 'react-router-dom';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
@@ -20,7 +21,7 @@ export default function ForgotPassword() {
       {/* Logo Aponti  */}
       <div className="mb-10 text-center">
         <h1 className="text-white text-4xl font-bold italic tracking-tighter">
-          aponti<span className="text-[var(--color-primary-end)]">.</span>
+          <img src={logoAponti} alt="Logo Aponti" className="w-70 drop-shadow-lg" />
         </h1>
       </div>
 
@@ -53,7 +54,7 @@ export default function ForgotPassword() {
         <footer className="mt-8 flex justify-center border-t border-gray-100 pt-6">
           <button 
             onClick={() => navigate('/login')}
-            className="flex items-center gap-2 text-sm font-semibold text-gray-medium hover:text-[var(--color-primary-start)] transition-colors"
+            className="flex items-center gap-2 text-sm font-semibold text-gray-medium hover:text-primary-start transition-colors"
           >
             <ArrowLeft size={18} />
             Voltar para o Login
