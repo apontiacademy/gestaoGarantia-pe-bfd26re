@@ -10,7 +10,14 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       produto_id: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'Produto',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        ondeDelete: 'CASCADE'
       },
       prazo_dias: {
         type: Sequelize.INTEGER
@@ -22,7 +29,11 @@ module.exports = {
         type: Sequelize.DATE
       },
       tipo: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false,
+        validade: {
+          isIn: [['Normal', ' Estendida']]
+        }
       },
       data_cadastro: {
         type: Sequelize.DATE
