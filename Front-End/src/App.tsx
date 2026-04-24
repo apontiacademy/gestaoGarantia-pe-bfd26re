@@ -5,6 +5,7 @@ import Splash from "./Pages/Splash";
 import Login from "./Pages/Login";
 import UserRegister from "./Pages/UserRegister";
 import Home from "./Pages/Home";
+import ForgotPassword from "./Pages/ForgotPassword";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
