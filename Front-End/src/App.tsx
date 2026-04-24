@@ -25,6 +25,7 @@ function App() {
             }
           />
           <Route path="/create-warranty" element={<CreateWarranty />} />
+          <Route path="/home-demo" element={<Home />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
