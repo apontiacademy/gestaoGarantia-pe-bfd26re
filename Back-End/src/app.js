@@ -19,9 +19,11 @@ if (!process.env.JWT_SECRET) {
 
 const express = require('express');
 const app = express();
+const cors = require('cors');
 
 // Middleware para ler JSON no corpo das requisições
 app.use(express.json());
+app.use(cors());
 
 // Rota de teste
 app.get('/', (req, res) => {
