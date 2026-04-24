@@ -4,6 +4,7 @@ const controllerRegister = require('../controllers/RegisterUser');
 const controllerLogin = require('../controllers/loginAuth');
 const listarUsuarios = require('../controllers/RegisterUser');
 const controllerProduto = require('../controllers/RegisterEquipments');
+const controllerGarantia = require('../controllers/GarantiaController');
 
 //MIDDLEWARE DE AUTENTICAÇÃO
 function autenticarToken(req, res, next) {
@@ -36,6 +37,16 @@ router.get('/listar', controllerRegister.listarUsuarios);
 // Rota de provisória de produtos
 router.post('/produtos/:idUsuario', controllerProduto.RegistrarProduto);
 router.get('/produtos', controllerProduto.listarProdutos);
+
+// Rota  de garantia
+router.post('/garantias', controllerGarantia.RegistrarGarantia);
+//listar garantia
+router.get('/garantias', controllerGarantia.listarGarantias);
+//listar Garantia por id
+router.get('/garantias/:id', controllerGarantia.listarGarantiaPorId);
+router.put('/garantias/:id', controllerGarantia.atualizarGarantia);
+router.delete('/garantias/:id', controllerGarantia.excluirGarantia);
+
 
 // Rota de Recuperação de Senha placeholder (a ser implementada)
 /* router.post('/forgot-password', autenticarToken, (req, res) => {
