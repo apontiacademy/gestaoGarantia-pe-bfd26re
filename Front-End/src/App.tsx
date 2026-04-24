@@ -23,6 +23,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/home-demo" element={<Home />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
