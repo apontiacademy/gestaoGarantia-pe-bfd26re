@@ -1,0 +1,151 @@
+const { Garantia, Produto } = require('../models');
+
+// Criar garantia
+exports.RegistrarGarantia = async (req, res) => {
+  try {
+    const { produto_id, prazo_dias, data_inicio, tipo, observacao } = req.body;
+
+    // cálculo da data_fim
+    const dataFim = new Date(data_inicio);
+    dataFim.setDate(dataFim.getDate() + prazo_dias);
+
+    const garantia = await Garantia.create({
+      produto_id,
+      prazo_dias,
+      data_inicio,
+      data_fim: dataFim,
+      tipo,
+      observacao,
+      data_cadastro: new Date()
+    });
+
+    return res.status(201).json(garantia);
+  } catch (error) {
+    return res.status(504).json({ erro: error.message });
+  }
+};
+
+// Listar todas
+exports.listarGarantias = async (req, res) => {
+  try {
+    const garantias = await Garantia.findAll({
+      where: { deletado_em: null },
+      include: [
+        {
+          model: Produto,
+          as: 'produtos'
+        }
+      ]
+    });
+
+    return res.json(garantias);
+  } catch (error) {
+    return res.status(504).json({ erro: error.message });
+  }
+};
+
+// Buscar por ID
+exports.listarGarantiaPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const garantia = await Garantia.findOne({
+      where: { id, deletado_em: null },
+      include: [
+        {
+          model: Produto,
+          as: 'produtos'
+        }
+      ]
+    });
+
+    if (!garantia) {
+      return res.status(404).json({ mensagem: 'Garantia não encontrada' });
+    }
+
+    return res.json(garantia);
+  } catch (error) {
+    return res.status(504).json({ erro: error.message });
+  }
+};
+
+// Atualizar (PUT)
+exports.atualizarGarantia = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { produto_id, prazo_dias, data_inicio, tipo, observacao } = req.body;
+
+    const dataFim = new Date(data_inicio);
+    dataFim.setDate(dataFim.getDate() + prazo_dias);
+
+    await Garantia.update({
+      produto_id,
+      prazo_dias,
+      data_inicio,
+      data_fim: dataFim,
+      tipo,
+      observacao
+    }, {
+      where: { id }
+    });
+
+    const garantiaAtualizada = await Garantia.findByPk(id);
+
+    return res.json(garantiaAtualizada);
+  } catch (error) {
+    return res.status(504).json({ erro: error.message });
+  }
+};
+
+// Atualização parcial (PATCH)
+exports.atualizarStatusGarantia = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const dados = req.body;
+
+    const garantia = await Garantia.findByPk(id);
+
+    if (!garantia) {
+      return res.status(404).json({ mensagem: 'Garantia não encontrada' });
+    }
+
+    // recalcula data_fim se necessário
+    if (dados.prazo_dias || dados.data_inicio) {
+      const dataInicio = dados.data_inicio || garantia.data_inicio;
+      const prazo = dados.prazo_dias || garantia.prazo_dias;
+
+      const dataFim = new Date(dataInicio);
+      dataFim.setDate(dataFim.getDate() + prazo);
+
+      dados.data_fim = dataFim;
+    }
+
+    await Garantia.update(dados, {
+      where: { id }
+    });
+
+    const garantiaAtualizada = await Garantia.findByPk(id);
+
+    return res.json(garantiaAtualizada);
+  } catch (error) {
+    return res.status(504).json({ erro: error.message });
+  }
+};
+
+// Soft delete
+exports.excluirGarantia = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await Garantia.update({
+      deletado_em: new Date(),
+      deletado_por: 'sistema' // depois pode vir do token
+    }, {
+      where: { id }
+    });
+
+    return res.json({ mensagem: 'Garantia excluída com sucesso' });
+  } catch (error) {
+    return res.status(504).json({ erro: error.message });
+  }
+};

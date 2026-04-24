@@ -17,7 +17,7 @@ module.exports = {
           key: 'id'
         },
         onUpdate: 'CASCADE',
-        ondeDelete: 'CASCADE'
+        onDelete: 'CASCADE'
       },
       prazo_dias: {
         type: Sequelize.INTEGER
@@ -31,8 +31,8 @@ module.exports = {
       tipo: {
         type: Sequelize.STRING,
         allowNull: false,
-        validade: {
-          isIn: [['Normal', ' Estendida']]
+        validate: {
+          isIn: [['Normal', 'Estendida']]
         }
       },
       data_cadastro: {
