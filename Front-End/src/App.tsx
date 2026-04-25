@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/routes/ProtectedRoute";
 import Splash from "./Pages/Splash";
@@ -7,6 +12,7 @@ import UserRegister from "./Pages/UserRegister";
 import Home from "./Pages/Home";
 import ForgotPassword from "./Pages/ForgotPassword";
 import CreateWarranty from "./Pages/CreateWarranty";
+import LixeiraScreen from "./Pages/Lixeira";
 
 function App() {
   return (
@@ -18,6 +24,7 @@ function App() {
           <Route path="/register" element={<UserRegister />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/home-demo" element={<Home />} />
+          <Route path="/lixeira" element={<LixeiraScreen />} />
           <Route
             path="/home"
             element={

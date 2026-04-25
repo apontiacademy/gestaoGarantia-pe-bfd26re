@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { Bell, TextAlignStart } from "lucide-react";
-import Nav from "../components/navegation/Nav";
-import Sidebar from "../components/navegation/Siderbar";
+
 
 interface LayoutHomeProps {
     children: React.ReactNode;
