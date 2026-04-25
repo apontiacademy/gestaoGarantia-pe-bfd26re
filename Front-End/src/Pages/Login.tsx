@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import { useAuth } from "../contexts/AuthContext";
@@ -8,15 +8,18 @@ import logoAponti from "../Assets/logos/logoAponti.svg";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
   const [form, setForm] = useState({ email: "", senha: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const successMessage = location.state?.message;
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setError(""); // limpa erro ao digitar
+    setError("");
   };
 
   const handleSubmit = async () => {
@@ -24,11 +27,10 @@ export default function Login() {
       setError("Preencha todos os campos.");
       return;
     }
-
     setLoading(true);
     try {
       const { token, user } = await authService.login(form);
-      login(token, user); // salva no contexto e localStorage
+      login(token, user);
       navigate("/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao fazer login.");
@@ -48,6 +50,12 @@ export default function Login() {
       </div>
 
       <div className="w-full max-w-sm bg-gray rounded-xl p-6 shadow-xl flex flex-col gap-4">
+      {successMessage && (
+          <p className="text-xs text-green text-center bg-green/10 rounded-lg px-3 py-2">
+            {successMessage}
+          </p>
+        )}
+
         <Input
           label="Email"
           type="email"
@@ -67,8 +75,7 @@ export default function Login() {
           className="bg-white border-none"
         />
 
-        {/* Erro geral do formulário */}
-        {error && <p className="text-xs text-red text-center">{error}</p>}
+        {error && <p className="text-xs text-red text-center -mt-1">{error}</p>}
 
         <div className="mt-2 flex justify-center">
           <Button variant="primary" onClick={handleSubmit} disabled={loading}>
@@ -76,7 +83,10 @@ export default function Login() {
           </Button>
         </div>
 
-        <button className="text-sm text-gray-dark hover:underline text-center" onClick={() => navigate("/forgot-password")}>
+        <button
+          className="text-sm text-gray-dark hover:underline text-center"
+          onClick={() => navigate("/forgot-password")}
+        >
           Esqueceu a senha?
         </button>
 
@@ -90,13 +100,9 @@ export default function Login() {
           Criar nova conta
         </Button>
 
-        <Button
-          variant="primary"
-          onClick={() => navigate("/home-demo")}
-        >
+        <Button variant="primary" onClick={() => navigate("/home-demo")}>
           Entrar como visitante
         </Button>
-
       </div>
     </div>
   );
