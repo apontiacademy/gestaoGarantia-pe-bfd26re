@@ -1,9 +1,15 @@
 const { Garantia, Produto } = require('../models');
 
 // Criar garantia
-exports.RegistrarGarantia = async (req, res) => {
+async function RegistrarGarantia (req, res) {
   try {
     const { produto_id, prazo_dias, data_inicio, tipo, observacao } = req.body;
+
+    //Verificação do tipo de garantia
+    const tiposValidos = ['Normal', 'Estendida'];
+      if (!tiposValidos.includes(tipo)) {
+      return res.status(400).json({ erro: 'Tipo inválido' });
+    }
 
     // cálculo da data_fim
     const dataFim = new Date(data_inicio);
@@ -26,7 +32,7 @@ exports.RegistrarGarantia = async (req, res) => {
 };
 
 // Listar todas
-exports.listarGarantias = async (req, res) => {
+async function listarGarantias (req, res) {
   try {
     const garantias = await Garantia.findAll({
       where: { deletado_em: null },
@@ -45,7 +51,7 @@ exports.listarGarantias = async (req, res) => {
 };
 
 // Buscar por ID
-exports.listarGarantiaPorId = async (req, res) => {
+async function listarGarantiaPorId (req, res){
   try {
     const { id } = req.params;
 
@@ -70,7 +76,7 @@ exports.listarGarantiaPorId = async (req, res) => {
 };
 
 // Atualizar (PUT)
-exports.atualizarGarantia = async (req, res) => {
+async function atualizarGarantia (req, res) {
   try {
     const { id } = req.params;
     const { produto_id, prazo_dias, data_inicio, tipo, observacao } = req.body;
@@ -98,7 +104,7 @@ exports.atualizarGarantia = async (req, res) => {
 };
 
 // Atualização parcial (PATCH)
-exports.atualizarStatusGarantia = async (req, res) => {
+async function atualizarStatusGarantia(req, res) {
   try {
     const { id } = req.params;
     const dados = req.body;
@@ -133,7 +139,7 @@ exports.atualizarStatusGarantia = async (req, res) => {
 };
 
 // Soft delete
-exports.excluirGarantia = async (req, res) => {
+async function excluirGarantia(req, res) {
   try {
     const { id } = req.params;
 
@@ -150,8 +156,4 @@ exports.excluirGarantia = async (req, res) => {
   }
 };
 
-//Validação do tipo
-const tiposValidos = ['Normal', 'Estendida'];
-if (!tiposValidos. includes(req.body.tipo)){
-  return res.status(400).json({erro: 'Tipo inválido'})
-} 
+module.exports = {RegistrarGarantia, listarGarantias, listarGarantiaPorId, atualizarGarantia, atualizarStatusGarantia, excluirGarantia};
