@@ -39,7 +39,7 @@ async function listarGarantias (req, res) {
       include: [
         {
           model: Produto,
-          as: 'produtos'
+          as: 'produto'
         }
       ]
     });
