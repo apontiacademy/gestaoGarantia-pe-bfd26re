@@ -5,24 +5,9 @@ const controllerLogin = require('../controllers/loginAuth');
 const listarUsuarios = require('../controllers/RegisterUser');
 const controllerProduto = require('../controllers/RegisterEquipments');
 const controllerGarantia = require('../controllers/GarantiaController');
-
-//MIDDLEWARE DE AUTENTICAÇÃO
-function autenticarToken(req, res, next) {
-  const authHeader = req.headers.authorization;
-
-  if(!authHeader) {
-    return res.status(401).json({ message: 'Token de autenticação não fornecido' });
-  }
-
-  const token = authHeader.split(" ")[1]; // Espera o formato "Bearer <token>"
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (error) {
-    return res.status(403).json({ message: 'Token inválido' });
-  }
-}
+const autenticarToken = require("../Middlwares/authToken");
+const db = require('../models');
+const Usuario  = db.Usuario;
 
 
 // Rota de Registro
@@ -30,6 +15,26 @@ router.post('/auth/register', controllerRegister.registerUser);
 
 // Rota de Login
 router.post('/auth/login', controllerLogin.Login);
+
+//Rota para obter o perfil do usuário autenticado(COM TOKEN!!)
+router.get('/auth/profile', autenticarToken, async (req, res) =>{
+  try{
+    const userId = req.usuario.id; // Supondo que o ID do usuário esteja presente no token
+    const user = await Usuario.findByPk(userId);
+
+    if(!user){
+      return res.status(404).json({error: "Usuário não encontrado"});
+    }
+    res.status(200).json({user : {
+      id: user.id,
+      nome: user.nome,
+      email: user.email
+    }});
+  } catch (error){
+    console.error("Erro ao buscar perfil do usuário:", error);
+    res.status(500).json({error: "Erro interno do servidor"});
+  }
+});
 
 // Rota para listar usuários (protegida por autenticação)
 router.get('/listar', controllerRegister.listarUsuarios);

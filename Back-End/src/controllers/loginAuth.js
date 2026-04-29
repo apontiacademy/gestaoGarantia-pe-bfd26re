@@ -30,9 +30,11 @@ async function Login(req, res) {
         return res.status(401).json({ error: "Senha incorreta" });
     }
 
-    const token = jwt.sign({ idUsuario: usuario.idUsuario }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: usuario.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    res.status(200).json({ token });
+    //AO FAZER LOGIN SO DEVE RETORNAR O TOKEN + INFORMAÇÔES BASICAS, NUNCA RETORNAR SENHA
+    res.status(200).json({ token, usuario: 
+        { id: usuario.id, nome: usuario.nome, email: usuario.email } });
 }
 
 module.exports = { Login };
