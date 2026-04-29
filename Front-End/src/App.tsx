@@ -13,6 +13,7 @@ import Home from "./Pages/Home";
 import ForgotPassword from "./Pages/ForgotPassword";
 import CreateWarranty from "./Pages/CreateWarranty";
 import LixeiraScreen from "./Pages/Lixeira";
+import AuthLayout from "./layout/AuthLayout"
 
 function App() {
   return (
@@ -20,8 +21,10 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Splash />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<UserRegister />} />
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<UserRegister />} />
+          </Route>
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/home-demo" element={<Home />} />
           <Route path="/lixeira" element={<LixeiraScreen />} />
