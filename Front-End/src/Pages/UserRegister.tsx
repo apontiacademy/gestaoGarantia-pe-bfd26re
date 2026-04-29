@@ -4,7 +4,7 @@ import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import { Eye, EyeOff } from "lucide-react";
 import { authService } from "../services/authService";
-import logobranco from "../Assets/logos/logobranco2.svg";
+import logobranco from "../Assets/logos/logobranco.svg";
 
 export default function UserRegister() {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ export default function UserRegister() {
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({
-    nomeCompleto: "", 
+    nomeCompleto: "",
     email: "",
     senha: "",
   });

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import logo from "../Assets/logos/logo.jpg";
+import logo from "../Assets/logos/logoAponti.svg";
 
 export default function Splash() {
   const navigate = useNavigate();
