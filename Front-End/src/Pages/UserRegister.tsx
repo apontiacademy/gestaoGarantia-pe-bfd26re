@@ -75,8 +75,8 @@ export default function UserRegister() {
             <Input
               label="Nome"
               type="text"
-              name="nome"
-              placeholder="Nome"
+              name="nomeCompleto"
+              placeholder="Nome Completo"
               value={form.nomeCompleto}
               onChange={handleChange}
             />
