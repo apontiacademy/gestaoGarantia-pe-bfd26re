@@ -22,13 +22,14 @@ async function Login(req, res) {
       return res.status(401).json({ error: "Senha incorreta" });
     }
 
+    // Token com duração maior (8h) + retorno do usuário
     const token = jwt.sign(
       { idUsuario: usuario.id },
       process.env.JWT_SECRET,
       { expiresIn: '8h' }
     );
 
-    // Retorna token + dados do usuário (sem a senha)
+    // Retorna token + dados básicos do usuário (nunca a senha)
     return res.status(200).json({
       token,
       user: {
@@ -37,6 +38,7 @@ async function Login(req, res) {
         email: usuario.email,
       }
     });
+
   } catch (error) {
     console.error("Erro ao fazer login:", error);
     return res.status(500).json({ error: "Erro ao fazer login" });

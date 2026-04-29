@@ -1,20 +1,17 @@
 const { Garantia, Produto } = require('../models');
 
-// Criar garantia
-exports.RegistrarGarantia = async (req, res) => {
+async function RegistrarGarantia(req, res) {
   try {
     const { produto_id, prazo_dias, data_inicio, tipo, observacao } = req.body;
 
     const tiposValidos = ['Normal', 'Estendida'];
-
     if (!tipo || !tiposValidos.includes(tipo)) {
       return res.status(400).json({ 
-        erro: 'Tipo inválido', 
+        erro: 'Tipo inválido',
         tiposAceitos: tiposValidos 
       });
     }
 
-    // cálculo da data_fim
     const dataFim = new Date(data_inicio);
     dataFim.setDate(dataFim.getDate() + prazo_dias);
 
@@ -30,31 +27,30 @@ exports.RegistrarGarantia = async (req, res) => {
 
     return res.status(201).json(garantia);
   } catch (error) {
-    return res.status(504).json({ erro: error.message });
+    console.error("Erro ao registrar garantia:", error);
+    return res.status(500).json({ erro: error.message });
   }
-};
+}
 
-// Listar todas
-exports.listarGarantias = async (req, res) => {
+async function listarGarantias(req, res) {
   try {
     const garantias = await Garantia.findAll({
       where: { deletado_em: null },
       include: [
         {
           model: Produto,
-          as: 'produtos'
+          as: 'produto'
         }
       ]
     });
 
     return res.json(garantias);
   } catch (error) {
-    return res.status(504).json({ erro: error.message });
+    return res.status(500).json({ erro: error.message });
   }
-};
+}
 
-// Buscar por ID
-exports.listarGarantiaPorId = async (req, res) => {
+async function listarGarantiaPorId(req, res) {
   try {
     const { id } = req.params;
 
@@ -74,12 +70,11 @@ exports.listarGarantiaPorId = async (req, res) => {
 
     return res.json(garantia);
   } catch (error) {
-    return res.status(504).json({ erro: error.message });
+    return res.status(500).json({ erro: error.message });
   }
-};
+}
 
-// Atualizar (PUT)
-exports.atualizarGarantia = async (req, res) => {
+async function atualizarGarantia(req, res) {
   try {
     const { id } = req.params;
     const { produto_id, prazo_dias, data_inicio, tipo, observacao } = req.body;
@@ -99,62 +94,62 @@ exports.atualizarGarantia = async (req, res) => {
     });
 
     const garantiaAtualizada = await Garantia.findByPk(id);
-
     return res.json(garantiaAtualizada);
   } catch (error) {
-    return res.status(504).json({ erro: error.message });
+    return res.status(500).json({ erro: error.message });
   }
-};
+}
 
-// Atualização parcial (PATCH)
-exports.atualizarStatusGarantia = async (req, res) => {
+async function atualizarStatusGarantia(req, res) {
   try {
     const { id } = req.params;
     const dados = req.body;
 
     const garantia = await Garantia.findByPk(id);
-
     if (!garantia) {
       return res.status(404).json({ mensagem: 'Garantia não encontrada' });
     }
 
-    // recalcula data_fim se necessário
     if (dados.prazo_dias || dados.data_inicio) {
       const dataInicio = dados.data_inicio || garantia.data_inicio;
       const prazo = dados.prazo_dias || garantia.prazo_dias;
 
       const dataFim = new Date(dataInicio);
       dataFim.setDate(dataFim.getDate() + prazo);
-
       dados.data_fim = dataFim;
     }
 
-    await Garantia.update(dados, {
-      where: { id }
-    });
+    await Garantia.update(dados, { where: { id } });
 
     const garantiaAtualizada = await Garantia.findByPk(id);
-
     return res.json(garantiaAtualizada);
   } catch (error) {
-    return res.status(504).json({ erro: error.message });
+    return res.status(500).json({ erro: error.message });
   }
-};
+}
 
-// Soft delete
-exports.excluirGarantia = async (req, res) => {
+async function excluirGarantia(req, res) {
   try {
     const { id } = req.params;
 
     await Garantia.update({
       deletado_em: new Date(),
-      deletado_por: 'sistema' // depois pode vir do token
+      deletado_por: 'sistema'
     }, {
       where: { id }
     });
 
     return res.json({ mensagem: 'Garantia excluída com sucesso' });
   } catch (error) {
-    return res.status(504).json({ erro: error.message });
+    return res.status(500).json({ erro: error.message });
   }
+}
+
+module.exports = {
+  RegistrarGarantia,
+  listarGarantias,
+  listarGarantiaPorId,
+  atualizarGarantia,
+  atualizarStatusGarantia,
+  excluirGarantia
 };
