@@ -16,7 +16,6 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
-
 const express = require('express');
 const app = express();
 const cors = require('cors');

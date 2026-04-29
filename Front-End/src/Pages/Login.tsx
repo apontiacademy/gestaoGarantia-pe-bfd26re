@@ -15,7 +15,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const successMessage = location.state?.message;
+  const successMessage = location.state?.message as string | undefined;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -55,7 +55,7 @@ export default function Login() {
             {successMessage}
           </p>
         )}
-
+      
         <Input
           label="Email"
           type="email"

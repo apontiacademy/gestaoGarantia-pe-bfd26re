@@ -1,25 +1,55 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
-import { Link } from "react-router-dom";
-import logobranco from "../Assets/logos/logobranco2.svg"
 import { Eye, EyeOff } from "lucide-react";
+import { authService } from "../services/authService";
+import logobranco from "../Assets/logos/logobranco2.svg";
 
 export default function UserRegister() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [accepted, setAccepted] = useState(false);
-  const [form, setForm] = useState({ nome: "", email: "", senha: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const [form, setForm] = useState({
+    nomeCompleto: "", 
+    email: "",
+    senha: "",
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setError("");
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!accepted) {
-      alert("Você precisa aceitar os Termos e a Política de Privacidade.");
+      setError("Aceite os Termos e a Política de Privacidade.");
       return;
     }
-    console.log("Criar conta:", form);
+    if (!form.nomeCompleto || !form.email || !form.senha) {
+      setError("Preencha todos os campos.");
+      return;
+    }
+    if (form.senha.length < 6) {
+      setError("A senha precisa ter pelo menos 6 caracteres.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await authService.register(form);
+      // Redireciona pro login com mensagem de sucesso
+      navigate("/login", {
+        state: { message: "Conta criada com sucesso! Faça login para continuar." },
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao criar conta.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -47,7 +77,7 @@ export default function UserRegister() {
               type="text"
               name="nome"
               placeholder="Nome"
-              value={form.nome}
+              value={form.nomeCompleto}
               onChange={handleChange}
             />
 

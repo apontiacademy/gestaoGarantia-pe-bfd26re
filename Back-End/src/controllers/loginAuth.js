@@ -1,38 +1,46 @@
-const{ Usuario } = require('../models');
+const { Usuario } = require('../models');
 const jwt = require('jsonwebtoken');
-const{ compararSenha }= require("../utils/hash");
+const { compararSenha } = require("../utils/hash");
 
-// Função para autenticar usuário e gerar token JWT
 async function Login(req, res) {
-    const { email, senha } = req.body;
+  const { email, senha } = req.body;
 
-    if(!email || !senha) {
-        return res.status(400).json({ error: "Todos os campos são obrigatórios" });
-    }
+  if (!email || !senha) {
+    return res.status(400).json({ error: "Todos os campos são obrigatórios" });
+  }
 
+  try {
     const emailNormalizado = email.toLowerCase();
+    const usuario = await Usuario.findOne({ where: { email: emailNormalizado } });
 
-        let usuario;
-    try{
-        usuario = await Usuario.findOne({ where: { email: emailNormalizado } });
-
-        if (!usuario) {
-            return res.status(404).json({ error: "Usuário não encontrado" });
-        }
-    } catch (error) {
-        console.error("Erro ao fazer login:", error);
-        res.status(500).json({ error: "Erro ao fazer login" });
+    if (!usuario) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
     const senhaValida = await compararSenha(senha, usuario.senha);
-
     if (!senhaValida) {
-        return res.status(401).json({ error: "Senha incorreta" });
+      return res.status(401).json({ error: "Senha incorreta" });
     }
 
-    const token = jwt.sign({ idUsuario: usuario.idUsuario }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign(
+      { idUsuario: usuario.id },
+      process.env.JWT_SECRET,
+      { expiresIn: '8h' }
+    );
 
-    res.status(200).json({ token });
+    // Retorna token + dados do usuário (sem a senha)
+    return res.status(200).json({
+      token,
+      user: {
+        id: usuario.id,
+        nomeCompleto: usuario.nomeCompleto,
+        email: usuario.email,
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao fazer login:", error);
+    return res.status(500).json({ error: "Erro ao fazer login" });
+  }
 }
 
 module.exports = { Login };

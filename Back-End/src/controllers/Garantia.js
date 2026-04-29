@@ -5,6 +5,15 @@ exports.RegistrarGarantia = async (req, res) => {
   try {
     const { produto_id, prazo_dias, data_inicio, tipo, observacao } = req.body;
 
+    const tiposValidos = ['Normal', 'Estendida'];
+
+    if (!tipo || !tiposValidos.includes(tipo)) {
+      return res.status(400).json({ 
+        erro: 'Tipo inválido', 
+        tiposAceitos: tiposValidos 
+      });
+    }
+
     // cálculo da data_fim
     const dataFim = new Date(data_inicio);
     dataFim.setDate(dataFim.getDate() + prazo_dias);
@@ -149,9 +158,3 @@ exports.excluirGarantia = async (req, res) => {
     return res.status(504).json({ erro: error.message });
   }
 };
-
-//Validação do tipo
-const tiposValidos = ['Normal', 'Estendida'];
-if (!tiposValidos. includes(req.body.tipo)){
-  return res.status(400).json({erro: 'Tipo inválido'})
-} 

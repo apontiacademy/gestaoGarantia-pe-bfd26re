@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken')
 const controllerRegister = require('../controllers/RegisterUser');
 const controllerLogin = require('../controllers/loginAuth');
 const listarUsuarios = require('../controllers/RegisterUser');
 const controllerProduto = require('../controllers/RegisterEquipments');
-const controllerGarantia = require('../controllers/GarantiaController');
+const controllerGarantia = require('../controllers/Garantia');
 
 //MIDDLEWARE DE AUTENTICAÇÃO
 function autenticarToken(req, res, next) {
