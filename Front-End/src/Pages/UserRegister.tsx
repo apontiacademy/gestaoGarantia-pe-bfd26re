@@ -9,7 +9,6 @@ import simboloAponti from "../Assets/logos/simboloAponti.svg";
 export default function UserRegister() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -17,7 +16,6 @@ export default function UserRegister() {
     nomeCompleto: "",
     email: "",
     senha: "",
-    confirmarSenha: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,16 +24,12 @@ export default function UserRegister() {
   };
 
   const handleSubmit = async () => {
-    if (!form.email || !form.senha || !form.confirmarSenha) {
+    if (!form.nomeCompleto || !form.email || !form.senha) {
       setError("Preencha todos os campos.");
       return;
     }
     if (form.senha.length < 6) {
       setError("A senha precisa ter pelo menos 6 caracteres.");
-      return;
-    }
-    if (form.senha !== form.confirmarSenha) {
-      setError("As senhas não coincidem.");
       return;
     }
 
@@ -68,6 +62,16 @@ export default function UserRegister() {
           </div>
 
           <Input
+            label="Nome Completo"
+            type="nome"
+            name="nomeCompleto"
+            placeholder="Digite seu nome"
+            value={form.nomeCompleto}
+            onChange={handleChange}
+            className="bg-white border border-gray/50"
+          />
+
+          <Input
             label="Email"
             type="email"
             name="email"
@@ -89,17 +93,6 @@ export default function UserRegister() {
             onRightIconClick={() => setShowPassword((v) => !v)}
           />
 
-          <Input
-            label="Confirme sua Senha"
-            type={showConfirm ? "text" : "password"}
-            name="confirmarSenha"
-            placeholder="Digite sua senha novamente"
-            value={form.confirmarSenha}
-            onChange={handleChange}
-            className="bg-white border border-gray/50"
-            rightIcon={showConfirm ? <EyeOff size={18} className="cursor-pointer" /> : <Eye size={18} className="cursor-pointer" />}
-            onRightIconClick={() => setShowConfirm((v) => !v)}
-          />
           {error && (
             <p className="text-xs text-red text-center -mt-2">{error}</p>
           )}
