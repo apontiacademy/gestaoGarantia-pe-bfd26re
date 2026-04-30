@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { Upload, FileCheck, X } from 'lucide-react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import Input from '../components/ui/Input';
@@ -6,7 +7,21 @@ import ActionButton from '../components/ui/ActionButton';
 
 const CreateWarranty: React.FC = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [hasExtendedWarranty, setHasExtendedWarranty] = useState(false);
+
+  function removeFile() {
+    setFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }
+
+  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>): void {
+    const selectedFile = event.target.files?.[0] ?? null;
+    setFile(selectedFile);
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -87,11 +102,54 @@ const CreateWarranty: React.FC = () => {
             </div>
 
             {/* Seção de Anexo */}
-            <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-4 text-center mt-2">
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-2">Selecione um ou mais documentos</p>
-              <button type="button" className="text-sm font-bold text-gray-800 border border-black px-4 py-1 rounded-md">
-                Anexar Nota
-              </button>
+            <div className="md:col-span-2 flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-700 ml-1">Nota Fiscal (PDF ou Imagem)</label>
+              
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                className={`
+                  border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-all
+                  ${file ? 'border-green-500 bg-green-50' : 'border-gray-medium hover:border-primary hover:bg-gray-50'}
+                `}
+              >
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  className="hidden" 
+                  onChange={handleFileChange}
+                  accept="image/*,.pdf"
+                />
+
+                {!file ? (
+                  <>
+                    <Upload className="text-gray-medium mb-2" size={32} />
+                    <span className="text-sm text-gray-medium text-center">
+                      Clique para fazer upload da nota fiscal
+                    </span>
+                  </>
+                ) : (
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-3">
+                      <FileCheck className="text-green-600" size={24} />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-gray-dark truncate max-w-50">
+                          {file.name}
+                        </span>
+                        <span className="text-xs text-gray-medium">
+                          {(file.size / 1024).toFixed(2)} KB
+                        </span>
+                      </div>
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); removeFile(); }}
+                      className="p-1 hover:bg-red-100 rounded-full text-red-500 transition-colors"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Botões de Ação */}
