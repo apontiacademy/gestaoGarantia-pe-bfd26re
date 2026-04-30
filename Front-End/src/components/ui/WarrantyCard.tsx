@@ -23,7 +23,7 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
   const Icon = type === 'individual' ? FileText : Files;
 
   return (
-    <div className="bg-gray rounded-lg p-4 shadow-sm mb-4 w-full max-w-md">
+    <div className="bg-primary/20 rounded-lg p-4 shadow-sm mb-4 w-full max-w-md">
       {/* Header do Card */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-2">
