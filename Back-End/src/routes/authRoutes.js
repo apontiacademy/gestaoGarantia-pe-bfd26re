@@ -52,6 +52,13 @@ router.get('/auth/profile', autenticarToken, async (req, res) => {
 });
 
 router.get('/listar', autenticarToken, controllerRegister.listarUsuarios);
+//rota para alterar senh, usuario ja autenticado
+router.post('/auth/change-password', autenticarToken, controllerLogin.AlterarSenha);
+//rota para solicitar nova senha, usuario nao autenticado
+router.post('/auth/forgot-password', controllerLogin.EsqueciSenha);
+//rota para resetar senha, usuario nao autenticado, link enviado por email
+router.post('/auth/reset-password', controllerLogin.ResetarSenha);
+
 
 router.post('/produtos/:idUsuario', autenticarToken, controllerProduto.RegistrarProduto);
 router.get('/produtos', autenticarToken, controllerProduto.listarProdutos);
