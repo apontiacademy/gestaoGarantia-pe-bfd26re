@@ -37,12 +37,13 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/create-warranty"
             element={
-              <ProtectedRoute>
+              /*<ProtectedRoute> COMENTÁRIO TEMPORÁRIO (RETIRAR DEPOIS DA HOSPEDAGEM DO BACKEND) */  
                 <CreateWarranty />
-              </ProtectedRoute>
+              /*</ProtectedRoute> COMENTÁRIO TEMPORÁRIO (RETIRAR DEPOIS DA HOSPEDAGEM DO BACKEND) */
             }
           />
           <Route path="*" element={<Navigate to="/login" replace />} />
