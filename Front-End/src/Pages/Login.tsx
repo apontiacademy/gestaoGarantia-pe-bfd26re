@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import { useAuth } from "../contexts/AuthContext";
 import { authService } from "../services/authService";
-import logoAponti from "../Assets/logos/logoAponti.svg";
+import simboloAponti from "../Assets/logos/simboloAponti.svg"
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,8 +15,9 @@ export default function Login() {
   const [form, setForm] = useState({ email: "", senha: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const successMessage = location.state?.message;
+  const successMessage = location.state?.message as string | undefined;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -40,69 +42,84 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-fundo px-8">
-      <div className="flex flex-col items-center mb-8 text-center">
-        <img src={logoAponti} alt="Logo Aponti" className="w-40 drop-shadow-lg" />
-        <h1 className="text-lg font-semibold mt-4">Bem-vindo(a) de volta!</h1>
-        <p className="text-gray-dark text-sm max-w-xs mt-1">
-          Gerencie suas garantias com facilidade e segurança
-        </p>
-      </div>
+    <div className="min-h-screen flex bg-fundo">
 
-      <div className="w-full max-w-sm bg-gray rounded-xl p-6 shadow-xl flex flex-col gap-4">
-      {successMessage && (
-          <p className="text-xs text-green text-center bg-green/10 rounded-lg px-3 py-2">
-            {successMessage}
-          </p>
-        )}
+      {/* LADO ESQUERDO ROXO */}
 
-        <Input
-          label="Email"
-          type="email"
-          name="email"
-          placeholder="Seu email"
-          value={form.email}
-          onChange={handleChange}
-          className="bg-white border-none"
-        />
-        <Input
-          label="Senha"
-          type="password"
-          name="senha"
-          placeholder="Sua senha"
-          value={form.senha}
-          onChange={handleChange}
-          className="bg-white border-none"
-        />
+      {/* LADO ESQUERDO BRANC */}
+      <div className="w-full flex items-center justify-center px-2 bg-fundo">
+        <div className="w-full max-w-md bg-white rounded-3xl shadow-lg px-10 py-12 flex flex-col gap-5">
 
-        {error && <p className="text-xs text-red text-center -mt-1">{error}</p>}
+          <div className="flex flex-col items-center gap-2 mb-2">
+            <img src={simboloAponti} alt="Símbolo Aponti" className="w-16" />
 
-        <div className="mt-2 flex justify-center">
-          <Button variant="primary" onClick={handleSubmit} disabled={loading}>
-            {loading ? "Entrando..." : "Login"}
+            <h1 className="text-xl font-bold">Bem-vindo(a) de volta!</h1>
+            <p className="text-sm text-gray-dark text-center">
+              Faça login e comece a organizar suas garantias
+            </p>
+          </div>
+
+          {/* MENSAGEM DE SUCESSO */}
+          {successMessage && (
+            <p className="text-xs text-green text-center bg-green/10 rounded-lg px-3 py-2">
+              {successMessage}
+            </p>
+          )}
+
+          <Input
+            label="Email"
+            type="email"
+            name="email"
+            placeholder="Seu email"
+            value={form.email}
+            onChange={handleChange}
+            className="bg-white border border-gray/50"
+          />
+
+          <Input
+            label="Senha"
+            type={showPassword ? "text" : "password"}
+            name="senha"
+            placeholder="Sua senha"
+            value={form.senha}
+            onChange={handleChange}
+            className="bg-white border border-gray/50"
+            rightIcon={showPassword ? <EyeOff size={18} className="cursor-pointer" /> : <Eye size={18} className="cursor-pointer" />}
+            onRightIconClick={() => setShowPassword((v) => !v)}
+          />
+
+          {error && <p className="text-xs text-red text-center -mt-1">{error}</p>}
+
+          <div className="flex justify-center">
+            <Button variant="primary" onClick={handleSubmit} disabled={loading} className="w-full">
+
+              {loading ? "Entrando..." : "Login"}
+            </Button>
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className="text-xs text-primary hover:underline hover:text-gray-dark cursor-pointer font-medium"
+              onClick={() => navigate("/forgot-password")}
+            >
+              Esqueci minha senha
+            </button>
+          </div>
+
+          <button
+            className="text-sm text-gray-dark hover:underline text-center font-medium cursor-pointer"
+            onClick={() => navigate("/register")}
+          >
+            Não tem uma conta? <span className="text-primary hover:text-gray-dark/70">Criar Conta</span>
+          </button>
+
+          <Button variant="primary" onClick={() => navigate("/home-demo")}>
+            Entrar como visitante
           </Button>
         </div>
 
-        <button
-          className="text-sm text-gray-dark hover:underline text-center"
-          onClick={() => navigate("/forgot-password")}
-        >
-          Esqueceu a senha?
-        </button>
 
-        <div className="flex items-center gap-2">
-          <div className="h-px bg-gray-medium flex-1" />
-          <span className="text-xs text-gray-dark">ou</span>
-          <div className="h-px bg-gray-medium flex-1" />
-        </div>
-
-        <Button variant="primary" onClick={() => navigate("/register")}>
-          Criar nova conta
-        </Button>
-
-        <Button variant="primary" onClick={() => navigate("/home-demo")}>
-          Entrar como visitante
-        </Button>
       </div>
     </div>
   );

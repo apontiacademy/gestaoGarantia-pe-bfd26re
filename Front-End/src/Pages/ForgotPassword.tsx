@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Input from '../components/ui/Input';
@@ -26,7 +25,7 @@ export default function ForgotPassword() {
 
         <button
           onClick={() => navigate('/login')}
-          className="flex items-center gap-2 text-sm font-semibold text-gray-medium hover:text-[var(--color-primary-start)] transition-colors"
+          className="flex items-center gap-2 text-sm font-semibold text-gray-medium hover:text-primary-start transition-colors"
         >
           <ArrowLeft size={18} />
           Voltar para o Login

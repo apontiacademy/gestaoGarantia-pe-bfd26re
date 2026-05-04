@@ -13,6 +13,8 @@ import Home from "./Pages/Home";
 import ForgotPassword from "./Pages/ForgotPassword";
 import CreateWarranty from "./Pages/CreateWarranty";
 import LixeiraScreen from "./Pages/Lixeira";
+import AuthLayout from "./layout/AuthLayout";
+import WarrantyRegister from "./Pages/WarrantyRegister";
 
 function App() {
   return (
@@ -20,8 +22,10 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Splash />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<UserRegister />} />
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<UserRegister />} />
+          </Route>
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/home-demo" element={<Home />} />
           <Route path="/lixeira" element={<LixeiraScreen />} />
@@ -33,15 +37,17 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/create-warranty"
             element={
-              <ProtectedRoute>
+              /*<ProtectedRoute> COMENTÁRIO TEMPORÁRIO (RETIRAR DEPOIS DA HOSPEDAGEM DO BACKEND) */  
                 <CreateWarranty />
-              </ProtectedRoute>
+              /*</ProtectedRoute> COMENTÁRIO TEMPORÁRIO (RETIRAR DEPOIS DA HOSPEDAGEM DO BACKEND) */
             }
           />
           <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="/warranty-register" element={<WarrantyRegister/>} />
         </Routes>
       </Router>
     </AuthProvider>

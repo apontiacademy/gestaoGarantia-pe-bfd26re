@@ -1,7 +1,7 @@
 import { api } from "./api";
 
 interface LoginPayload { email: string; senha: string; }
-interface RegisterPayload { nome: string; email: string; senha: string; }
+interface RegisterPayload { nomeCompleto: string; email: string; senha: string; }
 interface AuthResponse {
   token: string;
   user: { id: number; nome: string; email: string; role: "admin" | "user" };

@@ -1,17 +1,17 @@
 const { Garantia, Produto } = require('../models');
 
-// Criar garantia
-async function RegistrarGarantia (req, res) {
+async function RegistrarGarantia(req, res) {
   try {
     const { produto_id, prazo_dias, data_inicio, tipo, observacao } = req.body;
 
-    //Verificação do tipo de garantia
     const tiposValidos = ['Normal', 'Estendida'];
-      if (!tiposValidos.includes(tipo)) {
-      return res.status(400).json({ erro: 'Tipo inválido' });
+    if (!tipo || !tiposValidos.includes(tipo)) {
+      return res.status(400).json({ 
+        erro: 'Tipo inválido',
+        tiposAceitos: tiposValidos 
+      });
     }
 
-    // cálculo da data_fim
     const dataFim = new Date(data_inicio);
     dataFim.setDate(dataFim.getDate() + prazo_dias);
 
@@ -27,31 +27,30 @@ async function RegistrarGarantia (req, res) {
 
     return res.status(201).json(garantia);
   } catch (error) {
-    return res.status(504).json({ erro: error.message });
+    console.error("Erro ao registrar garantia:", error);
+    return res.status(500).json({ erro: error.message });
   }
-};
+}
 
-// Listar todas
-async function listarGarantias (req, res) {
+async function listarGarantias(req, res) {
   try {
     const garantias = await Garantia.findAll({
       where: { deletado_em: null },
       include: [
         {
           model: Produto,
-          as: 'produto'
+          as: 'produtos'
         }
       ]
     });
 
     return res.json(garantias);
   } catch (error) {
-    return res.status(504).json({ erro: error.message });
+    return res.status(500).json({ erro: error.message });
   }
-};
+}
 
-// Buscar por ID
-async function listarGarantiaPorId (req, res){
+async function listarGarantiaPorId(req, res) {
   try {
     const { id } = req.params;
 
@@ -71,15 +70,22 @@ async function listarGarantiaPorId (req, res){
 
     return res.json(garantia);
   } catch (error) {
-    return res.status(504).json({ erro: error.message });
+    return res.status(500).json({ erro: error.message });
   }
-};
+}
 
-// Atualizar (PUT)
-async function atualizarGarantia (req, res) {
+async function atualizarGarantia(req, res) {
   try {
     const { id } = req.params;
     const { produto_id, prazo_dias, data_inicio, tipo, observacao } = req.body;
+
+    const tiposValidos = ['Normal', 'Estendida'];
+    if (!tipo || !tiposValidos.includes(tipo)) {
+      return res.status(400).json({ 
+        erro: 'Tipo inválido',
+        tiposAceitos: tiposValidos 
+      });
+    }
 
     const dataFim = new Date(data_inicio);
     dataFim.setDate(dataFim.getDate() + prazo_dias);
@@ -96,64 +102,70 @@ async function atualizarGarantia (req, res) {
     });
 
     const garantiaAtualizada = await Garantia.findByPk(id);
-
     return res.json(garantiaAtualizada);
   } catch (error) {
-    return res.status(504).json({ erro: error.message });
+    return res.status(500).json({ erro: error.message });
   }
-};
+}
 
-// Atualização parcial (PATCH)
 async function atualizarStatusGarantia(req, res) {
   try {
     const { id } = req.params;
     const dados = req.body;
 
-    const garantia = await Garantia.findByPk(id);
+    const tiposValidos = ['Normal', 'Estendida'];
+    if (dados.tipo && !tiposValidos.includes(dados.tipo)) {
+      return res.status(400).json({ 
+        erro: 'Tipo inválido',
+        tiposAceitos: tiposValidos 
+      });
+    }
 
+    const garantia = await Garantia.findByPk(id);
     if (!garantia) {
       return res.status(404).json({ mensagem: 'Garantia não encontrada' });
     }
 
-    // recalcula data_fim se necessário
     if (dados.prazo_dias || dados.data_inicio) {
       const dataInicio = dados.data_inicio || garantia.data_inicio;
       const prazo = dados.prazo_dias || garantia.prazo_dias;
 
       const dataFim = new Date(dataInicio);
       dataFim.setDate(dataFim.getDate() + prazo);
-
       dados.data_fim = dataFim;
     }
 
-    await Garantia.update(dados, {
-      where: { id }
-    });
+    await Garantia.update(dados, { where: { id } });
 
     const garantiaAtualizada = await Garantia.findByPk(id);
-
     return res.json(garantiaAtualizada);
   } catch (error) {
-    return res.status(504).json({ erro: error.message });
+    return res.status(500).json({ erro: error.message });
   }
-};
+}
 
-// Soft delete
 async function excluirGarantia(req, res) {
   try {
     const { id } = req.params;
 
     await Garantia.update({
       deletado_em: new Date(),
-      deletado_por: 'sistema' // depois pode vir do token
+      deletado_por: 'sistema'
     }, {
       where: { id }
     });
 
     return res.json({ mensagem: 'Garantia excluída com sucesso' });
   } catch (error) {
-    return res.status(504).json({ erro: error.message });
+    return res.status(500).json({ erro: error.message });
   }
-};
+}
 
-module.exports = {RegistrarGarantia, listarGarantias, listarGarantiaPorId, atualizarGarantia, atualizarStatusGarantia, excluirGarantia};
+module.exports = {
+  RegistrarGarantia,
+  listarGarantias,
+  listarGarantiaPorId,
+  atualizarGarantia,
+  atualizarStatusGarantia,
+  excluirGarantia
+};

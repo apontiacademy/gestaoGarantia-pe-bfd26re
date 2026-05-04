@@ -5,12 +5,15 @@ import Dashboard from "../components/Dashboard";
 import Button from "../components/ui/Button";
 import FloatingButton from "../components/ui/FloatingButton";
 import WarrantyCard from "../components/ui/WarrantyCard"
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
+    const navigate = useNavigate();
+
     return (
         <LayoutHome>
             <div className="fixed bottom-8 right-6 flex flex-col gap-4">
-                <FloatingButton icon={Plus} />
+                <FloatingButton icon={Plus} onClick={() => { navigate("/create-warranty")}}/>
                 <FloatingButton icon={CopyPlus} />
             </div>
 
@@ -31,7 +34,7 @@ export default function Home() {
 
             {/* BOTÕES DE CRIAR */}
             <div className="flex gap-3 mb-8 text-sm">
-                <Button variant="secondary" type="button" className="flex items-center gap-2 w-50">
+                <Button variant="secondary" type="button" onClick={() => { navigate("/create-warranty")}} className="flex items-center gap-2 w-50">
                     <Plus size={22} /> Nova Garantia
                 </Button>
                 <Button variant="secondary" type="button" className="flex items-center gap-2 w-50">

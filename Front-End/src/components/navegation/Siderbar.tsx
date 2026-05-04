@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react"
 
 type SidebarProps = {
@@ -6,6 +7,7 @@ type SidebarProps = {
 };
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+    const navigate = useNavigate();
     return (
         <>
             {/* OVERLAY (BLUR NO FUNDO) */}
@@ -42,11 +44,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
                 {/* CONTEÚDO */}
                 <nav className="p-4 space-y-3">
-                    <button className="block w-full text-left hover:bg-gray-medium p-2 rounded">
+                    <button onClick={() => { navigate("/home-demo"); onClose();}} className="block w-full text-left hover:bg-gray-medium p-2 rounded">
                         Minhas Garantias
                     </button>
 
-                    <button className="block w-full text-left hover:bg-gray-medium p-2 rounded">
+                    <button onClick={() => { navigate("/lixeira"); onClose();}} className="block w-full text-left hover:bg-gray-medium p-2 rounded">
                         Lixeira
                     </button>
 
