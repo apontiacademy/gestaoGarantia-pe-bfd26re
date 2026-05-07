@@ -6,9 +6,11 @@ import Button from "../components/ui/Button";
 import FloatingButton from "../components/ui/FloatingButton";
 import WarrantyCard from "../components/ui/WarrantyCard"
 import { useNavigate } from "react-router-dom";
+import { useWarranty } from "../contexts/WarrantyContext";
 
 export default function Home() {
     const navigate = useNavigate();
+    const { warranties } = useWarranty();
 
     return (
         <LayoutHome>
@@ -51,45 +53,18 @@ export default function Home() {
             {/* GARANTIAS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 m-2 p-6 rounded-lg bg-white">
                 {/*<p>Nenhuma Garantia Cadastrada</p>*/}
-                <WarrantyCard
-                    variant="trash"
-                    title="Smart TV 55"
-                    story="Magazine Luiza"
-                    status="Ativo"
-                    nfNumber="NF-123"
-                    purchaseDate="10/01/2026"
-                    expirationDate="10/01/2027"
-                    daysToExpire={90}
-                    warrantyType="Do fabricante"
-                    value="3.500,00"
-                    onViewMore={() => console.log('Ver mais clicado')}
-                />
-                <WarrantyCard
-                    variant="trash"
-                    title="Notebook Dell Inspiron 15"
-                    story="Casas Bahia"
-                    status="A vencer"
-                    nfNumber="NF-123"
-                    purchaseDate="10/01/2026"
-                    expirationDate="10/06/2026"
-                    daysToExpire={90}
-                    warrantyType="Extendida"
-                    value="3.500,00"
-                    onViewMore={() => console.log('Ver mais clicado')}
-                />
-                <WarrantyCard
-                    variant="trash"
-                    title="Smart TV 55"
-                    story="Magazine Luiza"
-                    status="Vencida"
-                    nfNumber="NF-123"
-                    purchaseDate="10/01/2024"
-                    expirationDate="10/01/2025"
-                    daysToExpire={90}
-                    warrantyType="Extendida"
-                    value="3.500,00"
-                    onViewMore={() => console.log('Ver mais clicado')}
-                />
+                {warranties.length === 0 ? (
+                    <p>Nenhuma garantia cadastrada</p>
+                ) : (
+                    warranties.map(({ id, ...card }) => (
+                        <WarrantyCard
+                            key={id}
+                            variant="home"
+                            {...card}
+                            onViewMore={() => console.log('Ver mais clicado')}
+                        />
+                    ))
+                )}
             </div>
 
         </LayoutHome>
