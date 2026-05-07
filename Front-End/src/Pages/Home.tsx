@@ -13,7 +13,7 @@ export default function Home() {
     return (
         <LayoutHome>
             <div className="fixed bottom-8 right-6 flex flex-col gap-4">
-                <FloatingButton icon={Plus} onClick={() => { navigate("/create-warranty")}}/>
+                <FloatingButton icon={Plus} onClick={() => { navigate("/create-warranty") }} />
                 <FloatingButton icon={CopyPlus} />
             </div>
 
@@ -34,7 +34,7 @@ export default function Home() {
 
             {/* BOTÕES DE CRIAR */}
             <div className="flex gap-3 mb-8 text-sm">
-                <Button variant="secondary" type="button" onClick={() => { navigate("/create-warranty")}} className="flex items-center gap-2 w-50">
+                <Button variant="secondary" type="button" onClick={() => { navigate("/create-warranty") }} className="flex items-center gap-2 w-50">
                     <Plus size={22} /> Nova Garantia
                 </Button>
                 <Button variant="secondary" type="button" className="flex items-center gap-2 w-50">
@@ -48,29 +48,47 @@ export default function Home() {
             </div>
 
 
-            {/* GARANTIAS/GRUPOS DE GARANTIAS */}
+            {/* GARANTIAS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 m-2 p-6 rounded-lg bg-white">
                 {/*<p>Nenhuma Garantia Cadastrada</p>*/}
                 <WarrantyCard
-                    title="Notbook Samsung"
-                    type="individual"
-                    status="ativa"
-                    details={[
-                        {label: "Fornecedor", value: "Samsung"},
-                        { label: "Vencimento", value: "01/01/2026" },
-                        { label: "Valor", value: "R$ 1.500,00" },
-                    ]}
-                    onViewMore={() => console.log("Ver mais")}
+                    variant="trash"
+                    title="Smart TV 55"
+                    story="Magazine Luiza"
+                    status="Ativo"
+                    nfNumber="NF-123"
+                    purchaseDate="10/01/2026"
+                    expirationDate="10/01/2027"
+                    daysToExpire={90}
+                    warrantyType="Do fabricante"
+                    value="3.500,00"
+                    onViewMore={() => console.log('Ver mais clicado')}
                 />
                 <WarrantyCard
-                    title="Garantias do FAP 2026"
-                    type="group"
-                    status="A Vencer"
-                    details={[
-                        {label: "Qtd. Itens", value: "5"},
-                        { label: "Vencimento", value: "15/03/2026" },
-                    ]}
-                    onViewMore={() => console.log("Ver mais")}
+                    variant="trash"
+                    title="Notebook Dell Inspiron 15"
+                    story="Casas Bahia"
+                    status="A vencer"
+                    nfNumber="NF-123"
+                    purchaseDate="10/01/2026"
+                    expirationDate="10/06/2026"
+                    daysToExpire={90}
+                    warrantyType="Extendida"
+                    value="3.500,00"
+                    onViewMore={() => console.log('Ver mais clicado')}
+                />
+                <WarrantyCard
+                    variant="trash"
+                    title="Smart TV 55"
+                    story="Magazine Luiza"
+                    status="Vencida"
+                    nfNumber="NF-123"
+                    purchaseDate="10/01/2024"
+                    expirationDate="10/01/2025"
+                    daysToExpire={90}
+                    warrantyType="Extendida"
+                    value="3.500,00"
+                    onViewMore={() => console.log('Ver mais clicado')}
                 />
             </div>
 
