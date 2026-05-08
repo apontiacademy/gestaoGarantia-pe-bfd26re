@@ -1,4 +1,3 @@
-// src/pages/Home.tsx
 import { Plus, CopyPlus, SlidersHorizontal, Search } from "lucide-react";
 import LayoutHome from "../layout/LayoutHome";
 import Dashboard from "../components/Dashboard";
@@ -7,10 +6,16 @@ import FloatingButton from "../components/ui/FloatingButton";
 import WarrantyCard from "../components/ui/WarrantyCard"
 import { useNavigate } from "react-router-dom";
 import { useWarranty } from "../contexts/WarrantyContext";
+import { useState } from "react";
 
 export default function Home() {
     const navigate = useNavigate();
     const { warranties } = useWarranty();
+    const [search, setSearch] = useState("");
+
+    const filteredWarranties = warranties.filter(({ title }) =>
+        title.toLowerCase().includes(search.toLowerCase())
+    );
 
     return (
         <LayoutHome>
@@ -26,6 +31,8 @@ export default function Home() {
                     <input
                         type="text"
                         placeholder="Pesquisar..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
                         className="w-full rounded-lg h-9 pl-9 pr-4 bg-white focus:outline-none focus:ring-1 focus:ring-gray font-medium shadow"
                     />
                 </div>
@@ -52,11 +59,10 @@ export default function Home() {
 
             {/* GARANTIAS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 m-2 p-6 rounded-lg bg-white">
-                {/*<p>Nenhuma Garantia Cadastrada</p>*/}
-                {warranties.length === 0 ? (
-                    <p>Nenhuma garantia cadastrada</p>
+                {filteredWarranties.length === 0 ? (
+                    <p>{search ? "Nenhuma garantia encontada" : "Nenhuma garantia cadastrada"}</p>
                 ) : (
-                    warranties.map(({ id, ...card }) => (
+                    filteredWarranties.map(({id, ...card}) => (
                         <WarrantyCard
                             key={id}
                             variant="home"
