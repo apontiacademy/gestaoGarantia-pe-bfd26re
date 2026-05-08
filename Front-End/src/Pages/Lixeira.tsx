@@ -1,7 +1,8 @@
 import { useState } from "react";
 import Nav from "../components/navegation/Nav";
-import { Bell, TextAlignStart } from "lucide-react";
+
 import Sidebar from "../components/navegation/Siderbar";
+import { Bell, TextAlignStart } from "lucide-react";
 
 interface GarantiaItem {
   id: number;
@@ -59,15 +60,9 @@ const initialItems: GarantiaItem[] = [
   },
 ];
 
-// ─── Icons ────────────────────────────────────────────────────────────────────
+// ─── Icons ─────────────────────────
 
-const TrashIcon = ({
-  color = "currentColor",
-  size = 20,
-}: {
-  color?: string;
-  size?: number;
-}) => (
+const TrashIcon = ({ color = "currentColor", size = 20 }: any) => (
   <svg
     width={size}
     height={size}
@@ -86,184 +81,129 @@ const TrashIcon = ({
   </svg>
 );
 
-// ─── Toast ────────────────────────────────────────────────────────────────────
+// ─── Toast ─────────────────────────
 
-interface ToastProps {
-  message: string;
-  visible: boolean;
-}
-
-function Toast({ message, visible }: ToastProps) {
+function Toast({ message, visible }: any) {
   return (
     <div
-      style={{
-        position: "fixed",
-        bottom: 24,
-        left: "50%",
-        transform: "translateX(-50%)",
-        background: "#3C3489",
-        color: "#fff",
-        padding: "10px 20px",
-        borderRadius: 20,
-        fontSize: 13,
-        fontWeight: 500,
-        opacity: visible ? 1 : 0,
-        pointerEvents: "none",
-        transition: "opacity 0.3s",
-        whiteSpace: "nowrap",
-        zIndex: 999,
-      }}
+      className={`
+        fixed bottom-6 left-1/2 -translate-x-1/2
+        bg-[#3C3489] text-white
+        px-5 py-2
+        rounded-full
+        text-sm font-medium
+        transition-opacity
+        whitespace-nowrap
+        z-[999]
+
+        ${visible ? "opacity-100" : "opacity-0"}
+      `}
     >
       {message}
     </div>
   );
 }
 
-// ─── Card ─────────────────────────────────────────────────────────────────────
+// ─── Card ─────────────────────────
 
-interface CardProps {
-  item: GarantiaItem;
-  onToggle: (id: number) => void;
-  onRestore: (e: React.MouseEvent, id: number) => void;
-}
-
-function GarantiaCard({ item, onToggle, onRestore }: CardProps) {
+function GarantiaCard({ item, onToggle, onRestore }: any) {
   return (
     <div
       onClick={() => onToggle(item.id)}
-      style={{
-        background: item.sel ? "#f5f2ff" : "#fff",
-        border: `1px solid ${item.sel ? "#5B21D9" : "#E2E2E2"}`,
-        borderRadius: 12,
-        padding: 14,
-        cursor: "pointer",
-        transition: "border-color 0.15s, background 0.15s",
-      }}
+      className={`
+        cursor-pointer
+        transition-colors
+        border
+        rounded-lg
+        p-3
+        w-full
+
+        md:p-4
+
+        ${item.sel
+          ? "bg-[#f5f2ff] border-[#5B21D9]"
+          : "bg-white border-[#E2E2E2]"
+        }
+      `}
     >
-      {/* Top row */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-        }}
-      >
-        <span
-          style={{ fontSize: 14, fontWeight: 600, color: "#1A1A1A", flex: 1 }}
-        >
+      {/* Top */}
+      <div className="flex justify-between items-start">
+        <span className="text-sm font-semibold text-[#1A1A1A] flex-1">
           {item.nome}
         </span>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
-            gap: 6,
-          }}
-        >
+
+        <div className="flex flex-col items-end gap-1.5">
           {/* Checkbox */}
           <div
-            style={{
-              width: 18,
-              height: 18,
-              borderRadius: 4,
-              border: `1.5px solid ${item.sel ? "#5B21D9" : "#AAAAAA"}`,
-              background: item.sel ? "#5B21D9" : "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 11,
-              color: "#fff",
-              flexShrink: 0,
-            }}
+            className={`
+              w-[18px] h-[18px]
+              rounded
+              border
+              flex items-center justify-center
+              text-[11px] text-white
+
+              ${item.sel
+                ? "bg-[#5B21D9] border-[#5B21D9]"
+                : "bg-white border-[#AAAAAA]"
+              }
+            `}
           >
             {item.sel ? "✓" : ""}
           </div>
-          <span style={{ fontSize: 11.5, color: "#888" }}>
-            Nº da nota: <strong style={{ color: "#444" }}>{item.nf}</strong>
+
+          <span className="text-[11.5px] text-[#888]">
+            Nº da nota:
+            <strong className="text-[#444]"> {item.nf}</strong>
           </span>
         </div>
       </div>
 
       {/* Loja */}
-      <p
-        style={{
-          fontSize: 12.5,
-          color: "#888",
-          fontStyle: "italic",
-          margin: "4px 0 10px",
-        }}
-      >
+      <p className="text-[12.5px] text-[#888] italic mt-1 mb-2.5">
         {item.loja}
       </p>
 
       {/* Info */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 3,
-          marginBottom: 10,
-        }}
-      >
+      <div className="flex flex-col gap-1 mb-2.5">
         {[
           ["Data da Compra", item.dataCompra],
           ["Data de Vencimento", item.dataVenc],
           ["Tipo de Garantia", item.tipo],
           ["Criado por", item.criado],
         ].map(([label, value]) => (
-          <span key={label} style={{ fontSize: 12, color: "#666" }}>
-            {label}: <span style={{ color: "#222" }}>{value}</span>
+          <span key={label} className="text-xs text-[#666]">
+            {label}: <span className="text-[#222]">{value}</span>
           </span>
         ))}
       </div>
 
-      {/* Divider */}
-      <hr
-        style={{
-          border: "none",
-          borderTop: "1px solid #EBEBEB",
-          margin: "0 0 10px",
-        }}
-      />
+      <hr className="border-t border-[#EBEBEB] mb-2.5" />
 
       {/* Footer */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-        }}
-      >
-        <span style={{ fontSize: 14, fontWeight: 600, color: "#1A1A1A" }}>
+      <div className="flex justify-between items-end">
+        <span className="text-sm font-semibold text-[#1A1A1A]">
           Valor R$:{" "}
-          <span style={{ fontWeight: 400 }}>
+          <span className="font-normal">
             {item.valor.replace("R$ ", "")}
           </span>
         </span>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
-            gap: 6,
-          }}
-        >
-          <span style={{ fontSize: 11.5, color: "#C0392B", fontWeight: 600 }}>
+
+        <div className="flex flex-col items-end gap-1.5">
+          <span className="text-[11.5px] text-[#C0392B] font-semibold">
             Status: {item.status}
           </span>
+
           <button
             onClick={(e) => onRestore(e, item.id)}
-            style={{
-              border: "1.5px solid #E74C3C",
-              background: "transparent",
-              borderRadius: 20,
-              padding: "4px 14px",
-              fontSize: 12.5,
-              color: "#C0392B",
-              cursor: "pointer",
-              fontWeight: 500,
-            }}
+            className="
+              border border-[#E74C3C]
+              rounded-full
+              px-3 py-1
+              text-[12.5px]
+              text-[#C0392B]
+              font-medium
+              hover:bg-red-50
+            "
           >
             Restaurar
           </button>
@@ -273,161 +213,178 @@ function GarantiaCard({ item, onToggle, onRestore }: CardProps) {
   );
 }
 
-// ─── Main Screen ──────────────────────────────────────────────────────────────
+// ─── MAIN ─────────────────────────
 
 export default function LixeiraScreen() {
-  const [items, setItems] = useState<GarantiaItem[]>(initialItems);
-  const [toast, setToast] = useState({ visible: false, message: "" });
-      const [isOpen, setIsOpen] = useState(false);
+  const [items, setItems] = useState(initialItems);
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+  });
+  const [isOpen, setIsOpen] = useState(false);
 
-
-  const allSelected = items.length > 0 && items.every((i) => i.sel);
+  const allSelected =
+    items.length > 0 && items.every((i) => i.sel);
 
   const showToast = (message: string) => {
     setToast({ visible: true, message });
-    setTimeout(() => setToast({ visible: false, message: "" }), 2500);
+
+    setTimeout(() => {
+      setToast({ visible: false, message: "" });
+    }, 2500);
   };
 
   const toggleCard = (id: number) => {
     setItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, sel: !i.sel } : i)),
+      prev.map((i) =>
+        i.id === id ? { ...i, sel: !i.sel } : i
+      )
     );
   };
 
   const toggleSelectAll = () => {
-    setItems((prev) => prev.map((i) => ({ ...i, sel: !allSelected })));
+    setItems((prev) =>
+      prev.map((i) => ({
+        ...i,
+        sel: !allSelected,
+      }))
+    );
   };
 
-  const handleRestore = (e: React.MouseEvent, id: number) => {
+  const handleRestore = (e: any, id: number) => {
     e.stopPropagation();
+
     const item = items.find((i) => i.id === id);
-    setItems((prev) => prev.filter((i) => i.id !== id));
-    if (item) showToast(`"${item.nome}" restaurado com sucesso`);
+
+    setItems((prev) =>
+      prev.filter((i) => i.id !== id)
+    );
+
+    if (item)
+      showToast(`"${item.nome}" restaurado`);
   };
 
   const handleEsvaziar = () => {
-    const selecionados = items.filter((i) => i.sel);
+    const selecionados =
+      items.filter((i) => i.sel);
+
     if (selecionados.length > 0) {
-      setItems((prev) => prev.filter((i) => !i.sel));
-      showToast(`${selecionados.length} item(s) excluído(s) permanentemente`);
+      setItems((prev) =>
+        prev.filter((i) => !i.sel)
+      );
+
+      showToast(
+        `${selecionados.length} item(s) excluído(s)`
+      );
     } else {
       const total = items.length;
+
       setItems([]);
-      showToast(`${total} item(s) excluído(s) permanentemente`);
+
+      showToast(
+        `${total} item(s) excluído(s)`
+      );
     }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#F0F0F0",
-        fontFamily: "sans-serif",
-      }}
-    >
-      {/* Top bar */}
+    <div className="min-h-screen bg-[#F0F0F0] font-sans">
+      {/* NAV */}
       <Nav
-        // ICONE DE MENU
         leftIcon={TextAlignStart}
         leftLabel="Abrir Menu"
         onLeftClick={() => setIsOpen(true)}
-        // ICONE DE NOTIFICAÇÃO
         rightIcon={Bell}
-        onRightClick={() => console.log("Bell")}
       />
-      <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)} />
 
-      {/* Page header */}
-      <div
-        style={{
-          background: "#fff",
-          borderBottom: "1px solid #E0E0E0",
-          padding: "16px 20px",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-        }}
-      >
-        <TrashIcon color="#333" size={24} />
-        <span style={{ fontSize: 20, fontWeight: 700, color: "#1A1A1A" }}>
+      <Sidebar
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+      />
+
+      {/* HEADER */}
+      <div className="
+        bg-white
+        border-b
+        px-5 py-4
+        flex items-center gap-2.5
+      ">
+        <TrashIcon size={24} />
+        <span className="text-xl font-bold text-[#1A1A1A]">
           Lixeira
         </span>
       </div>
 
-      {/* Action buttons */}
-      <div
-        style={{
-          background: "#E8E8E8",
-          padding: "12px 16px",
-          display: "flex",
-          gap: 10,
-          borderBottom: "1px solid #D8D8D8",
-        }}
-      >
+      {/* BUTTONS */}
+      <div className="
+        bg-[#E8E8E8]
+        px-4 py-3
+        flex gap-2.5
+        border-b
+      ">
         <button
           onClick={toggleSelectAll}
-          style={{
-            flex: 1,
-            padding: "9px 14px",
-            border: `1.5px solid ${allSelected ? "#5B21D9" : "#C0C0C0"}`,
-            background: allSelected ? "#5B21D9" : "#fff",
-            borderRadius: 8,
-            fontSize: 13,
-            color: allSelected ? "#fff" : "#333",
-            cursor: "pointer",
-            fontWeight: 600,
-            transition: "all 0.15s",
-          }}
+          className={`
+            flex-1
+            py-2 px-4
+            rounded-lg
+            text-sm font-semibold
+            border
+
+            ${
+              allSelected
+                ? "bg-[#5B21D9] text-white border-[#5B21D9]"
+                : "bg-white text-[#333] border-[#C0C0C0]"
+            }
+          `}
         >
-          {allSelected ? "Desmarcar Todas" : "Selecionar Todas"}
+          {allSelected
+            ? "Desmarcar Todas"
+            : "Selecionar Todas"}
         </button>
 
         <button
           onClick={handleEsvaziar}
-          style={{
-            flex: 1,
-            padding: "9px 14px",
-            border: "1.5px solid #E74C3C",
-            background: "#FFF5F5",
-            borderRadius: 8,
-            fontSize: 13,
-            color: "#C0392B",
-            cursor: "pointer",
-            fontWeight: 600,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
-          }}
+          className="
+            flex-1
+            py-2 px-4
+            rounded-lg
+            text-sm font-semibold
+            border border-[#E74C3C]
+            bg-[#FFF5F5]
+            text-[#C0392B]
+            flex items-center justify-center gap-2
+          "
         >
-          <TrashIcon color="#C0392B" size={15} />
-          Esvaziar a Lixeira
+          <TrashIcon size={15} />
+          Esvaziar
         </button>
       </div>
 
-      {/* Card list */}
+      {/* GRID RESPONSIVO */}
       <div
-        style={{
-          padding: "14px 14px 32px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
-        }}
+        className="
+          p-4
+          grid
+          grid-cols-1
+          md:grid-cols-2
+          lg:grid-cols-3
+          gap-3
+        "
       >
         {items.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              marginTop: 60,
-              color: "#aaa",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 12,
-            }}
-          >
-            <TrashIcon color="#ccc" size={48} />
-            <span style={{ fontSize: 16 }}>Lixeira vazia</span>
+          <div className="
+            col-span-full
+            text-center
+            mt-16
+            text-[#aaa]
+            flex flex-col
+            items-center gap-3
+          ">
+            <TrashIcon size={48} />
+            <span className="text-base">
+              Lixeira vazia
+            </span>
           </div>
         ) : (
           items.map((item) => (
@@ -441,7 +398,10 @@ export default function LixeiraScreen() {
         )}
       </div>
 
-      <Toast message={toast.message} visible={toast.visible} />
+      <Toast
+        message={toast.message}
+        visible={toast.visible}
+      />
     </div>
   );
 }

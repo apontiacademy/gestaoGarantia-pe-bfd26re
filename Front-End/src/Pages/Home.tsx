@@ -6,14 +6,16 @@ import Button from "../components/ui/Button";
 import FloatingButton from "../components/ui/FloatingButton";
 import WarrantyCard from "../components/ui/WarrantyCard"
 import { useNavigate } from "react-router-dom";
+import { useWarranty } from "../contexts/WarrantyContext";
 
 export default function Home() {
     const navigate = useNavigate();
+    const { warranties } = useWarranty();
 
     return (
         <LayoutHome>
             <div className="fixed bottom-8 right-6 flex flex-col gap-4">
-                <FloatingButton icon={Plus} onClick={() => { navigate("/create-warranty")}}/>
+                <FloatingButton icon={Plus} onClick={() => { navigate("/create-warranty") }} />
                 <FloatingButton icon={CopyPlus} />
             </div>
 
@@ -34,7 +36,7 @@ export default function Home() {
 
             {/* BOTÕES DE CRIAR */}
             <div className="flex gap-3 mb-8 text-sm">
-                <Button variant="secondary" type="button" onClick={() => { navigate("/create-warranty")}} className="flex items-center gap-2 w-50">
+                <Button variant="secondary" type="button" onClick={() => { navigate("/create-warranty") }} className="flex items-center gap-2 w-50">
                     <Plus size={22} /> Nova Garantia
                 </Button>
                 <Button variant="secondary" type="button" className="flex items-center gap-2 w-50">
@@ -48,30 +50,21 @@ export default function Home() {
             </div>
 
 
-            {/* GARANTIAS/GRUPOS DE GARANTIAS */}
+            {/* GARANTIAS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 m-2 p-6 rounded-lg bg-white">
                 {/*<p>Nenhuma Garantia Cadastrada</p>*/}
-                <WarrantyCard
-                    title="Notbook Samsung"
-                    type="individual"
-                    status="ativa"
-                    details={[
-                        {label: "Fornecedor", value: "Samsung"},
-                        { label: "Vencimento", value: "01/01/2026" },
-                        { label: "Valor", value: "R$ 1.500,00" },
-                    ]}
-                    onViewMore={() => console.log("Ver mais")}
-                />
-                <WarrantyCard
-                    title="Garantias do FAP 2026"
-                    type="group"
-                    status="A Vencer"
-                    details={[
-                        {label: "Qtd. Itens", value: "5"},
-                        { label: "Vencimento", value: "15/03/2026" },
-                    ]}
-                    onViewMore={() => console.log("Ver mais")}
-                />
+                {warranties.length === 0 ? (
+                    <p>Nenhuma garantia cadastrada</p>
+                ) : (
+                    warranties.map(({ id, ...card }) => (
+                        <WarrantyCard
+                            key={id}
+                            variant="home"
+                            {...card}
+                            onViewMore={() => console.log('Ver mais clicado')}
+                        />
+                    ))
+                )}
             </div>
 
         </LayoutHome>

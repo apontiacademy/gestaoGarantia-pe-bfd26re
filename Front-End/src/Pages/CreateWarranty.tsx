@@ -46,10 +46,21 @@ const CreateWarranty: React.FC = () => {
           <form className="flex flex-col gap-4">
             <Input 
               label="Nome do Produto *" 
-              placeholder="Ex: Notebook Lenovo Ideapad" 
+              placeholder="Ex: Notebook " 
               className="bg-white border-none" // Input branco dentro do fundo cinza
             />
             
+              <Input
+                label="Marca *"
+                placeholder="Ex: Lenovo"
+                className="flex-1 bg-white border-none"
+              />
+            <Input
+              label="Modelo *"
+              placeholder="Ex: IdeaPad 320"
+              className="flex-1 bg-white border-none"
+            />
+
             <div className="flex gap-4 items-end">
               <Input 
                 label="Período de Garantia *" 
