@@ -7,14 +7,21 @@ import WarrantyCard from "../components/ui/WarrantyCard"
 import { useNavigate } from "react-router-dom";
 import { useWarranty } from "../contexts/WarrantyContext";
 import { useState } from "react";
+import StatusFilter, { type StatusFilterOption } from "../components/ui/StatusFilter";
+import { applyStatusFilter } from "../utils/filterWarranties";
 
 export default function Home() {
     const navigate = useNavigate();
     const { warranties } = useWarranty();
     const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState<StatusFilterOption>("all");
+    const [showFilter, setShowFilter] = useState(false);
 
-    const filteredWarranties = warranties.filter(({ title }) =>
-        title.toLowerCase().includes(search.toLowerCase())
+    const filteredWarranties = applyStatusFilter(
+        warranties.filter(({ title }) =>
+            title.toLowerCase().includes(search.toLowerCase())
+        ),
+        statusFilter
     );
 
     return (
@@ -24,21 +31,36 @@ export default function Home() {
                 <FloatingButton icon={CopyPlus} />
             </div>
 
-            {/* CAMPO DE PESQUISA E FILTRO */}
-            <div className="flex items-center gap-3 mb-6">
-                <div className="relative flex-1 max-w-sm">
-                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                        type="text"
-                        placeholder="Pesquisar..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="w-full rounded-lg h-9 pl-9 pr-4 bg-white focus:outline-none focus:ring-1 focus:ring-gray font-medium shadow"
-                    />
+            {/* CAMPO DE PESQUISA */}
+            <div className="flex flex-col gap-3 mb-6">
+                <div className="flex items-center gap-3">
+                    <div className="relative flex-1 max-w-sm">
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                            type="text"
+                            placeholder="Pesquisar..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full rounded-lg h-9 pl-9 pr-4 bg-white focus:outline-none focus:ring-1 focus:ring-gray font-medium shadow"
+                        />
+                    </div>
+                    <button
+                        className={`relative p-2 rounded-lg transition shadow ${showFilter ? "bg-gray-dark text-white" : "bg-white hover:bg-gray"}`}
+                        onClick={() => setShowFilter((prev) => !prev)}
+                    >
+                        <SlidersHorizontal size={18} />
+                        
+                    </button>
                 </div>
-                <button className="p-2 bg-white rounded-lg hover:bg-gray transition shadow">
-                    <SlidersHorizontal size={18} />
-                </button>
+
+                {/* FILTRO */}
+                {showFilter && (
+                    <StatusFilter
+                        value={statusFilter}
+                        onChange={setStatusFilter}
+                        warranties={warranties}
+                    />
+                )}
             </div>
 
             {/* BOTÕES DE CRIAR */}
@@ -62,7 +84,7 @@ export default function Home() {
                 {filteredWarranties.length === 0 ? (
                     <p>{search ? "Nenhuma garantia encontada" : "Nenhuma garantia cadastrada"}</p>
                 ) : (
-                    filteredWarranties.map(({id, ...card}) => (
+                    filteredWarranties.map(({ id, ...card }) => (
                         <WarrantyCard
                             key={id}
                             variant="home"
