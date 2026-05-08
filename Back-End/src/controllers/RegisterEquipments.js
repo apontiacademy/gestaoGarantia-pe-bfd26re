@@ -48,4 +48,60 @@ async function listarProdutos(req, res) {
     }
 }
 
-module.exports = { RegistrarProduto, listarProdutos };
+// Função para atualizar um produto (protegida por autenticação)
+async function atualizarProduto(req, res) {
+    const { id } = req.params;
+    const { nome, marca, modelo } = req.body;
+
+    try {
+        const produto = await Produto.findByPk(id);
+        if (!produto) {
+            return res.status(404).json({ error: "Produto não encontrado" });
+        }
+
+        await produto.update({ nome, marca, modelo });
+        return res.status(200).json({ message: "Produto atualizado com sucesso" });
+    } catch (error) {
+        console.error("Erro ao atualizar produto:", error);
+        return res.status(500).json({ error: "Erro ao atualizar produto" });
+    }
+
+}
+
+// Função para atualizar um atributo específico do produto (protegida por autenticação)
+async function atualizarStatusProduto(req, res) {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    try {
+        const produto = await Produto.findByPk(id);
+        if (!produto) {
+            return res.status(404).json({ error: "Produto não encontrado" });
+        }
+        await produto.update({ status });
+        return res.status(200).json({ message: "Status do produto atualizado com sucesso" });
+    } catch (error) {
+        console.error("Erro ao atualizar status do produto:", error);
+        return res.status(500).json({ error: "Erro ao atualizar status do produto" });
+    }
+}
+
+// Função para excluir um produto (protegida por autenticação) 
+async function excluirProduto(req, res) {
+    const { id } = req.params;
+
+    try {
+        const produto = await Produto.findByPk(id);
+        if (!produto) {
+            return res.status(404).json({ error: "Produto não encontrado" });
+        }
+
+        await produto.destroy();
+        return res.status(200).json({ message: "Produto excluído com sucesso" });
+    } catch (error) {
+        console.error("Erro ao excluir produto:", error);
+        return res.status(500).json({ error: "Erro ao excluir produto" });
+    }
+}
+
+module.exports = { RegistrarProduto, listarProdutos, atualizarProduto, atualizarStatusProduto, excluirProduto };

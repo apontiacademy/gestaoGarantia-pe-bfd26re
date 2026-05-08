@@ -53,9 +53,14 @@ router.get('/auth/profile', autenticarToken, async (req, res) => {
 
 router.get('/listar', autenticarToken, controllerRegister.listarUsuarios);
 
+// Rotas de produtos (protegidas por autenticação)
 router.post('/produtos/:idUsuario', autenticarToken, controllerProduto.RegistrarProduto);
 router.get('/produtos', autenticarToken, controllerProduto.listarProdutos);
+router.put('/produtos/:id', autenticarToken, controllerProduto.atualizarProduto);
+router.delete('/produtos/:id', autenticarToken, controllerProduto.excluirProduto);
+router.patch('/produtos/:id/status', autenticarToken, controllerProduto.atualizarStatusProduto);
 
+// Rotas de garantias (protegidas por autenticação)
 router.post('/garantias', autenticarToken, controllerGarantia.RegistrarGarantia);
 router.get('/garantias', autenticarToken, controllerGarantia.listarGarantias);
 router.get('/garantias/:id', autenticarToken, controllerGarantia.listarGarantiaPorId);
