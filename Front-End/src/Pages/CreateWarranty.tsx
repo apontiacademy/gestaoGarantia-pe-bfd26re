@@ -10,6 +10,17 @@ const CreateWarranty: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [hasExtendedWarranty, setHasExtendedWarranty] = useState(false);
+  const [value, setValue] = useState('');
+
+  function formatCurrency(input: string) {
+    const onlyNumbers = input.replace(/\D/g, '');
+    const numberValue = Number(onlyNumbers) / 100;
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+    }).format(numberValue);
+  }
 
   function removeFile() {
     setFile(null);
@@ -63,7 +74,8 @@ const CreateWarranty: React.FC = () => {
 
             <div className="flex gap-4 items-end">
               <Input 
-                label="Período de Garantia *" 
+                label="Período de Garantia *"
+                type="number" min={0} 
                 placeholder="Ex: 12" 
                 className="flex-1 bg-white border-none" 
               />
@@ -77,7 +89,7 @@ const CreateWarranty: React.FC = () => {
               </div>
             </div>
 
-            <Input label="Quantidade de Produto" type="number" className="bg-white border-none" />
+            <Input label="Quantidade de Produto" type="number" min={0} className="bg-white border-none" />
             <Input label="Nome da Loja" placeholder="Ex: FastShop" className="bg-white border-none" />
             <Input label="CNPJ da Loja" placeholder="00.000.000/0000-00" className="bg-white border-none" />
             <Input label="Data da Compra *" type="date" className="bg-white border-none text-gray-400" />
@@ -102,7 +114,16 @@ const CreateWarranty: React.FC = () => {
             )}
 
             <Input label="Número da Nota Fiscal" className="bg-white border-none" />
-            <Input label="Valor" type="number" placeholder="R$ 0,00" className="bg-white border-none" />
+            <Input
+              label="Valor"
+              type="text"
+              value={value}
+              placeholder="R$ 0,00"
+              onChange={(e) => {
+                setValue(formatCurrency(e.target.value));
+              }}
+              className="bg-white border-none"
+            />
             
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-700 ml-1">Observações</label>
