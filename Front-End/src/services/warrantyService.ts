@@ -2,11 +2,9 @@ export interface Warranty {
   id: string;
   title: string;
   story?: string;
-  status?: string;
   nfNumber?: string;
   purchaseDate?: string;
   expirationDate?: string;
-  daysToExpire?: number | string;
   warrantyType?: string;
   value?: string;
 }
@@ -38,7 +36,6 @@ export function saveWarranty(data: WarrantyInput): Warranty {
   const newWarranty: Warranty = {
     ...data,
     id: crypto.randomUUID(),
-    status: data.status ?? 'Ativo',
   };
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...prev, newWarranty]));

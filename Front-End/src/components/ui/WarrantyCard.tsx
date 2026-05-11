@@ -1,14 +1,13 @@
 import React from 'react';
+import { calculateWarrantyStatus } from "../../utils/warrantyStatus";
 
 interface WarrantyCardProps {
   title: string;
   story?: string;
-  status?: string;
   nfNumber?: string; //numero da nota fiscal
 
   purchaseDate?: string; // data de compra
   expirationDate?: string; //data de vencimento
-  daysToExpire?: number | string; //prazo para expirar
   warrantyType?: string; //tipo de garantia (de fabrica ou extendida)
   value?: string; //valor da garantia/aparelho
 
@@ -23,11 +22,9 @@ interface WarrantyCardProps {
 const WarrantyCard: React.FC<WarrantyCardProps> = ({
   title,
   story,
-  status,
   nfNumber,
   purchaseDate,
   expirationDate,
-  daysToExpire,
   warrantyType,
   value,
   variant,
@@ -37,23 +34,28 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
   onSelect,
 }) => {
 
+  const warrantyInfo = calculateWarrantyStatus(expirationDate);
+
+  const currentStatus = warrantyInfo.status;
+  const currentDaysToExpire = warrantyInfo.daysToExpire;
+
   // Verifica se há algum campo de detalhe para renderizar o bloco do meio
-  const hasDetails = purchaseDate || expirationDate || daysToExpire !== undefined || warrantyType;
+  const hasDetails = purchaseDate || expirationDate || currentDaysToExpire !== undefined || warrantyType;
 
   // Verifica se há alguma info no lado direito do header
-  const hasHeaderRight = variant === 'trash' || status || nfNumber;
+  const hasHeaderRight = variant === 'trash' || currentStatus || nfNumber;
 
   // Verifica se há valor para exibir no rodapé
   const hasFooter = value || variant === 'home' || variant === 'trash';
 
   const statusColor =
-    status === 'Ativo' ? 'text-green' :
-    status === 'A vencer' ? 'text-yellow' :
-    status === 'Vencida' ? 'text-red' :
-    '';
+    currentStatus === 'Ativo' ? 'text-green' :
+      currentStatus === 'A vencer' ? 'text-yellow' :
+        currentStatus === 'Vencida' ? 'text-red' :
+          '';
 
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray w-full max-w-md">
+    <div className="bg-primary/5 rounded-2xl p-4 shadow-sm border border-gray/40 w-full max-w-md">
 
       {/* Header do Card */}
       <div className="flex justify-between items-start mb-3">
@@ -74,8 +76,8 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
                 className="w-5 h-5 rounded border-gray-300 accent-gray-700 cursor-pointer"
               />
             )}
-            {status && (
-              <span className={`text-sm font-semibold ${statusColor}`}>{status}</span>
+            {currentStatus && (
+              <span className={`text-sm font-semibold ${statusColor}`}>{currentStatus}</span>
             )}
             {nfNumber && (
               <span className="text-xs text-gray-500">Nº da nota: {nfNumber}</span>
@@ -99,11 +101,15 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
                 <span className="font-bold">Data De Vencimento:</span> {expirationDate}
               </p>
             )}
-            {daysToExpire !== undefined && (
+            {currentStatus   === "Vencida" ? (
               <p className="text-sm text-gray-dark">
-                <span className="font-bold">Vence:</span> {daysToExpire} dias para expirar
+              <span className="font-bold">Vence:</span> <span className='text-red font-semibold'>Garantia vencida</span>
+            </p>
+            ) : currentDaysToExpire !== null ? (
+              <p className="text-sm text-gray-dark">
+                <span className="font-bold">Vence:</span> {currentDaysToExpire} dias para expirar
               </p>
-            )}
+            )  : null}
             {warrantyType && (
               <p className="text-sm text-gray-dark">
                 <span className="font-bold">Tipo de Garantia:</span> {warrantyType}
