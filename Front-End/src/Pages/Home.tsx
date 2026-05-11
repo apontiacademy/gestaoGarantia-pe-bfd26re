@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useWarranty } from "../contexts/WarrantyContext";
 import { useState } from "react";
 import StatusFilter, { type StatusFilterOption } from "../components/ui/StatusFilter";
-import { applyStatusFilter } from "../utils/filterWarranties";
+//import { applyStatusFilter } from "../utils/filterWarranties";
 
 export default function Home() {
     const navigate = useNavigate();
@@ -17,12 +17,12 @@ export default function Home() {
     const [statusFilter, setStatusFilter] = useState<StatusFilterOption>("all");
     const [showFilter, setShowFilter] = useState(false);
 
-    const filteredWarranties = applyStatusFilter(
+    /*const filteredWarranties = applyStatusFilter(
         warranties.filter(({ title }) =>
             title.toLowerCase().includes(search.toLowerCase())
         ),
         statusFilter
-    );
+    );*/
 
     return (
         <LayoutHome>
@@ -34,7 +34,7 @@ export default function Home() {
             {/* CAMPO DE PESQUISA */}
             <div className="flex flex-col gap-3 mb-6">
                 <div className="flex items-center gap-3">
-                    <div className="relative flex-1 max-w-sm">
+                    <div className="relative flex-1 max-w-sm md:w-full">
                         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                             type="text"
@@ -49,7 +49,7 @@ export default function Home() {
                         onClick={() => setShowFilter((prev) => !prev)}
                     >
                         <SlidersHorizontal size={18} />
-                        
+
                     </button>
                 </div>
 
@@ -64,11 +64,11 @@ export default function Home() {
             </div>
 
             {/* BOTÕES DE CRIAR */}
-            <div className="flex gap-3 mb-8 text-sm">
-                <Button variant="secondary" type="button" onClick={() => { navigate("/create-warranty") }} className="flex items-center gap-2 w-50">
+            <div className="flex gap-5 mb-8 text-sm md:text-base">
+                <Button variant="primary" type="button" onClick={() => { navigate("/create-warranty") }} className="flex items-center gap-3 w-50 md:w-55">
                     <Plus size={22} /> Nova Garantia
                 </Button>
-                <Button variant="secondary" type="button" className="flex items-center gap-2 w-50">
+                <Button variant="primary" type="button" className="flex items-center gap-3 w-50 md:w-55">
                     <CopyPlus size={25} /> Novo Grupo de Garantia
                 </Button>
             </div>
@@ -80,7 +80,8 @@ export default function Home() {
 
 
             {/* GARANTIAS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 m-2 p-6 rounded-lg bg-white">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2 p-6 rounded-lg bg-white">
+                {/*
                 {filteredWarranties.length === 0 ? (
                     <p>{search ? "Nenhuma garantia encontada" : "Nenhuma garantia cadastrada"}</p>
                 ) : (
@@ -93,8 +94,59 @@ export default function Home() {
                         />
                     ))
                 )}
-            </div>
+                */}
 
+                <WarrantyCard
+                    title="Geladeira Electrolux"
+                    story="Magazine Luiza"
+                    nfNumber="123456"
+
+                    purchaseDate="11/05/2026"
+                    expirationDate="12/05/2026"
+                    warrantyType="Garantia de fábrica"
+                    value="3.500,00"
+
+                    variant="home"
+
+                    onViewMore={() => {
+                        console.log("Ver mais clicado");
+                    }}
+                />
+
+                <WarrantyCard
+                    title="Macbook Air Apple"
+                    story="Apple"
+                    nfNumber="5689"
+
+                    purchaseDate="01/01/2026"
+                    expirationDate="01/01/2027"
+                    warrantyType="Garantia de fábrica"
+                    value="6.678,00"
+
+                    variant="home"
+
+                    onViewMore={() => {
+                        console.log("Ver mais clicado");
+                    }}
+                />
+
+                <WarrantyCard
+                    title="Macbook Neo Apple"
+                    story="Apple"
+                    nfNumber="7885"
+
+                    purchaseDate="01/12/2025"
+                    expirationDate="01/01/2026"
+                    warrantyType="Garantia de fábrica"
+                    value="3.339,14"
+
+                    variant="home"
+
+                    onViewMore={() => {
+                        console.log("Ver mais clicado");
+                    }}
+                />
+            </div>
         </LayoutHome>
     );
 }
