@@ -10,12 +10,16 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      this.belongsTo(models.Usuario, { foreignKey: 'idUsuario', as: 'usuario' }); // Associação com o modelo Usuario, usando idUsuario como chave estrangeira
-      this.hasMany(models.Garantia, {foreignKey: 'produto_id', as:'garantias'}); //  Associação com modelo Garantia
+      this.belongsTo(models.Usuario, { foreignKey: 'id_usuario', as: 'usuario' }); 
+      // Associação com o modelo Usuario, usando idUsuario como chave estrangeira
+      this.hasMany(models.Garantia, {foreignKey: 'id_produto', as:'garantias'});
+      //  Associação com modelo Garantia
+      this.hasOne(models.Documento_Fiscal, { foreignKey: 'id_produto', as: 'documento_fiscal' });
+      //Associação com o modelo Documento Fiscal
     }
   }
   Produto.init({
-    idUsuario: DataTypes.INTEGER,
+    id_usuario: DataTypes.INTEGER,
     nome: DataTypes.STRING,
     marca: DataTypes.STRING,
     modelo: DataTypes.STRING,
@@ -23,6 +27,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Produto',
+    tableName: 'Produtos'
   });
   return Produto;
 };

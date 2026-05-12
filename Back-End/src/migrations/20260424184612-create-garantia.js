@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      produto_id: {
+      id_produto: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -23,10 +23,10 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       data_inicio: {
-        type: Sequelize.DATE
+        type: Sequelize.DATEONLY
       },
       data_fim: {
-        type: Sequelize.DATE
+        type: Sequelize.DATEONLY
       },
       tipo: {
         type: Sequelize.STRING,
@@ -36,7 +36,7 @@ module.exports = {
         type: Sequelize.DATE
       },
       observacao: {
-        type: Sequelize.STRING
+        type: Sequelize.TEXT // TEXT permite descrições longas
       },
       deletado_em: {
         type: Sequelize.DATE
@@ -54,7 +54,8 @@ module.exports = {
       }
     });
   },
+  
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Garantia');
+    await queryInterface.dropTable('Garantias');
   }
 };

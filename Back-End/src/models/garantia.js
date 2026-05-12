@@ -10,18 +10,18 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
-      this.belongsTo(models.Produto,{foreignKey:'produto_id', as: 'produtos'}); //Associal com model Produto
+      this.belongsTo(models.Produto,{foreignKey:'produto_id', as: 'produtos'}); 
+      //Uma garantia pertence a um produto
     }
   }
   Garantia.init({
     produto_id: DataTypes.INTEGER,
     prazo_dias: DataTypes.INTEGER,
-    data_inicio: DataTypes.DATE,
-    data_fim: DataTypes.DATE,
+    data_inicio: DataTypes.DATEONLY,
+    data_fim: DataTypes.DATEONLY,
     tipo: DataTypes.STRING,
     data_cadastro: DataTypes.DATE,
-    observacao: DataTypes.STRING,
+    observacao: DataTypes.TEXT,
     deletado_em: DataTypes.DATE,
     deletado_por: DataTypes.STRING
   }, {
