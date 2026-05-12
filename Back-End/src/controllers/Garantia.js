@@ -1,4 +1,5 @@
 const { Garantia, Produto } = require('../models');
+const {calcularStatusGarantia} = require('../utils/garantiaUtils');
 
 async function RegistrarGarantia(req, res) {
   try {
@@ -49,7 +50,20 @@ async function listarGarantias(req, res) {
       ]
     });
 
-    return res.json(garantias);
+      const garantiasComStatus = garantias.map((garantia) => {
+
+      const infoGarantia = calcularStatusGarantia(
+        garantia.data_fim
+      );
+
+      return {
+        ...garantia.toJSON(),
+        ...infoGarantia
+      };
+
+    });
+
+    return res.json(garantiasComStatus);
   } catch (error) {
     return res.status(500).json({ erro: error.message });
   }
@@ -73,7 +87,16 @@ async function listarGarantiaPorId(req, res) {
       return res.status(404).json({ mensagem: 'Garantia não encontrada' });
     }
 
-    return res.json(garantia);
+    const infoGarantia = calcularStatusGarantia(
+      garantia.data_fim
+    );
+
+    return res.json({
+      ...garantia.toJSON(),
+      ...infoGarantia
+    });
+
+    // return res.json(garantia);
   } catch (error) {
     return res.status(500).json({ erro: error.message });
   }
