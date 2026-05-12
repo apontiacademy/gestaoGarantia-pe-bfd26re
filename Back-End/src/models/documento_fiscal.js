@@ -4,11 +4,11 @@ module.exports = (sequelize, DataTypes) => {
   class Documento_Fiscal extends Model {
     static associate(models) {
       // O documento pertence a um produto (1:1)
-      this.belongsTo(models.Produto, { foreignKey: 'id_produto', as: 'produto' });
+      this.belongsTo(models.Produto, { foreignKey: 'produto_id', as: 'produto' });
     }
   }
   Documento_Fiscal.init({
-    id_produto: {
+    produto_id: {
       type: DataTypes.INTEGER,
       primaryKey: true // Define como chave primária aqui também
     },

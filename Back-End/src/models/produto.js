@@ -12,9 +12,9 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       this.belongsTo(models.Usuario, { foreignKey: 'id_usuario', as: 'usuario' }); 
       // Associação com o modelo Usuario, usando idUsuario como chave estrangeira
-      this.hasMany(models.Garantia, {foreignKey: 'id_produto', as:'garantias'});
+      this.hasMany(models.Garantia, {foreignKey: 'produto_id', as:'garantias'});
       //  Associação com modelo Garantia
-      this.hasOne(models.Documento_Fiscal, { foreignKey: 'id_produto', as: 'documento_fiscal' });
+      this.hasOne(models.Documento_Fiscal, { foreignKey: 'produto_id', as: 'documento_fiscal' });
       //Associação com o modelo Documento Fiscal
     }
   }
