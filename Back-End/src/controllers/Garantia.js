@@ -4,12 +4,17 @@ async function RegistrarGarantia(req, res) {
   try {
     const { produto_id, prazo_dias, data_inicio, tipo, observacao } = req.body;
 
+      if (isNaN(prazo_dias) || prazo_dias < 0) {
+        return res.status(400).json({ erro: 'O prazo da garantia não pode ser negativo' });
+      }
+
     const tiposValidos = ['Normal', 'Estendida'];
+
     if (!tipo || !tiposValidos.includes(tipo)) {
       return res.status(400).json({ 
         erro: 'Tipo inválido',
         tiposAceitos: tiposValidos 
-      });
+      });  
     }
 
     const dataFim = new Date(data_inicio);
@@ -79,6 +84,12 @@ async function atualizarGarantia(req, res) {
     const { id } = req.params;
     const { produto_id, prazo_dias, data_inicio, tipo, observacao } = req.body;
 
+    if (isNaN(prazo_dias) || prazo_dias < 0) {
+  return res.status(400).json({
+    erro: 'O prazo da garantia não pode ser negativo'
+  });
+}
+
     const tiposValidos = ['Normal', 'Estendida'];
     if (!tipo || !tiposValidos.includes(tipo)) {
       return res.status(400).json({ 
@@ -112,6 +123,11 @@ async function atualizarStatusGarantia(req, res) {
   try {
     const { id } = req.params;
     const dados = req.body;
+
+    if (dados.prazo_dias !== undefined && (isNaN(dados.prazo_dias) || dados.prazo_dias < 0)) {
+      return res.status(400).json({ erro: 'O prazo da garantia não pode ser negativo' });
+    }
+
 
     const tiposValidos = ['Normal', 'Estendida'];
     if (dados.tipo && !tiposValidos.includes(dados.tipo)) {
