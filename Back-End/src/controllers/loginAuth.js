@@ -34,7 +34,7 @@ async function Login(req, res) {
 
     // Token com duração maior (8h) + retorno do usuário
     const token = jwt.sign(
-      { idUsuario: usuario.id },
+      { id_usuario: usuario.id },
       process.env.JWT_SECRET,
       { expiresIn: '8h' }
     );
@@ -57,10 +57,10 @@ async function Login(req, res) {
 
 async function AlterarSenha(req, res) {
 const { senha, novaSenha } = req.body;
-const idUsuario = req.usuario.idUsuario; // ID do usuário autenticado
+const id_usuario = req.usuario.id_usuario; // ID do usuário autenticado
 
  try{
-        const usuario = await Usuario.findByPk(idUsuario);
+        const usuario = await Usuario.findByPk(id_usuario);
         if (!usuario) {
             return res.status(404).json({ error: "Usuário não encontrado" });
         }
@@ -88,7 +88,7 @@ async function EsqueciSenha(req, res) {
                 return res.status(404).json({ error: "Usuário não encontrado" });
             }
 
-            const tokenReset = jwt.sign({idUsuario: usuario.id }, SECRET_KEY, { expiresIn: '15m' });
+            const tokenReset = jwt.sign({id_usuario: usuario.id }, SECRET_KEY, { expiresIn: '15m' });
 
             const linkReset = `http://localhost:3000/resetar-senha?token=${tokenReset}`;
 
