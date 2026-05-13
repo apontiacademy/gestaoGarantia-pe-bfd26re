@@ -16,6 +16,8 @@ module.exports = (sequelize, DataTypes) => {
       //  Associação com modelo Garantia
       this.hasOne(models.Documento_Fiscal, { foreignKey: 'produto_id', as: 'documento_fiscal' });
       //Associação com o modelo Documento Fiscal
+      this.belongsToMany(models.Grupo, { through: 'Produto_Grupo', foreignKey: 'produto_id',as: 'grupos' });
+      //Associação ao modelo de Grupo
     }
   }
   Produto.init({

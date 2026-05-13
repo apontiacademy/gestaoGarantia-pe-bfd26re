@@ -4,11 +4,17 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Documentos_Fiscais', {
-      // HERANÇA DE ID: O ID aqui é a própria FK do Produto
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER
+      },
+      
       produto_id: {
         type: Sequelize.INTEGER,
-        primaryKey: true, // define como PK para garantir o 1:1
         allowNull: false,
+        unique: true, 
         references: {
           model: 'Produtos', 
           key: 'id'
