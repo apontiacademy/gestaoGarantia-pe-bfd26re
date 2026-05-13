@@ -25,7 +25,9 @@ export default function Home() {
     );*/
 
     return (
-        <LayoutHome>
+        <LayoutHome
+            namePage=""
+        >
             <div className="fixed bottom-8 right-6 flex flex-col gap-4">
                 <FloatingButton icon={Plus} onClick={() => { navigate("/create-warranty") }} />
                 <FloatingButton icon={CopyPlus} />
@@ -65,10 +67,10 @@ export default function Home() {
 
             {/* BOTÕES DE CRIAR */}
             <div className="flex gap-5 mb-8 text-sm md:text-base">
-                <Button variant="primary" type="button" onClick={() => { navigate("/create-warranty") }} className="flex items-center gap-3 w-50 md:w-55">
+                <Button variant="primary" type="button" onClick={() => { navigate("/create-warranty") }} className="flex items-center justify-center gap-3 w-50 md:w-70 md:py-4">
                     <Plus size={22} /> Nova Garantia
                 </Button>
-                <Button variant="primary" type="button" className="flex items-center gap-3 w-50 md:w-55">
+                <Button variant="primary" type="button" className="flex items-center justify-center gap-3 w-50 md:w-70 md:py-4">
                     <CopyPlus size={25} /> Novo Grupo de Garantia
                 </Button>
             </div>
@@ -80,7 +82,7 @@ export default function Home() {
 
 
             {/* GARANTIAS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-5">
                 {/*
                 {filteredWarranties.length === 0 ? (
                     <p>{search ? "Nenhuma garantia encontada" : "Nenhuma garantia cadastrada"}</p>

@@ -4,6 +4,8 @@ interface NavProps {
     leftIcon: LucideIcon;
     onLeftClick?: () => void;
     leftLabel?: string;
+    namePage?: string;
+    namePageIcon?: LucideIcon;
 
     rightIcon?: LucideIcon;
     onRightClick?: () => void;
@@ -11,9 +13,11 @@ interface NavProps {
 }
 
 export default function Nav({
-    leftIcon: LeftIcon,
+    leftIcon: Menu,
     onLeftClick,
     leftLabel,
+    namePage,
+    namePageIcon: NameIcon,
 
     rightIcon: RightIcon,
     onRightClick,
@@ -27,18 +31,39 @@ export default function Nav({
         px-4 py-3"
         >
             {/* LEFT */}
-            <button
-                aria-label={leftLabel}
-                onClick={onLeftClick}
-                className="
-                flex items-center justify-center
-                w-12 h-12
-                transition
-                active:scale-95
-                cursor-pointer"
-            >
-                <LeftIcon size={28} />
-            </button>
+            <div className="flex items-center gap-5">
+                <button
+                    aria-label={leftLabel}
+                    onClick={onLeftClick}
+
+                    className="
+                    flex items-center justify-center
+                    w-12 h-12
+                    transition
+                    active:scale-95
+                    cursor-pointer"
+                >
+                    <Menu size={28}/>
+                </button>
+
+                {/* NAME PAGE */}
+                {namePage && (
+                    <div className="w-px h-6 bg-gray-200" />
+                )}
+
+                {/* NAME PAGE */}
+                {namePage && (
+                    <div className="flex items-center gap-2">
+                        {NameIcon && (
+                            <NameIcon size={20} className="text-primary" />
+                        )}
+
+                        <span className="text-xl font-semibold text-primary tracking-tight">
+                            {namePage}
+                        </span>
+                    </div>
+                )}
+            </div>
 
             {/* RIGHT */}
             {RightIcon ? (

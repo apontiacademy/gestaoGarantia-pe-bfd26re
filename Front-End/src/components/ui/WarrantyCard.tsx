@@ -61,14 +61,14 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
           : "";
 
   return (
-    <div className="group rounded-2xl p-4 shadow-sm border border-gray-200 w-full max-w-md bg-white transition-all duration-300 ease-in-out hover:shadow-lg hover:-translate-y-1 hover:border-gray-400 cursor-pointer">
+    <div className="group rounded-2xl p-4 shadow-sm border border-gray-dark/20 w-full max-w-md bg-white transition-all duration-300 ease-in-out hover:shadow-lg hover:-translate-y-1 hover:border-gray-dark/35 ">
       {/* Header do Card */}
       <div className="flex justify-between items-start mb-3">
         <div>
-          <h3 className="font-bold text-lg text-gray-800 transition-colors duration-200 group-hover:text-black">
+          <h3 className="font-bold text-lg text-gray-dark transition-colors duration-200 group-hover:text-black">
             {title}
           </h3>
-          {story && <p className="text-sm text-gray-500 italic">{story}</p>}
+          {story && <p className="text-sm italic">{story}</p>}
         </div>
 
         {hasHeaderRight && (
@@ -78,7 +78,7 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
                 type="checkbox"
                 checked={selected}
                 onChange={(e) => onSelect?.(e.target.checked)}
-                className="w-5 h-5 rounded border-gray-300 accent-gray-700 cursor-pointer"
+                className="w-5 h-5 rounded border-gray-dark/60 accent-gray-dark cursor-pointer"
               />
             )}
             {currentStatus && (
@@ -87,7 +87,7 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
               </span>
             )}
             {nfNumber && (
-              <span className="text-xs text-gray-500">
+              <span className="text-xs font-medium text-gray-dark/90">
                 Nº da nota: {nfNumber}
               </span>
             )}
@@ -98,36 +98,36 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
       {/* Detalhes */}
       {hasDetails && (
         <>
-          <div className="border-t border-gray-100 mb-3 transition-colors duration-200 group-hover:border-gray-200" />
+          <div className="border-t border-gray/90 mb-3 transition-colors duration-200 group-hover:border-gray" />
           <div className="space-y-1 mb-3">
             {purchaseDate && (
-              <p className="text-sm text-gray-700">
-                <span className="font-bold">Data De Compra:</span>{" "}
+              <p className="text-sm text-gray-dark">
+                <span className="font-semibold">Data De Compra:</span>{" "}
                 {purchaseDate}
               </p>
             )}
             {expirationDate && (
-              <p className="text-sm text-gray-700">
-                <span className="font-bold">Data De Vencimento:</span>{" "}
+              <p className="text-sm text-gray-dark">
+                <span className="font-semibold">Data De Vencimento:</span>{" "}
                 {expirationDate}
               </p>
             )}
             {currentStatus === "Vencida" ? (
-              <p className="text-sm text-gray-700">
-                <span className="font-bold">Vence:</span>{" "}
-                <span className="text-red-500 font-semibold">
+              <p className="text-sm text-gray-dark">
+                <span className="font-semibold">Vence:</span>{" "}
+                <span className="text-red/90 font-semibold">
                   Garantia vencida
                 </span>
               </p>
             ) : currentDaysToExpire !== null ? (
-              <p className="text-sm text-gray-700">
-                <span className="font-bold">Vence:</span> {currentDaysToExpire}{" "}
+              <p className="text-sm text-gray-dark">
+                <span className="font-semibold">Vence:</span> {currentDaysToExpire}{" "}
                 dias para expirar
               </p>
             ) : null}
             {warrantyType && (
-              <p className="text-sm text-gray-700">
-                <span className="font-bold">Tipo de Garantia:</span>{" "}
+              <p className="text-sm text-gray-dark">
+                <span className="font-semibold">Tipo de Garantia:</span>{" "}
                 {warrantyType}
               </p>
             )}
@@ -138,11 +138,11 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
       {/* Rodapé */}
       {hasFooter && (
         <>
-          <div className="border-t border-gray-100 mb-3 transition-colors duration-200 group-hover:border-gray-200" />
+          <div className="border-t border-gray/90 mb-3 transition-colors duration-200 group-hover:border-gray" />
           <div className="flex justify-between items-center">
             {value ? (
-              <p className="text-sm text-gray-700 font-medium">
-                <span className="font-bold">Valor R$ </span>
+              <p className="text-sm text-gray-dark font-medium">
+                <span className="font-semibold">Valor </span>
                 {value}
               </p>
             ) : (
@@ -163,7 +163,7 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
             {variant === "trash" && (
               <button
                 onClick={onRestore}
-                className="border border-black rounded-full px-6 py-1 text-sm font-medium hover:bg-black hover:text-white transition-colors duration-200"
+                className="border border-green/80 text-green rounded-full px-6 py-1 text-sm font-medium hover:bg-green/80 hover:text-white transition-colors duration-200"
               >
                 Restaurar
               </button>

@@ -1,35 +1,78 @@
 import { useState } from "react";
-import { Bell, TextAlignStart } from "lucide-react";   // ← Importando os ícones
+import { Menu, Bell, ChevronLeft } from "lucide-react";
+import { type LucideIcon } from "lucide-react";
 
 import Nav from "../components/navegation/Nav";
-import Sidebar from "../components/navegation/Siderbar"; // Corrija o nome se necessário (Sidebar)
+import Sidebar from "../components/navegation/Siderbar";
 
 interface LayoutHomeProps {
     children: React.ReactNode;
+
+    namePage?: string;
+    namePageIcon?: LucideIcon;
+
+    showMenu?: boolean;
+    showBack?: boolean;
+    showNotification?: boolean;
+
+    onBack?: () => void;
+    onNotification?: () => void;
 }
 
-export default function LayoutHome({ children }: LayoutHomeProps) {
+export default function LayoutHome({
+    children,
+    namePage,
+    namePageIcon,
+
+    showMenu = true,
+    showBack = false,
+    showNotification = true,
+
+    onBack,
+    onNotification,
+}: LayoutHomeProps) {
 
     const [isOpen, setIsOpen] = useState(false);
+
+    // Decide qual ícone usar na esquerda
+    let leftIcon: LucideIcon = Menu;
+    let leftAction = () => setIsOpen(true);
+    let leftLabel = "Abrir menu";
+
+    if (showBack) {
+        leftIcon = ChevronLeft;
+        leftAction = onBack || (() => window.history.back());
+        leftLabel = "Voltar";
+    }
+
+    // Decide se tem ícone na direita
+    const rightIcon = showNotification ? Bell : undefined;
 
     return (
         <div className="min-h-screen bg-fundo">
             <Nav
-                leftIcon={TextAlignStart}
-                leftLabel="Abrir Menu"
-                onLeftClick={() => setIsOpen(true)}
-                
-                rightIcon={Bell}
+                leftIcon={leftIcon}
+                leftLabel={leftLabel}
+                onLeftClick={leftAction}
+
+                namePage={namePage}
+                namePageIcon={namePageIcon}
+
+                rightIcon={rightIcon}
                 rightLabel="Notificações"
-                onRightClick={() => console.log("Abrir notificações")}
+                onRightClick={onNotification}
             />
 
-            <Sidebar 
-                isOpen={isOpen} 
-                onClose={() => setIsOpen(false)} 
-            />
+            {/* Sidebar só se usar menu */}
+            {showMenu && !showBack && (
+                <Sidebar
+                    isOpen={isOpen}
+                    onClose={() => setIsOpen(false)}
+                />
+            )}
 
-            <main className="max-w-5xl mx-auto px-5 py-6">
+
+            <main className="mx-auto px-5 md:px-10 py-6">
                 {children}
             </main>
         </div>
