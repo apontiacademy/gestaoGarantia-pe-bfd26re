@@ -24,14 +24,14 @@ const cors = require('cors');
 app.use(express.json());
 app.use(cors());
 
-// Rota de teste
+// Rota de teste da API
 app.get('/', (req, res) => {
   res.status(200).send({ message: 'API funcionando!' });
 });
 
 // Rotas de autenticação
-const authRoutes = require('./routes/authRoutes');
-app.use('/', authRoutes);  
+const routes = require('./routes');
+app.use(routes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
