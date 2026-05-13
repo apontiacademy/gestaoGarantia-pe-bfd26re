@@ -23,10 +23,10 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       data_inicio: {
-        type: Sequelize.DATEONLY
+        type: Sequelize.DATE
       },
       data_fim: {
-        type: Sequelize.DATEONLY
+        type: Sequelize.DATE
       },
       tipo: {
         type: Sequelize.STRING,
