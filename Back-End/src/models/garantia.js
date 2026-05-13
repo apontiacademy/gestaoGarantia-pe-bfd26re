@@ -4,11 +4,7 @@ const {
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Garantia extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
+    
     static associate(models) {
       this.belongsTo(models.Produto,{foreignKey:'produto_id', as: 'produto'}); 
       //Uma garantia pertence a um produto
@@ -16,9 +12,9 @@ module.exports = (sequelize, DataTypes) => {
   }
   Garantia.init({
     produto_id: DataTypes.INTEGER,
-    prazo_dias: DataTypes.INTEGER,
-    data_inicio: DataTypes.DATEONLY,
-    data_fim: DataTypes.DATEONLY,
+    prazo_dias: { type: DataTypes.INTEGER, allowNull: false, validate:{ min: 0 } },
+    data_inicio: DataTypes.DATE,
+    data_fim: DataTypes.DATE,
     tipo: DataTypes.STRING,
     data_cadastro: DataTypes.DATE,
     observacao: DataTypes.TEXT,
