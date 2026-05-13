@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Nav from "../components/navegation/Nav";
+import { type LucideIcon } from "lucide-react";
 
 import Sidebar from "../components/navegation/Siderbar";
 import { Bell, TextAlignStart } from "lucide-react";

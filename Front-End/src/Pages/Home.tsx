@@ -80,7 +80,7 @@ export default function Home() {
 
 
             {/* GARANTIAS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2 p-6 rounded-lg bg-white">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-5">
                 {/*
                 {filteredWarranties.length === 0 ? (
                     <p>{search ? "Nenhuma garantia encontada" : "Nenhuma garantia cadastrada"}</p>
@@ -99,7 +99,7 @@ export default function Home() {
                 <WarrantyCard
                     title="Geladeira Electrolux"
                     story="Magazine Luiza"
-                    nfNumber="123456"
+                    nfNumber="12356"
 
                     purchaseDate="11/05/2026"
                     expirationDate="12/05/2026"
