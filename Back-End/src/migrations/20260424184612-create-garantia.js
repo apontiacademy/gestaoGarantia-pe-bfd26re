@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Garantia', {
+    await queryInterface.createTable('Garantias', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -36,7 +36,7 @@ module.exports = {
         type: Sequelize.DATE
       },
       observacao: {
-        type: Sequelize.STRING
+        type: Sequelize.TEXT // TEXT permite descrições longas
       },
       deletado_em: {
         type: Sequelize.DATE
@@ -54,7 +54,8 @@ module.exports = {
       }
     });
   },
+  
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Garantia');
+    await queryInterface.dropTable('Garantias');
   }
 };

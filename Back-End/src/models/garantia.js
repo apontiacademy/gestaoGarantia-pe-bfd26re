@@ -6,8 +6,8 @@ module.exports = (sequelize, DataTypes) => {
   class Garantia extends Model {
     
     static associate(models) {
-     
-      this.belongsTo(models.Produto,{foreignKey:'produto_id', as: 'produtos'}); //Associal com model Produto
+      this.belongsTo(models.Produto,{foreignKey:'produto_id', as: 'produto'}); 
+      //Uma garantia pertence a um produto
     }
   }
   Garantia.init({
@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
     data_fim: DataTypes.DATE,
     tipo: DataTypes.STRING,
     data_cadastro: DataTypes.DATE,
-    observacao: DataTypes.STRING,
+    observacao: DataTypes.TEXT,
     deletado_em: DataTypes.DATE,
     deletado_por: DataTypes.STRING
   }, {

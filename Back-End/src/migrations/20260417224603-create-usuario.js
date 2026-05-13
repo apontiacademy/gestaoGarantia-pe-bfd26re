@@ -10,13 +10,17 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       nomeCompleto: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false // Nome é obrigatório
       },
       email: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true // Impede e-mails duplicados
       },
       senha: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false // Senha é obrigatória
       },
       createdAt: {
         allowNull: false,

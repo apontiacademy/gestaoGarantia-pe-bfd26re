@@ -10,16 +10,21 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      this.hasMany(models.Produto, { foreignKey: 'idUsuario', as: 'produtos' });
+      //um usuário tem muitos produtos
+      this.hasMany(models.Produto, { foreignKey: 'id_usuario', as: 'produtos' });
     }
   }
   Usuario.init({
     nomeCompleto: DataTypes.STRING,
-    email: DataTypes.STRING,
+    email : {
+      type: DataTypes.STRING,
+      unique: true // Reflete a regra de negócio
+    },
     senha: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Usuario',
+    tableName: 'Usuarios'
   });
   return Usuario;
 };
