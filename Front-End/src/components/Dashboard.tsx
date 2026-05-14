@@ -1,41 +1,79 @@
-import { FileText, Clock3, CircleCheckBig, CircleX } from "lucide-react"
+import { FileText, Clock3, CircleCheckBig, CircleX } from "lucide-react";
+import {
+  countWarrantiesByStatus,
+  type StatusFilterOption,
+} from "../utils/filterWarranties";
 
-export default function Dashboard() {
-    return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            
-            <div className="bg-white shadow rounded-lg p-4 flex justify-between items-center">
-                <div className="flex flex-col px-3 text-center">
-                    <span>Total</span>
-                    <span className="text-xl font-bold">0</span>
-                </div>
-                <FileText />
+export interface DashboardProps {
+  statusFilter: StatusFilterOption;
+  onStatusChange: (status: StatusFilterOption) => void;
+  counts: ReturnType<typeof countWarrantiesByStatus>;
+}
+
+const cards: {
+  key: StatusFilterOption;
+  label: string;
+  countClass: string;
+  icon: typeof FileText;
+  iconColor?: string;
+}[] = [
+  {
+    key: "all",
+    label: "Total",
+    countClass: "",
+    icon: FileText,
+  },
+  {
+    key: "expiring",
+    label: "A Vencer",
+    countClass: "text-yellow",
+    icon: Clock3,
+    iconColor: "var(--color-yellow)",
+  },
+  {
+    key: "active",
+    label: "Ativas",
+    countClass: "text-green",
+    icon: CircleCheckBig,
+    iconColor: "var(--color-green)",
+  },
+  {
+    key: "expired",
+    label: "Vencidas",
+    countClass: "text-red",
+    icon: CircleX,
+    iconColor: "var(--color-red)",
+  },
+];
+
+export default function Dashboard({
+  statusFilter,
+  onStatusChange,
+  counts,
+}: DashboardProps) {
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {cards.map(({ key, label, countClass, icon: Icon, iconColor }) => {
+        const selected = statusFilter === key;
+        return (
+          <button
+            key={key}
+            type="button"
+            onClick={() => onStatusChange(key)}
+            className={`bg-white shadow rounded-lg p-4 flex justify-between items-center text-left transition ring-offset-2 hover:shadow-md ${
+              selected ? "ring-2 ring-primary-start" : ""
+            }`}
+          >
+            <div className="flex flex-col px-3 text-center">
+              <span>{label}</span>
+              <span className={`text-xl font-bold ${countClass}`}>
+                {counts[key]}
+              </span>
             </div>
-
-            <div className="bg-white shadow rounded-lg p-4 flex justify-between items-center">
-                <div className="flex flex-col px-3 text-center">
-                    <span>A Vencer</span>
-                    <span className="text-xl font-bold text-yellow">0</span>
-                </div>
-                <Clock3 color="var(--color-yellow)"/>
-            </div>
-
-            <div className="bg-white shadow rounded-lg p-4 flex justify-between items-center">
-                <div className="flex flex-col px-3 text-center">
-                    <span>Ativas</span>
-                    <span className="text-xl font-bold text-green">0</span>
-                </div>
-                <CircleCheckBig color="var(--color-green)"/>
-            </div>
-
-            <div className="bg-white shadow rounded-lg p-4 flex justify-between items-center">
-                <div className="flex flex-col px-3 text-center">
-                    <span>Vencidas</span>
-                    <span className="text-xl font-bold text-red">0</span>
-                </div>
-                <CircleX color="var(--color-red)"/>
-            </div>
-
-        </div>
-    )
+            <Icon color={iconColor} />
+          </button>
+        );
+      })}
+    </div>
+  );
 }
