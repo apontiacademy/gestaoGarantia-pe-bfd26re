@@ -1,8 +1,8 @@
+/* eslint-disable react-refresh/only-export-components */
 import {
   createContext,
   useContext,
   useState,
-  useEffect,
   useCallback,
   type ReactNode,
 } from "react";
@@ -23,11 +23,10 @@ const WarrantyContext = createContext<WarrantyContextData>(
 );
 
 export function WarrantyProvider({ children }: { children: ReactNode }) {
-  const [warranties, setWarranties] = useState<Warranty[]>([]);
-
-  useEffect(() => {
-    setWarranties(getWarranties());
-  }, []);
+  // Inicialização inteligente do estado buscando os dados locais de forma síncrona
+  const [warranties, setWarranties] = useState<Warranty[]>(() => {
+    return getWarranties() || [];
+  });
 
   const addWarranty = useCallback((input: WarrantyInput) => {
     saveWarranty(input);
