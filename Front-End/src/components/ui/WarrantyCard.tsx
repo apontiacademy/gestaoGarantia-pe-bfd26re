@@ -64,15 +64,17 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
     <div className="group rounded-2xl p-4 shadow-sm border border-gray-dark/20 w-full max-w-md bg-white transition-all duration-300 ease-in-out hover:shadow-lg hover:-translate-y-1 hover:border-gray-dark/35 ">
       {/* Header do Card */}
       <div className="flex justify-between items-start mb-3">
-        <div>
-          <h3 className="font-bold text-lg text-gray-dark transition-colors duration-200 group-hover:text-black">
+        <div className="min-w-0 flex-1 pr-2">
+          <h3 className="font-bold text-lg text-gray-dark transition-colors duration-200 group-hover:text-black leading-snug wrap-break-word">
             {title}
           </h3>
-          {story && <p className="text-sm italic">{story}</p>}
+          {story ? (
+            <p className="text-sm italic text-gray-dark/85 mt-1">{story}</p>
+          ) : null}
         </div>
 
         {hasHeaderRight && (
-          <div className="flex flex-col items-end gap-1">
+          <div className="flex flex-col items-end gap-1 shrink-0">
             {variant === "trash" && (
               <input
                 type="checkbox"

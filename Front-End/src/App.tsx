@@ -15,6 +15,7 @@ import CreateWarranty from "./Pages/CreateWarranty";
 import LixeiraScreen from "./Pages/Lixeira";
 import AuthLayout from "./layout/AuthLayout";
 import WarrantyRegister from "./Pages/WarrantyRegister";
+import ViewWarranty from "./Pages/ViewWarranty";
 
 function App() {
   return (
@@ -48,6 +49,7 @@ function App() {
           />
           <Route path="*" element={<Navigate to="/login" replace />} />
           <Route path="/warranty-register" element={<WarrantyRegister/>} />
+          <Route path="/garantia" element={<ViewWarranty/>}/>
         </Routes>
       </Router>
     </AuthProvider>

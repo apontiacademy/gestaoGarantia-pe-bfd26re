@@ -1,9 +1,4 @@
-// CONVERTE DATA BRASILEIRA
-function parseBrazilianDate(dateString: string): Date {
-    const [day, month, year] = dateString.split("/");
-
-    return new Date(Number(year), Number(month) - 1, Number(day));
-}
+import { parseWarrantyDate } from "./warrantyDates";
 
 // CALCULA STATUS DA GARANTIA
 export function calculateWarrantyStatus(expirationDate?: string) {
@@ -17,7 +12,13 @@ export function calculateWarrantyStatus(expirationDate?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const expiration = parseBrazilianDate(expirationDate);
+    const expiration = parseWarrantyDate(expirationDate);
+    if (Number.isNaN(expiration.getTime())) {
+        return {
+            status: "Ativo",
+            daysToExpire: null,
+        };
+    }
     expiration.setHours(0, 0, 0, 0);
 
     const diffDays = Math.ceil(
