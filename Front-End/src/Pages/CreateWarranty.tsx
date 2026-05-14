@@ -138,6 +138,7 @@ const CreateWarranty: React.FC = () => {
                     label="Quantidade de Produto"
                     type="number"
                     min={0}
+                    placeholder="Ex: 1"
                     className="bg-white border-none"
                   />
 
@@ -188,7 +189,9 @@ const CreateWarranty: React.FC = () => {
 
                   <Input
                     label="CNPJ da Loja"
+                    type='text'
                     placeholder="00.000.000/0000-00"
+                    onChange={(e) => {e.target.value = e.target.value.replace(/[^\d./-]/g, "");}}
                     className="bg-white border-none"
                   />
 
@@ -196,6 +199,7 @@ const CreateWarranty: React.FC = () => {
                     label="Data da Compra *"
                     type="date"
                     className="bg-white border-none text-gray-400"
+                    max={new Date(new Date().setFullYear(new Date().getFullYear() + 3)).toISOString().split("T")[0]}
                   />
 
                   <Input
@@ -239,12 +243,13 @@ const CreateWarranty: React.FC = () => {
 
                       <Input
                         label="Período Estendido"
-                        placeholder="Ex: 12"
+                        placeholder="Ex: 12 dias"
                         className="bg-white border-none"
                       />
 
                       <Input
                         label="Número da Garantia Estendida"
+                        type ="number"
                         placeholder="Ex: 9928..."
                         className="bg-white border-none"
                       />
