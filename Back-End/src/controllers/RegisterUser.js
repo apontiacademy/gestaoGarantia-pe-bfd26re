@@ -25,7 +25,10 @@ async function registerUser(req, res) {
       senha : hash
     });
 
-    res.status(201).json(novoUsuario);
+    res.status(201).json({
+      nomeCompleto: novoUsuario.nomeCompleto,
+      email: novoUsuario.email,
+    });
   } catch (error) {
     console.error("Erro ao registrar usuário:", error);
 

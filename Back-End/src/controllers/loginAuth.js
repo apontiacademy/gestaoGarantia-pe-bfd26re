@@ -4,6 +4,8 @@ const { compararSenha } = require("../utils/hash");
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 
+
+//Para envio de email, utilizando o Nodemailer e Gmail. LEMBRAR DE CONFIGURAR AS CREDENCIAIS DO NODE MAILER VIA GMAIL!!
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -13,7 +15,7 @@ const transporter = nodemailer.createTransport({
 })
 
 async function Login(req, res) {
-  const { email, senha } = req.body;
+  const { email, senha } = req.body; // Recebe email e senha do cliente
 
   if (!email || !senha) {
     return res.status(400).json({ error: "Todos os campos são obrigatórios" });
@@ -88,12 +90,12 @@ async function EsqueciSenha(req, res) {
                 return res.status(404).json({ error: "Usuário não encontrado" });
             }
 
-            const tokenReset = jwt.sign({id_usuario: usuario.id }, SECRET_KEY, { expiresIn: '15m' });
+            const tokenReset = jwt.sign({id_usuario: usuario.id }, process.env.JWT_SECRET, { expiresIn: '15m' });
 
             const linkReset = `http://localhost:3000/resetar-senha?token=${tokenReset}`;
 
             await transporter.sendMail({
-                from: '"suporte"<support@app.com>',
+                from: '"Suporte"<process.env.EMAIL_USER>,',
                 to: usuario.email,
                 subject: "Recuperação de senha",
                 text: `Clique no link para resetar sua senha: ${linkReset}`,
@@ -108,10 +110,10 @@ async function EsqueciSenha(req, res) {
 }
 
 async function ResetarSenha(req, res) {
-  const { token, novaSenha } = req.body;
+  const { token, novaSenha } = req.body; // Token recebido do cliente + nova senha
     try{
         const decoded = jwt.verify(token, process.env.JWT_SECRET); 
-        const usuario = await Usuario.findByPk(decoded.id);
+        const usuario = await Usuario.findByPk(decoded.id_usuario);
 
     if (!usuario) {
         return res.status(404).json({ error: "Usuário não encontrado" });
@@ -120,7 +122,7 @@ async function ResetarSenha(req, res) {
     usuario.senha = await bcrypt.hash(novaSenha, 10);
     await usuario.save();
 
-    res.status(200).json({ message: "Senha modificada com sucesso" });
+    res.status(200).json({ message: "Senha ALTERADA com sucesso" });
     }  catch(err){
     console.error("Erro ao resetar senha:", err);
     res.status(500).json({ error: "Erro ao resetar senha" });
