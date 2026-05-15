@@ -26,8 +26,8 @@ export default function Nav({
     return (
         <nav
             className="
-        flex items-center justify-between
-        bg-white backdrop-blur-md
+        flex items-center justify-between fixed top-0 w-full z-50
+        bg-white backdrop-blur-md border-b border-gray/25
         px-4 py-3"
         >
             {/* LEFT */}
@@ -45,11 +45,6 @@ export default function Nav({
                 >
                     <Menu size={28}/>
                 </button>
-
-                {/* NAME PAGE */}
-                {namePage && (
-                    <div className="w-px h-6 bg-gray-200" />
-                )}
 
                 {/* NAME PAGE */}
                 {namePage && (
