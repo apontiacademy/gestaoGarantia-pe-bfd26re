@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      idUsuario: {
+      id_usuario: {
          type: Sequelize.INTEGER,
           allowNull: false, // Opcional: impede produto sem dono
           references: {
@@ -20,7 +20,8 @@ module.exports = {
           onDelete: 'CASCADE'  // Se o usuário for deletado, os produtos dele também serão
       },
       nome: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false // Garantindo que o dado exista
       },
       marca: {
         type: Sequelize.STRING

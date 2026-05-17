@@ -2,47 +2,32 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Garantias', {
+    await queryInterface.createTable('Documento_Fiscal_Grupo', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      produto_id: {
+      documento_fiscal_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Produtos',
+          model: 'Documentos_Fiscais', 
           key: 'id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      prazo_dias: {
-        type: Sequelize.INTEGER
-      },
-      data_inicio: {
-        type: Sequelize.DATE
-      },
-      data_fim: {
-        type: Sequelize.DATE
-      },
-      tipo: {
-        type: Sequelize.STRING,
+      grupo_id: {
+        type: Sequelize.INTEGER,
         allowNull: false,
-      },
-      data_cadastro: {
-        type: Sequelize.DATE
-      },
-      observacao: {
-        type: Sequelize.TEXT // TEXT permite descrições longas
-      },
-      deletado_em: {
-        type: Sequelize.DATE
-      },
-      deletado_por: {
-        type: Sequelize.STRING
+        references: {
+          model: 'Grupos', 
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
       },
       createdAt: {
         allowNull: false,
@@ -54,8 +39,8 @@ module.exports = {
       }
     });
   },
-  
+
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Garantias');
+    await queryInterface.dropTable('Documento_Fiscal_Grupo');
   }
 };

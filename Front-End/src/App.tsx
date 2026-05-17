@@ -16,6 +16,7 @@ import AuthLayout from "./layout/AuthLayout";
 import WarrantyRegister from "./Pages/WarrantyRegister";
 import ForgotPassword from './Pages/ForgotPassword';
 import ResetPassword from './Pages/ResetPassword';
+import ViewWarranty from "./Pages/ViewWarranty";
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
           />
           <Route path="*" element={<Navigate to="/login" replace />} />
           <Route path="/warranty-register" element={<WarrantyRegister/>} />
+          <Route path="/garantia" element={<ViewWarranty/>}/>
         </Routes>
       </Router>
     </AuthProvider>

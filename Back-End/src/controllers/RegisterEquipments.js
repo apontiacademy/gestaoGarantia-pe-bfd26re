@@ -2,23 +2,23 @@ const { Produto, Usuario } = require('../models');
 
 // Função para registrar um novo produto
 async function RegistrarProduto(req, res) {
-    const { idUsuario } = req.params;
+    const { id_usuario } = req.params;
     const { nome, marca, modelo } = req.body; 
 
     try{
         // Validação dos campos obrigatórios
-        if(!idUsuario || !nome || !marca || !modelo) {
+        if(!id_usuario || !nome || !marca || !modelo) {
             return res.status(400).json({ error: "Todos os campos são obrigatórios" });
         }
 
-        const usuario = await Usuario.findByPk(idUsuario);
+        const usuario = await Usuario.findByPk(id_usuario);
 
         if(!usuario){
             return res.status(404).json({ error: "Usuário não encontrado" });
         }
 
         const novoProduto = await Produto.create({
-            idUsuario,
+            id_usuario,
             nome,
             marca,
             modelo,

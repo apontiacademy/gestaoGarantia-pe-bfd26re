@@ -1,15 +1,21 @@
 const { Garantia, Produto } = require('../models');
+const {calcularStatusGarantia} = require('../utils/garantiaUtils');
 
 async function RegistrarGarantia(req, res) {
   try {
     const { produto_id, prazo_dias, data_inicio, tipo, observacao } = req.body;
 
+      if (isNaN(prazo_dias) || prazo_dias < 0) {
+        return res.status(400).json({ erro: 'O prazo da garantia não pode ser negativo' });
+      }
+
     const tiposValidos = ['Normal', 'Estendida'];
+
     if (!tipo || !tiposValidos.includes(tipo)) {
       return res.status(400).json({ 
         erro: 'Tipo inválido',
         tiposAceitos: tiposValidos 
-      });
+      });  
     }
 
     const dataFim = new Date(data_inicio);
@@ -39,12 +45,25 @@ async function listarGarantias(req, res) {
       include: [
         {
           model: Produto,
-          as: 'produtos'
+          as: 'produto'
         }
       ]
     });
 
-    return res.json(garantias);
+      const garantiasComStatus = garantias.map((garantia) => {
+
+      const infoGarantia = calcularStatusGarantia(
+        garantia.data_fim
+      );
+
+      return {
+        ...garantia.toJSON(),
+        ...infoGarantia
+      };
+
+    });
+
+    return res.json(garantiasComStatus);
   } catch (error) {
     return res.status(500).json({ erro: error.message });
   }
@@ -59,7 +78,7 @@ async function listarGarantiaPorId(req, res) {
       include: [
         {
           model: Produto,
-          as: 'produtos'
+          as: 'produto'
         }
       ]
     });
@@ -68,7 +87,16 @@ async function listarGarantiaPorId(req, res) {
       return res.status(404).json({ mensagem: 'Garantia não encontrada' });
     }
 
-    return res.json(garantia);
+    const infoGarantia = calcularStatusGarantia(
+      garantia.data_fim
+    );
+
+    return res.json({
+      ...garantia.toJSON(),
+      ...infoGarantia
+    });
+
+    // return res.json(garantia);
   } catch (error) {
     return res.status(500).json({ erro: error.message });
   }
@@ -78,6 +106,12 @@ async function atualizarGarantia(req, res) {
   try {
     const { id } = req.params;
     const { produto_id, prazo_dias, data_inicio, tipo, observacao } = req.body;
+
+    if (isNaN(prazo_dias) || prazo_dias < 0) {
+  return res.status(400).json({
+    erro: 'O prazo da garantia não pode ser negativo'
+  });
+}
 
     const tiposValidos = ['Normal', 'Estendida'];
     if (!tipo || !tiposValidos.includes(tipo)) {
@@ -112,6 +146,11 @@ async function atualizarStatusGarantia(req, res) {
   try {
     const { id } = req.params;
     const dados = req.body;
+
+    if (dados.prazo_dias !== undefined && (isNaN(dados.prazo_dias) || dados.prazo_dias < 0)) {
+      return res.status(400).json({ erro: 'O prazo da garantia não pode ser negativo' });
+    }
+
 
     const tiposValidos = ['Normal', 'Estendida'];
     if (dados.tipo && !tiposValidos.includes(dados.tipo)) {

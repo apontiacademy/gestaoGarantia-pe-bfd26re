@@ -2,16 +2,28 @@ export interface Warranty {
   id: string;
   title: string;
   story?: string;
-  status?: string;
   nfNumber?: string;
+  quantity?: string;
   purchaseDate?: string;
   expirationDate?: string;
-  daysToExpire?: number | string;
   warrantyType?: string;
   value?: string;
 }
 
 const STORAGE_KEY = '@garantias:warranties';
+
+/** Separador interno de `title` (nome + marca + modelo). */
+export const WARRANTY_TITLE_JOIN_SEP = ' ';
+
+export function buildWarrantyTitle(
+  productName: string,
+  brand?: string,
+  model?: string
+): string {
+  return [productName.trim(), brand?.trim(), model?.trim()]
+    .filter((s): s is string => Boolean(s && s.length > 0))
+    .join(WARRANTY_TITLE_JOIN_SEP);
+}
 
 function isStoredWarrantyItem(value: unknown): value is Warranty {
   if (typeof value !== 'object' || value === null) return false;
@@ -38,7 +50,6 @@ export function saveWarranty(data: WarrantyInput): Warranty {
   const newWarranty: Warranty = {
     ...data,
     id: crypto.randomUUID(),
-    status: data.status ?? 'Ativo',
   };
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...prev, newWarranty]));

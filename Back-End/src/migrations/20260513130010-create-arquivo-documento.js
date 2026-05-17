@@ -2,25 +2,21 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Usuarios', {
+    await queryInterface.createTable('Arquivos_Documentos', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      nomeCompleto: {
+      origem: { 
         type: Sequelize.STRING,
-        allowNull: false // Nome é obrigatório
+        allowNull: false
       },
-      email: {
-        type: Sequelize.STRING,
+      data_upload: { 
+        type: Sequelize.DATE,
         allowNull: false,
-        unique: true // Impede e-mails duplicados
-      },
-      senha: {
-        type: Sequelize.STRING,
-        allowNull: false // Senha é obrigatória
+        defaultValue: Sequelize.NOW
       },
       createdAt: {
         allowNull: false,
@@ -33,6 +29,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Usuarios');
+    await queryInterface.dropTable('Arquivos_Documentos');
   }
 };

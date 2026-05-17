@@ -2,47 +2,42 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Garantias', {
+    await queryInterface.createTable('Notificacoes', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      produto_id: {
+      id_usuario: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: 'Produtos',
-          key: 'id'
-        },
+        references: { model: 'Usuarios', key: 'id' },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      prazo_dias: {
-        type: Sequelize.INTEGER
-      },
-      data_inicio: {
-        type: Sequelize.DATE
-      },
-      data_fim: {
-        type: Sequelize.DATE
+      garantia_id: {
+        type: Sequelize.INTEGER,
+        allowNull: true, // Pode ser uma notificação geral sem garantia específica
+        references: { model: 'Garantias', key: 'id' },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
       },
       tipo: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: false
       },
-      data_cadastro: {
-        type: Sequelize.DATE
+      mensagem: {
+        type: Sequelize.TEXT,
+        allowNull: false
       },
-      observacao: {
-        type: Sequelize.TEXT // TEXT permite descrições longas
+      lida: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
       },
-      deletado_em: {
-        type: Sequelize.DATE
-      },
-      deletado_por: {
-        type: Sequelize.STRING
+      data_envio: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW
       },
       createdAt: {
         allowNull: false,
@@ -54,8 +49,7 @@ module.exports = {
       }
     });
   },
-  
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Garantias');
+    await queryInterface.dropTable('Notificacoes');
   }
 };

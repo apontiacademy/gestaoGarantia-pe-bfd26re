@@ -2,47 +2,35 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Garantias', {
+    await queryInterface.createTable('Garantias_Estendidas', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      produto_id: {
+      garantia_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        unique: true, // Garante que uma garantia só tenha UMA estendida
         references: {
-          model: 'Produtos',
+          model: 'Garantias',
           key: 'id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      prazo_dias: {
-        type: Sequelize.INTEGER
-      },
-      data_inicio: {
-        type: Sequelize.DATE
-      },
-      data_fim: {
-        type: Sequelize.DATE
-      },
-      tipo: {
+      numero_apolice: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: false
       },
-      data_cadastro: {
-        type: Sequelize.DATE
+      nome_seguradora: {
+        type: Sequelize.STRING,
+        allowNull: false
       },
-      observacao: {
-        type: Sequelize.TEXT // TEXT permite descrições longas
-      },
-      deletado_em: {
-        type: Sequelize.DATE
-      },
-      deletado_por: {
-        type: Sequelize.STRING
+      valor: {
+        type: Sequelize.DECIMAL(10, 2),
+        allowNull: false
       },
       createdAt: {
         allowNull: false,
@@ -54,8 +42,7 @@ module.exports = {
       }
     });
   },
-  
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Garantias');
+    await queryInterface.dropTable('Garantias_Estendidas');
   }
 };

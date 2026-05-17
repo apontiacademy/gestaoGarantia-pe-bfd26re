@@ -1,26 +1,26 @@
 'use strict';
-/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Usuarios', {
+    await queryInterface.createTable('Produto_Grupo', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      nomeCompleto: {
-        type: Sequelize.STRING,
-        allowNull: false // Nome é obrigatório
-      },
-      email: {
-        type: Sequelize.STRING,
+      produto_id: {
+        type: Sequelize.INTEGER,
         allowNull: false,
-        unique: true // Impede e-mails duplicados
+        references: { model: 'Produtos', key: 'id' },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
       },
-      senha: {
-        type: Sequelize.STRING,
-        allowNull: false // Senha é obrigatória
+      grupo_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: { model: 'Grupos', key: 'id' },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
       },
       createdAt: {
         allowNull: false,
@@ -33,6 +33,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Usuarios');
+    await queryInterface.dropTable('Produto_Grupo');
   }
 };
