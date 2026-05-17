@@ -10,11 +10,12 @@ import Splash from "./Pages/Splash";
 import Login from "./Pages/Login";
 import UserRegister from "./Pages/UserRegister";
 import Home from "./Pages/Home";
-import ForgotPassword from "./Pages/ForgotPassword";
 import CreateWarranty from "./Pages/CreateWarranty";
 import LixeiraScreen from "./Pages/Lixeira";
 import AuthLayout from "./layout/AuthLayout";
 import WarrantyRegister from "./Pages/WarrantyRegister";
+import ForgotPassword from './Pages/ForgotPassword';
+import ResetPassword from './Pages/ResetPassword';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
             <Route path="/register" element={<UserRegister />} />
           </Route>
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/home-demo" element={<Home />} />
           <Route path="/lixeira" element={<LixeiraScreen />} />
           <Route

@@ -8,6 +8,15 @@ interface AuthResponse {
 }
 
 export const authService = {
-  login: (data: LoginPayload) => api.post<AuthResponse>("/auth/login", data),
-  register: (data: RegisterPayload) => api.post<AuthResponse>("/auth/register", data),
+  login: (data: LoginPayload) =>
+    api.post<AuthResponse>("/auth/login", data),
+
+  register: (data: RegisterPayload) =>
+    api.post<RegisterPayload>("/auth/register", data),
+
+  forgotPassword: (email: string) =>
+    api.post<{ message: string }>("/auth/forgot-password", { email }),
+
+  resetPassword: (token: string, novaSenha: string) =>
+    api.post<{ message: string }>("/auth/reset-password", { token, novaSenha }),
 };
