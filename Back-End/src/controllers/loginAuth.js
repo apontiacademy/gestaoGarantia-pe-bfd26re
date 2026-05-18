@@ -1,18 +1,16 @@
 const { Usuario } = require('../models');
 const jwt = require('jsonwebtoken');
-const { compararSenha } = require("../utils/hash");
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 
-
-//Para envio de email, utilizando o Nodemailer e Gmail. LEMBRAR DE CONFIGURAR AS CREDENCIAIS DO NODE MAILER VIA GMAIL!!
+// Configuração do Nodemailer
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   }
-})
+});
 
 async function Login(req, res) {
   const { email, senha } = req.body; // Recebe email e senha do cliente
@@ -34,14 +32,12 @@ async function Login(req, res) {
       return res.status(401).json({ error: "Senha incorreta" });
     }
 
-    // Token com duração maior (8h) + retorno do usuário
     const token = jwt.sign(
       { id_usuario: usuario.id },
       process.env.JWT_SECRET,
       { expiresIn: '8h' }
     );
 
-    // Retorna token + dados básicos do usuário (nunca a senha)
     return res.status(200).json({
       token,
       user: {
@@ -59,7 +55,7 @@ async function Login(req, res) {
 
 async function AlterarSenha(req, res) {
 const { senha, novaSenha } = req.body;
-const id_usuario = req.usuario.id_usuario; // ID do usuário autenticado
+const id_usuario = req.usuario.id_usuario;
 
  try{
         const usuario = await Usuario.findByPk(id_usuario);
@@ -83,50 +79,126 @@ const id_usuario = req.usuario.id_usuario; // ID do usuário autenticado
 
 async function EsqueciSenha(req, res) {
   const { email } = req.body;
-        try{
-            const usuario = await Usuario.findOne({ where: { email } });
 
-            if (!usuario) {
-                return res.status(404).json({ error: "Usuário não encontrado" });
-            }
+  if (!email) {
+    return res.status(400).json({ error: "Email é obrigatório" });
+  }
 
-            const tokenReset = jwt.sign({id_usuario: usuario.id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+  try {
+    const usuario = await Usuario.findOne({ 
+      where: { email: email.toLowerCase() } 
+    });
 
-            const linkReset = `http://localhost:3000/resetar-senha?token=${tokenReset}`;
+    // Por segurança é melhor sempre retornar 200
+    if (!usuario) {
+      return res.status(200).json({ message: "Código de recuperação enviado" });
+    }
 
-            await transporter.sendMail({
-                from: '"Suporte"<process.env.EMAIL_USER>,',
-                to: usuario.email,
-                subject: "Recuperação de senha",
-                text: `Clique no link para resetar sua senha: ${linkReset}`,
-                html: `<p>Solicitação de recuperação de senha, link valido por 15 minutos: <a href="${linkReset}">Resetar Senha</a></p>`
-            });
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-            res.status(200).json({ message: "Email de recuperação enviado" });
-        } catch(err){
-        console.error("Erro ao processar solicitação de recuperação de senha:", err);
-        res.status(500).json({ error: "Erro ao processar solicitação de recuperação de senha" });
-    } 
+    const resetToken = jwt.sign(
+      { 
+        id_usuario: usuario.id,
+        email: usuario.email,
+        tipo: "reset_password"
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '20m' } 
+    );
+
+    await transporter.sendMail({
+      from: `"Suporte Aponti" <${process.env.EMAIL_USER}>`,
+      to: usuario.email,
+      subject: 'Código de Recuperação - Aponti',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2>Seu código de recuperação</h2>
+          <p>Utilize o código abaixo para redefinir sua senha:</p>
+          
+          <h1 style="font-size: 32px; letter-spacing: 8px; color: #3b82f6; text-align: center; margin: 20px 0;">
+            ${resetCode}
+          </h1>
+          
+          <p style="color: #666; font-size: 14px;">
+            Este código é válido por <strong>20 minutos</strong>.<br>
+            Se você não solicitou esta redefinição, ignore este email.
+          </p>
+        </div>
+      `  
+    });
+
+    // Retorna o token pro frontend usar depois
+    res.status(200).json({ 
+      message: "Código de recuperação enviado",
+      resetToken
+    });
+
+  } catch (err) {
+    console.error("Erro ao processar EsqueciSenha:", err);
+    res.status(500).json({ error: "Erro ao enviar código de recuperação" });
+  }
+}
+
+async function VerificarCodigoReset(req, res) {
+  const { token, codigo } = req.body;
+
+  if (!token || !codigo) {
+    return res.status(400).json({ error: "Token e código são obrigatórios" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (decoded.tipo !== "reset_password") {
+      return res.status(401).json({ error: "Token inválido" });
+    }
+
+    // Aqui a gente pode adicionar validação extra quando salvar o código no banco
+
+    res.status(200).json({ 
+      message: "Código válido",
+      token  // devolve o msm token pra usar no reset
+    });
+
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: "Código expirado. Solicite um novo." });
+    }
+    res.status(401).json({ error: "Código inválido" });
+  }
 }
 
 async function ResetarSenha(req, res) {
-  const { token, novaSenha } = req.body; // Token recebido do cliente + nova senha
-    try{
-        const decoded = jwt.verify(token, process.env.JWT_SECRET); 
-        const usuario = await Usuario.findByPk(decoded.id_usuario);
+  const { token, novaSenha } = req.body;
+
+  if (!token || !novaSenha) {
+    return res.status(400).json({ error: "Token e nova senha são obrigatórios" });
+  }
+
+  if (novaSenha.length < 6) {
+    return res.status(400).json({ error: "A senha deve ter no mínimo 6 caracteres" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const usuario = await Usuario.findByPk(decoded.id_usuario);
 
     if (!usuario) {
-        return res.status(404).json({ error: "Usuário não encontrado" });
+      return res.status(404).json({ error: "Usuário não encontrado" });
     }
-    
+
     usuario.senha = await bcrypt.hash(novaSenha, 10);
     await usuario.save();
 
-    res.status(200).json({ message: "Senha ALTERADA com sucesso" });
-    }  catch(err){
-    console.error("Erro ao resetar senha:", err);
-    res.status(500).json({ error: "Erro ao resetar senha" });
-}
+    res.status(200).json({ message: "Senha alterada com sucesso" });
+
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: "Sessão expirada. Solicite um novo código." });
+    }
+    res.status(401).json({ error: "Token inválido" });
+  }
 }
 
-module.exports = { Login, AlterarSenha, EsqueciSenha, ResetarSenha };
+module.exports = { Login, AlterarSenha, VerificarCodigoReset, EsqueciSenha, ResetarSenha };
