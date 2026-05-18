@@ -67,38 +67,40 @@ export default function ForgotPassword() {
   };
 
   const handleVerifyCode = async () => {
-  const fullCode = code.join('');
-  
-  if (fullCode.length !== 6) {
-    setError('Digite o código completo de 6 dígitos.');
-    return;
-  }
+    const fullCode = code.join('').trim();
 
-  setLoading(true);
-  setError('');
-
-  try {
-    console.log("Enviando para verificação:", { token: resetToken, codigo: fullCode });
-
-    await authService.verifyResetCode(resetToken, fullCode);
-    
-    // Se chegou aqui = sucesso
-    navigate('/reset-password', { state: { token: resetToken } });
-  } catch (err: any) {
-    console.error("Erro completo:", err);
-    
-    const mensagemBackend = err.response?.data?.error;
-    
-    if (mensagemBackend) {
-      setError(mensagemBackend);
-    } else if (err.response?.status === 401) {
-      setError('Código inválido ou expirado.');
-    } else {
-      setError('Erro ao verificar código. Tente novamente.');
+    if (fullCode.length !== 6) {
+      setError('Digite o código completo de 6 dígitos.');
+      return;
     }
-  } finally {
-    setLoading(false);
-  }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      console.log("🔍 Enviando verificação:", { 
+        token: resetToken ? "presente" : "faltando", 
+        codigo: fullCode 
+      });
+
+      await authService.verifyResetCode(resetToken, fullCode);
+      
+      console.log("✅ Código validado com sucesso!");
+      navigate('/reset-password', { state: { token: resetToken } });
+
+    } catch (err: any) {
+      console.error("❌ ERRO COMPLETO:", err);
+      console.error("Response:", err.response?.data);
+
+      const mensagem = err.response?.data?.error || 
+                      err.response?.data?.message || 
+                      err.message || 
+                      'Erro desconhecido';
+
+      setError(mensagem);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
