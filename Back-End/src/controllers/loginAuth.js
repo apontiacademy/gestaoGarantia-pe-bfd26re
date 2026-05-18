@@ -1,5 +1,6 @@
 const { Usuario } = require('../models');
 const jwt = require('jsonwebtoken');
+const { compararSenha } = require("../utils/hash");
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 
@@ -188,6 +189,15 @@ async function ResetarSenha(req, res) {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
+    const senhaAtualEhIgual = await bcrypt.compare(novaSenha, usuario.senha);
+
+    if (senhaAtualEhIgual) {
+      return res.status(400).json({ 
+        error: "A nova senha não pode ser igual à senha atual." 
+      });
+    }
+
+    // Atualiza a senha
     usuario.senha = await bcrypt.hash(novaSenha, 10);
     await usuario.save();
 
@@ -197,7 +207,12 @@ async function ResetarSenha(req, res) {
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({ error: "Sessão expirada. Solicite um novo código." });
     }
-    res.status(401).json({ error: "Token inválido" });
+    if (err.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: "Token inválido" });
+    }
+
+    console.error("Erro ao resetar senha:", err);
+    res.status(500).json({ error: "Erro ao resetar senha" });
   }
 }
 
