@@ -11,13 +11,12 @@ import Login from "./Pages/Login";
 import UserRegister from "./Pages/UserRegister";
 import Home from "./Pages/Home";
 import ForgotPassword from "./Pages/ForgotPassword";
-import VerifyCode from "./Pages/Verifycode"; 
 import ResetPassword from "./Pages/ResetPassword"; 
 import CreateWarranty from "./Pages/CreateWarranty";
 import LixeiraScreen from "./Pages/Lixeira";
 import AuthLayout from "./layout/AuthLayout";
 import WarrantyRegister from "./Pages/WarrantyRegister";
-import ViewWarranty from "./Pages/ViewWarranty"; // Tela nova que veio do seu grupo
+import ViewWarranty from "./Pages/ViewWarranty"; 
 function App() {
   return (
     <AuthProvider>
@@ -33,7 +32,6 @@ function App() {
           {/* Fluxo de Recuperação de Senha */}
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/verify-code" element={<VerifyCode />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           
           <Route path="/home-demo" element={<Home />} />
