@@ -56,7 +56,7 @@ function App() {
           />
           
           <Route path="/warranty-register" element={<WarrantyRegister/>} />
-          <Route path="/garantia" element={<ViewWarranty/>}/>
+          <Route path="/garantia/:id" element={<ViewWarranty />} />
           
           {/* Rota curinga para redirecionamento */}
           <Route path="*" element={<Navigate to="/login" replace />} />

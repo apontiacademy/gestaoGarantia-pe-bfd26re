@@ -5,6 +5,7 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import logoAponti from '../Assets/logos/logoAponti.svg';
 import { authService } from '../services/authService';
+import { getApiErrorMessage } from '../utils/apiError';
 
 type Step = 'email' | 'code';
 
@@ -38,10 +39,9 @@ export default function ForgotPassword() {
 
       setStep('code');
       setError('');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(
-        err.response?.data?.error || 
-        'Erro ao enviar o código de verificação.'
+        getApiErrorMessage(err, 'Erro ao enviar o código de verificação.')
       );
     } finally {
       setLoading(false);
@@ -88,16 +88,13 @@ export default function ForgotPassword() {
       console.log("✅ Código validado com sucesso!");
       navigate('/reset-password', { state: { token: resetToken } });
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("❌ ERRO COMPLETO:", err);
-      console.error("Response:", err.response?.data);
+      if (err && typeof err === "object" && "response" in err) {
+        console.error("Response:", (err as { response?: { data?: unknown } }).response?.data);
+      }
 
-      const mensagem = err.response?.data?.error || 
-                      err.response?.data?.message || 
-                      err.message || 
-                      'Erro desconhecido';
-
-      setError(mensagem);
+      setError(getApiErrorMessage(err, 'Código inválido ou expirado.'));
     } finally {
       setLoading(false);
     }

@@ -16,23 +16,23 @@ import {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { warranties } = useWarranty();
+  const { activeWarranties } = useWarranty();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] =
     useState<StatusFilterOption>("all");
 
   const counts = useMemo(
-    () => countWarrantiesByStatus(warranties),
-    [warranties]
+    () => countWarrantiesByStatus(activeWarranties),
+    [activeWarranties]
   );
 
   const filteredWarranties = useMemo(() => {
     const q = search.trim().toLowerCase();
     const bySearch = q
-      ? warranties.filter((w) => w.title.toLowerCase().includes(q))
-      : warranties;
+      ? activeWarranties.filter((w) => w.title.toLowerCase().includes(q))
+      : activeWarranties;
     return applyStatusFilter(bySearch, statusFilter);
-  }, [warranties, search, statusFilter]);
+  }, [activeWarranties, search, statusFilter]);
 
   return (
     <LayoutHome namePage="">
@@ -134,7 +134,7 @@ export default function Home() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-5">
         {filteredWarranties.length === 0 ? (
-          warranties.length === 0 ? (
+          activeWarranties.length === 0 ? (
             <EmptyState
               icon={Package}
               title="Nenhuma garantia ainda"
@@ -170,7 +170,7 @@ export default function Home() {
                 warrantyType={warrantyType}
                 value={value}
                 onViewMore={() => {
-                  navigate("/garantia");
+                  navigate(`/garantia/${id}`);
                 }}
               />
             )

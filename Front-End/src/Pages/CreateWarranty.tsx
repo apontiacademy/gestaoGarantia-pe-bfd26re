@@ -11,6 +11,8 @@ import {
   formatDateBRFromIso,
 } from '../utils/warrantyDates';
 import { buildWarrantyTitle } from '../services/warrantyService';
+import { fileToAttachment } from '../utils/warrantyAttachments';
+import { formatCnpj } from '../utils/cnpj';
 
 const CreateWarranty: React.FC = () => {
   const navigate = useNavigate();
@@ -35,6 +37,8 @@ const CreateWarranty: React.FC = () => {
   const [extendedWarrantyNumber, setExtendedWarrantyNumber] = useState('');
 
   const [nfNumber, setNfNumber] = useState('');
+  const [notes, setNotes] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   const steps = ['Produto', 'Compra', 'Nota Fiscal', 'Revisão'];
 
@@ -96,7 +100,7 @@ const CreateWarranty: React.FC = () => {
     [productName, brand, model]
   );
 
-  function handleSaveWarranty(): void {
+  async function handleSaveWarranty(): Promise<void> {
     const name = productName.trim();
     if (!name) {
       window.alert('Informe o nome do produto.');
@@ -126,18 +130,40 @@ const CreateWarranty: React.FC = () => {
     const m = model.trim();
     const joinedTitle = buildWarrantyTitle(name, b || undefined, m || undefined);
 
-    addWarranty({
-      title: joinedTitle,
-      story: storeName.trim() || undefined,
-      nfNumber: nf || undefined,
-      quantity: quantity.trim() || undefined,
-      purchaseDate: purchaseDateDisplay || undefined,
-      expirationDate: expiration,
-      warrantyType: warrantyTypeLabel,
-      value: value || undefined,
-    });
+    let attachments;
+    if (file) {
+      setIsSaving(true);
+      try {
+        attachments = [await fileToAttachment(file)];
+      } catch (err) {
+        setIsSaving(false);
+        window.alert(
+          err instanceof Error ? err.message : 'Não foi possível processar o arquivo.'
+        );
+        return;
+      }
+    }
 
-    navigate('/home');
+    try {
+      addWarranty({
+        title: joinedTitle,
+        story: storeName.trim() || undefined,
+        storeCnpj: cnpj.trim() ? formatCnpj(cnpj) : undefined,
+        nfNumber: nf || undefined,
+        quantity: quantity.trim() || undefined,
+        purchaseDate: purchaseDateDisplay || undefined,
+        expirationDate: expiration,
+        warrantyType: warrantyTypeLabel,
+        value: value || undefined,
+        notes: notes.trim() || undefined,
+        attachments,
+      });
+      navigate('/home');
+    } catch {
+      window.alert('Não foi possível salvar a garantia. Tente um arquivo menor.');
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -304,10 +330,9 @@ const CreateWarranty: React.FC = () => {
                     placeholder="00.000.000/0000-00"
                     className="bg-white border-none"
                     value={cnpj}
-                    onChange={(e) => {
-                      const v = e.target.value.replace(/[^\d./-]/g, '');
-                      setCnpj(v);
-                    }}
+                    onChange={(e) => setCnpj(formatCnpj(e.target.value))}
+                    inputMode="numeric"
+                    maxLength={18}
                   />
 
                   <Input
@@ -408,6 +433,8 @@ const CreateWarranty: React.FC = () => {
                         outline-none shadow-sm
                       "
                       placeholder="Informações adicionais..."
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
                     />
                   </div>
 
@@ -520,8 +547,8 @@ const CreateWarranty: React.FC = () => {
                   <ActionButton
                     action="create"
                     variant="primary"
-                    label="Salvar Garantia"
-                    onClick={handleSaveWarranty}
+                    label={isSaving ? 'Salvando...' : 'Salvar Garantia'}
+                    onClick={() => void handleSaveWarranty()}
                   />
                 )}
 

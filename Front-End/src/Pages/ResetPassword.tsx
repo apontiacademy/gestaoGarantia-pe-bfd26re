@@ -5,6 +5,7 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import logoAponti from '../Assets/logos/logoAponti.svg';
 import { authService } from '../services/authService';
+import { getApiErrorMessage } from '../utils/apiError';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -64,14 +65,8 @@ export default function ResetPassword() {
       navigate('/login', {
         state: { message: 'Senha redefinida com sucesso! Faça login.' },
       });
-    } catch (err: any) {
-        const mensagem = err.response?.data?.error;
-        
-        if (mensagem) {
-          setError(mensagem);
-        } else {
-          setError('Erro ao redefinir senha. Tente novamente.');
-        }
+    } catch (err: unknown) {
+        setError(getApiErrorMessage(err, 'Erro ao redefinir senha. Tente novamente.'));
     } finally {
       setLoading(false);
     }

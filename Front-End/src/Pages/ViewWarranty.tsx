@@ -1,107 +1,218 @@
-import { X } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
+import { FileQuestion } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
 import LayoutHome from "../layout/LayoutHome";
+import Button from "../components/ui/Button";
+import EmptyState from "../components/ui/EmptyState";
+import Toast from "../components/ui/Toast";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
+import WarrantyActions from "../components/warranty/WarrantyActions";
+import WarrantyAttachmentsList from "../components/warranty/WarrantyAttachmentsList";
+import WarrantyDetailView from "../components/warranty/WarrantyDetailView";
+import WarrantyFormFields from "../components/warranty/WarrantyFormFields";
+import { useWarranty } from "../contexts/WarrantyContext";
+import { isWarrantyDeleted } from "../services/warrantyService";
+import { useToast } from "../hooks/useToast";
+import {
+    formValuesToWarrantyUpdate,
+    validateWarrantyForm,
+    warrantyToFormValues,
+    type WarrantyFormValues,
+} from "../utils/warrantyForm";
 
 export default function ViewWarranty() {
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+    const { warranties, updateWarranty, moveToTrash, restoreFromTrash } =
+        useWarranty();
+    const { toast, showToast } = useToast();
+
+    const warranty = useMemo(
+        () => (id ? warranties.find((w) => w.id === id) : undefined),
+        [id, warranties]
+    );
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [draftValues, setDraftValues] = useState<WarrantyFormValues | null>(
+        null
+    );
+    const [errors, setErrors] = useState<
+        Partial<Record<keyof WarrantyFormValues, string>>
+    >({});
+    const [isSaving, setIsSaving] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [confirmTrashOpen, setConfirmTrashOpen] = useState(false);
+
+    const isDeleted = warranty ? isWarrantyDeleted(warranty) : false;
+
+    const handleBack = () => navigate("/home");
+
+    const handleFieldChange = useCallback(
+        <K extends keyof WarrantyFormValues>(
+            field: K,
+            value: WarrantyFormValues[K]
+        ) => {
+            setDraftValues((prev) => (prev ? { ...prev, [field]: value } : prev));
+            setErrors((prev) => {
+                if (!prev[field]) return prev;
+                const next = { ...prev };
+                delete next[field];
+                return next;
+            });
+        },
+        []
+    );
+
+    const handleStartEdit = () => {
+        if (!warranty || isDeleted) return;
+        setDraftValues(warrantyToFormValues(warranty));
+        setErrors({});
+        setIsEditing(true);
+    };
+
+    const handleCancelEdit = () => {
+        setDraftValues(null);
+        setErrors({});
+        setIsEditing(false);
+    };
+
+    const handleSave = async () => {
+        if (!id || !draftValues) return;
+
+        const validationErrors = validateWarrantyForm(draftValues);
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            showToast("Corrija os campos destacados antes de salvar.", "error");
+            return;
+        }
+
+        setIsSaving(true);
+        const result = updateWarranty(id, formValuesToWarrantyUpdate(draftValues));
+        setIsSaving(false);
+
+        if (result.success === false) {
+            showToast(result.error, "error");
+            return;
+        }
+
+        setDraftValues(null);
+
+        setIsEditing(false);
+        showToast("Salvo com sucesso!");
+    };
+
+    const handleConfirmTrash = async () => {
+        if (!id) return;
+        setIsDeleting(true);
+        const result = moveToTrash(id);
+        setIsDeleting(false);
+        setConfirmTrashOpen(false);
+
+        if (result.success === false) {
+            showToast(result.error, "error");
+            return;
+        }
+
+        showToast("Garantia enviada para a lixeira.");
+        navigate("/lixeira");
+    };
+
+    const handleRestore = async () => {
+        if (!id) return;
+        setIsDeleting(true);
+        const result = restoreFromTrash(id);
+        setIsDeleting(false);
+
+        if (result.success === false) {
+            showToast(result.error, "error");
+            return;
+        }
+
+        showToast("Garantia restaurada com sucesso!");
+        navigate("/home");
+    };
+
+    if (!id || !warranty) {
+        return (
+            <LayoutHome
+                namePage="Garantia"
+                showMenu={false}
+                showNotification={false}
+                showBack
+                onBack={handleBack}
+            >
+                <EmptyState
+                    icon={FileQuestion}
+                    title="Garantia não encontrada"
+                    description="Ela pode ter sido removida permanentemente ou o link está incorreto."
+                />
+                <div className="flex justify-center mt-6">
+                    <Button variant="primary" type="button" onClick={handleBack}>
+                        Voltar para Home
+                    </Button>
+                </div>
+            </LayoutHome>
+        );
+    }
+
     return (
         <LayoutHome
             namePage="Garantia"
             showMenu={false}
             showNotification={false}
             showBack
+            onBack={handleBack}
         >
             <div className="max-w-7xl mx-auto p-4 space-y-6">
+                {isEditing && draftValues ? (
+                    <>
+                        <h2 className="text-lg font-semibold">Editar garantia</h2>
+                        <WarrantyFormFields
+                            values={draftValues}
+                            errors={errors}
+                            disabled={isSaving}
+                            onChange={handleFieldChange}
+                        />
+                        {(warranty.attachments?.length ?? 0) > 0 ? (
+                            <div className="border rounded-lg p-3">
+                                <p className="font-medium mb-2">Arquivos anexados</p>
+                                <WarrantyAttachmentsList attachments={warranty.attachments!} />
+                            </div>
+                        ) : null}
+                    </>
+                ) : (
+                    <WarrantyDetailView warranty={warranty} />
+                )}
 
-                {/* HEADER */}
-                <div className="flex items-center justify-between border-b pb-4">
-                    <div>
-                        <h1 className="text-xl font-bold">
-                            Geladeira Electrolux
-                        </h1>
-                        <p className="text-sm text-gray-dark">
-                            Nº da nota: <span className="font-medium">12356</span>
-                        </p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-red-500"></span>
-                        <p className="text-sm font-medium text-red-500">
-                            Garantia vencida
-                        </p>
-                    </div>
-                </div>
-
-                {/* GRID PRINCIPAL */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                    {/* ESQUERDA - DADOS */}
-                    <div className="space-y-3">
-                        <h2 className="font-semibold text-lg">Detalhes</h2>
-
-                        <div className="space-y-2 text-sm">
-                            <p><span className="font-medium">Data da compra:</span> 11/05/2026</p>
-                            <p><span className="font-medium">Vencimento:</span> 12/05/2026</p>
-                            <p><span className="font-medium">Loja:</span> Magazine Luiza</p>
-                            <p><span className="font-medium">Garantia estendida:</span> Não</p>
-                            <p className="break-all">
-                                <span className="font-medium">Chave:</span> 15484521654846546748...
-                            </p>
-                        </div>
-
-                        <div className="mt-4">
-                            <p className="text-sm text-gray-500">Valor</p>
-                            <p className="text-2xl font-bold text-green-600">
-                                R$ 1.000,00
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* DIREITA - ANEXOS + OBS */}
-                    <div className="space-y-4">
-
-                        {/* ANEXOS */}
-                        <div className="border rounded-lg p-3">
-                            <p className="font-medium mb-2">Arquivos</p>
-
-                            <ul className="flex flex-col divide-y">
-                                <li className="flex justify-between py-2">
-                                    <span>notafiscal.PDF</span>
-                                    <button className="text-gray-500 hover:text-red-500">
-                                        <X size={16} />
-                                    </button>
-                                </li>
-
-                                <li className="flex justify-between py-2">
-                                    <span>notafiscal.PNG</span>
-                                    <button className="text-gray-500 hover:text-red-500">
-                                        <X size={16} />
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
-
-                        {/* OBSERVAÇÕES */}
-                        <div>
-                            <p className="font-medium mb-1">Observações</p>
-                            <textarea
-                                className="w-full border rounded-lg p-2 text-sm"
-                                placeholder="Nenhuma observação adicionada"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* FOOTER */}
-                <div className="flex justify-end gap-3 pt-4 border-t">
-                    <button className="px-4 py-2 border rounded-lg hover:bg-gray-100">
-                        Editar
-                    </button>
-
-                    <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
-                        Excluir
-                    </button>
-                </div>
-
+                <WarrantyActions
+                    isEditing={isEditing}
+                    isDeleted={isDeleted}
+                    isSaving={isSaving}
+                    isDeleting={isDeleting}
+                    onEdit={handleStartEdit}
+                    onCancel={handleCancelEdit}
+                    onSave={handleSave}
+                    onDelete={() => setConfirmTrashOpen(true)}
+                    onRestore={handleRestore}
+                />
             </div>
+
+            <ConfirmDialog
+                open={confirmTrashOpen}
+                title="Enviar para a lixeira?"
+                description={`A garantia "${warranty.title}" será movida para a lixeira. Você poderá restaurá-la depois.`}
+                confirmLabel="Enviar para lixeira"
+                variant="danger"
+                loading={isDeleting}
+                onConfirm={handleConfirmTrash}
+                onCancel={() => setConfirmTrashOpen(false)}
+            />
+
+            <Toast
+                message={toast.message}
+                visible={toast.visible}
+                variant={toast.variant}
+            />
         </LayoutHome>
     );
 }
