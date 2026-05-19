@@ -49,7 +49,7 @@ export default function LayoutHome({
     const rightIcon = showNotification ? Bell : undefined;
 
     return (
-        <div className="min-h-screen bg-fundo">
+        <div className="min-h-screen bg-fundo pt-12 md:pt-16">
             <Nav
                 leftIcon={leftIcon}
                 leftLabel={leftLabel}
@@ -72,7 +72,7 @@ export default function LayoutHome({
             )}
 
 
-            <main className="mx-auto px-5 md:px-10 py-6">
+            <main className="mx-auto px-5 md:px-15 py-8">
                 {children}
             </main>
         </div>

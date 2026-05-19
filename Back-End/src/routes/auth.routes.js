@@ -60,6 +60,8 @@ router.post('/auth/change-password', autenticarToken, controllerLogin.AlterarSen
 // Solicitação de redefinição de senha (usuário não autenticado)
 router.post('/auth/forgot-password', controllerLogin.EsqueciSenha);
 
+router.post('/auth/verify-reset-code', controllerLogin.VerificarCodigoReset);
+
 // Redefinição de senha via token enviado por e-mail (usuário não autenticado)
 router.post('/auth/reset-password', controllerLogin.ResetarSenha);
 

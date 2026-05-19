@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import { useAuth } from "../contexts/AuthContext";
@@ -98,13 +98,12 @@ export default function Login() {
           </div>
 
           <div className="flex justify-end">
-            <button
-              type="button"
+            <Link
+              to="/forgot-password"
               className="text-xs text-primary hover:underline hover:text-gray-dark cursor-pointer font-medium"
-              onClick={() => navigate("/forgot-password")}
             >
               Esqueci minha senha
-            </button>
+            </Link>
           </div>
 
           <button

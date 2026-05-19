@@ -1,24 +1,46 @@
 import { Upload, FileCheck, X } from 'lucide-react';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Input from '../components/ui/Input';
 import ActionButton from '../components/ui/ActionButton';
 import WarrantyCard from '../components/ui/WarrantyCard';
 import LayoutHome from '../layout/LayoutHome';
+import { useWarranty } from '../contexts/WarrantyContext';
+import {
+  computeExpirationDateBR,
+  formatDateBRFromIso,
+} from '../utils/warrantyDates';
+import { buildWarrantyTitle } from '../services/warrantyService';
+import { fileToAttachment } from '../utils/warrantyAttachments';
+import { formatCnpj } from '../utils/cnpj';
 
 const CreateWarranty: React.FC = () => {
   const navigate = useNavigate();
+  const { addWarranty } = useWarranty();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [hasExtendedWarranty, setHasExtendedWarranty] = useState(false);
   const [value, setValue] = useState('');
   const [step, setStep] = useState(1);
-  const steps = [
-    'Produto',
-    'Compra',
-    'Nota Fiscal',
-    'Revisão',
-  ];
+
+  const [productName, setProductName] = useState('');
+  const [brand, setBrand] = useState('');
+  const [model, setModel] = useState('');
+  const [quantity, setQuantity] = useState('');
+  const [warrantyPeriod, setWarrantyPeriod] = useState('');
+  const [warrantyUnit, setWarrantyUnit] = useState<'days' | 'months'>('months');
+
+  const [storeName, setStoreName] = useState('');
+  const [cnpj, setCnpj] = useState('');
+  const [purchaseDate, setPurchaseDate] = useState('');
+  const [extendedExtraMonths, setExtendedExtraMonths] = useState('');
+  const [extendedWarrantyNumber, setExtendedWarrantyNumber] = useState('');
+
+  const [nfNumber, setNfNumber] = useState('');
+  const [notes, setNotes] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const steps = ['Produto', 'Compra', 'Nota Fiscal', 'Revisão'];
 
   function formatCurrency(input: string) {
     const onlyNumbers = input.replace(/\D/g, '');
@@ -42,6 +64,106 @@ const CreateWarranty: React.FC = () => {
   ): void {
     const selectedFile = event.target.files?.[0] ?? null;
     setFile(selectedFile);
+  }
+
+  const periodNum = Number(warrantyPeriod);
+  const extraMonths = hasExtendedWarranty
+    ? Math.max(0, Number(extendedExtraMonths) || 0)
+    : 0;
+
+  const purchaseDateDisplay = useMemo(
+    () => formatDateBRFromIso(purchaseDate),
+    [purchaseDate]
+  );
+
+  const expirationDateDisplay = useMemo(() => {
+    if (!purchaseDate || !periodNum || periodNum <= 0) return '';
+    return computeExpirationDateBR(
+      purchaseDate,
+      periodNum,
+      warrantyUnit,
+      extraMonths
+    );
+  }, [purchaseDate, periodNum, warrantyUnit, extraMonths]);
+
+  const warrantyTypeLabel = hasExtendedWarranty
+    ? 'Garantia Estendida'
+    : 'Garantia de fábrica';
+
+  const previewTitle = useMemo(
+    () =>
+      buildWarrantyTitle(
+        productName,
+        brand.trim() || undefined,
+        model.trim() || undefined
+      ) || '—',
+    [productName, brand, model]
+  );
+
+  async function handleSaveWarranty(): Promise<void> {
+    const name = productName.trim();
+    if (!name) {
+      window.alert('Informe o nome do produto.');
+      return;
+    }
+    if (!purchaseDate) {
+      window.alert('Informe a data da compra.');
+      return;
+    }
+    if (!periodNum || periodNum <= 0) {
+      window.alert('Informe o período de garantia.');
+      return;
+    }
+    const expiration = computeExpirationDateBR(
+      purchaseDate,
+      periodNum,
+      warrantyUnit,
+      extraMonths
+    );
+    if (!expiration) {
+      window.alert('Não foi possível calcular a data de vencimento.');
+      return;
+    }
+
+    const nf = nfNumber.trim();
+    const b = brand.trim();
+    const m = model.trim();
+    const joinedTitle = buildWarrantyTitle(name, b || undefined, m || undefined);
+
+    let attachments;
+    if (file) {
+      setIsSaving(true);
+      try {
+        attachments = [await fileToAttachment(file)];
+      } catch (err) {
+        setIsSaving(false);
+        window.alert(
+          err instanceof Error ? err.message : 'Não foi possível processar o arquivo.'
+        );
+        return;
+      }
+    }
+
+    try {
+      addWarranty({
+        title: joinedTitle,
+        story: storeName.trim() || undefined,
+        storeCnpj: cnpj.trim() ? formatCnpj(cnpj) : undefined,
+        nfNumber: nf || undefined,
+        quantity: quantity.trim() || undefined,
+        purchaseDate: purchaseDateDisplay || undefined,
+        expirationDate: expiration,
+        warrantyType: warrantyTypeLabel,
+        value: value || undefined,
+        notes: notes.trim() || undefined,
+        attachments,
+      });
+      navigate('/home');
+    } catch {
+      window.alert('Não foi possível salvar a garantia. Tente um arquivo menor.');
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -120,25 +242,34 @@ const CreateWarranty: React.FC = () => {
                     label="Nome do Produto *"
                     placeholder="Ex: Notebook"
                     className="bg-white border-none"
+                    value={productName}
+                    onChange={(e) => setProductName(e.target.value)}
                   />
 
                   <Input
                     label="Marca *"
                     placeholder="Ex: Lenovo"
                     className="bg-white border-none"
+                    value={brand}
+                    onChange={(e) => setBrand(e.target.value)}
                   />
 
                   <Input
                     label="Modelo *"
                     placeholder="Ex: IdeaPad"
                     className="bg-white border-none"
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
                   />
 
                   <Input
                     label="Quantidade de Produto"
                     type="number"
                     min={0}
+                    placeholder="Ex: 1"
                     className="bg-white border-none"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
                   />
 
                   <div className="flex gap-4 items-end">
@@ -149,6 +280,8 @@ const CreateWarranty: React.FC = () => {
                       min={0}
                       placeholder="Ex: 12"
                       className="flex-1 bg-white border-none"
+                      value={warrantyPeriod}
+                      onChange={(e) => setWarrantyPeriod(e.target.value)}
                     />
 
                     <div className="flex gap-2 mb-3 text-xs font-bold text-gray-700">
@@ -158,6 +291,8 @@ const CreateWarranty: React.FC = () => {
                           type="radio"
                           name="unit"
                           className="accent-primary-start"
+                          checked={warrantyUnit === 'days'}
+                          onChange={() => setWarrantyUnit('days')}
                         />
                         Dias
                       </label>
@@ -166,8 +301,9 @@ const CreateWarranty: React.FC = () => {
                         <input
                           type="radio"
                           name="unit"
-                          defaultChecked
                           className="accent-primary-start"
+                          checked={warrantyUnit === 'months'}
+                          onChange={() => setWarrantyUnit('months')}
                         />
                         Meses
                       </label>
@@ -184,18 +320,28 @@ const CreateWarranty: React.FC = () => {
                     label="Nome da Loja"
                     placeholder="Ex: FastShop"
                     className="bg-white border-none"
+                    value={storeName}
+                    onChange={(e) => setStoreName(e.target.value)}
                   />
 
                   <Input
                     label="CNPJ da Loja"
+                    type="text"
                     placeholder="00.000.000/0000-00"
                     className="bg-white border-none"
+                    value={cnpj}
+                    onChange={(e) => setCnpj(formatCnpj(e.target.value))}
+                    inputMode="numeric"
+                    maxLength={18}
                   />
 
                   <Input
                     label="Data da Compra *"
                     type="date"
                     className="bg-white border-none text-gray-400"
+                    max={new Date(new Date().setFullYear(new Date().getFullYear() + 3)).toISOString().split('T')[0]}
+                    value={purchaseDate}
+                    onChange={(e) => setPurchaseDate(e.target.value)}
                   />
 
                   <Input
@@ -223,6 +369,7 @@ const CreateWarranty: React.FC = () => {
                         focus:ring-2 focus:ring-primary-start
                         outline-none text-gray-600
                       "
+                      value={hasExtendedWarranty ? 'sim' : 'nao'}
                       onChange={(e) =>
                         setHasExtendedWarranty(
                           e.target.value === 'sim'
@@ -238,15 +385,22 @@ const CreateWarranty: React.FC = () => {
                     <div className="flex flex-col gap-4 animate-in slide-in-from-top-2 duration-300">
 
                       <Input
-                        label="Período Estendido"
+                        label="Meses adicionais (estendida)"
+                        type="number"
+                        min={0}
                         placeholder="Ex: 12"
                         className="bg-white border-none"
+                        value={extendedExtraMonths}
+                        onChange={(e) => setExtendedExtraMonths(e.target.value)}
                       />
 
                       <Input
                         label="Número da Garantia Estendida"
+                        type="number"
                         placeholder="Ex: 9928..."
                         className="bg-white border-none"
+                        value={extendedWarrantyNumber}
+                        onChange={(e) => setExtendedWarrantyNumber(e.target.value)}
                       />
                     </div>
                   )}
@@ -259,6 +413,8 @@ const CreateWarranty: React.FC = () => {
                   <Input
                     label="Número da Nota Fiscal"
                     className="bg-white border-none"
+                    value={nfNumber}
+                    onChange={(e) => setNfNumber(e.target.value)}
                   />
 
                   {/* Observações */}
@@ -277,6 +433,8 @@ const CreateWarranty: React.FC = () => {
                         outline-none shadow-sm
                       "
                       placeholder="Informações adicionais..."
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
                     />
                   </div>
 
@@ -364,15 +522,13 @@ const CreateWarranty: React.FC = () => {
               {/* ETAPA 4 */}
               {step === 4 && (
                 <WarrantyCard
-                  title="Notebook Lenovo IdeaPad"
-                  purchaseDate="15/12/2025"
-                  expirationDate="15/12/2026"
-                  warrantyType={
-                    hasExtendedWarranty
-                      ? 'Garantia Estendida'
-                      : 'Garantia Padrão'
-                  }
-                  value={value}
+                  title={previewTitle}
+                  story={storeName.trim() || undefined}
+                  nfNumber={nfNumber.trim() || undefined}
+                  purchaseDate={purchaseDateDisplay || undefined}
+                  expirationDate={expirationDateDisplay || undefined}
+                  warrantyType={warrantyTypeLabel}
+                  value={value || undefined}
                   variant="home"
                 />
               )}
@@ -391,7 +547,8 @@ const CreateWarranty: React.FC = () => {
                   <ActionButton
                     action="create"
                     variant="primary"
-                    label="Salvar Garantia"
+                    label={isSaving ? 'Salvando...' : 'Salvar Garantia'}
+                    onClick={() => void handleSaveWarranty()}
                   />
                 )}
 
