@@ -26,7 +26,7 @@ function autenticarToken(req, res, next) {
 
 // Rotas de produtos (protegidas por autenticação)
 router.get('/produtos', autenticarToken, controllerProduto.listarProdutos);
-router.post('/produtos/:idUsuario', autenticarToken, controllerProduto.RegistrarProduto);
+router.post('/produtos', autenticarToken, controllerProduto.RegistrarProduto);
 router.put('/produtos/:id', autenticarToken, controllerProduto.atualizarProduto);
 router.patch('/produtos/:id/status', autenticarToken, controllerProduto.atualizarStatusProduto);
 router.delete('/produtos/:id', autenticarToken, controllerProduto.excluirProduto);

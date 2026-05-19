@@ -2,7 +2,7 @@ const { Produto, Usuario } = require('../models');
 
 // Função para registrar um novo produto
 async function RegistrarProduto(req, res) {
-    const { id_usuario } = req.params;
+    const { id_usuario } = req.user;
     const { nome, marca, modelo } = req.body; 
 
     try{
