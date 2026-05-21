@@ -18,7 +18,13 @@ const app = express();
 const cors = require('cors');
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',          // desenvolvimento local
+    'https://gestaogarantia-pe-bfd26re.onrender.com',   // coloca a URL do front aqui quando tiver
+  ],
+  credentials: true,
+}));
 
 // Rota de teste
 app.get('/', (req, res) => {

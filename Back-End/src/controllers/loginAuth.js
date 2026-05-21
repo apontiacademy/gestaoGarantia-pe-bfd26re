@@ -2,6 +2,7 @@ const { Usuario } = require('../models');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
+const { compararSenha } = require("../utils/hash");
 
 // Configuração do Nodemailer
 const transporter = nodemailer.createTransport({
