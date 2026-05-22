@@ -49,9 +49,9 @@ function App() {
           <Route
             path="/create-warranty"
             element = {
-              /*<ProtectedRoute> COMENTÁRIO TEMPORÁRIO (RETIRAR DEPOIS DA HOSPEDAGEM DO BACKEND) */  
+              <ProtectedRoute>
                 <CreateWarranty />
-              /*</ProtectedRoute> COMENTÁRIO TEMPORÁRIO (RETIRAR DEPOIS DA HOSPEDAGEM DO BACKEND) */
+              </ProtectedRoute> 
             }
           />
           

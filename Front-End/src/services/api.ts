@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 // Busca o token sempre na hora da chamada (não no momento do import)
 function getToken(): string | null {
