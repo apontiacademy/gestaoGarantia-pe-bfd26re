@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { Trash2 } from "lucide-react";
 import LayoutHome from "../layout/LayoutHome";
 import WarrantyCard from "../components/ui/WarrantyCard";
-import Toast from "../components/ui/Toast";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import { useWarranty } from "../contexts/WarrantyContext";
 import { useToast } from "../hooks/useToast";
@@ -10,7 +9,7 @@ import { useToast } from "../hooks/useToast";
 export default function LixeiraScreen() {
   const { trashedWarranties, restoreFromTrash, permanentlyDelete } =
     useWarranty();
-  const { toast, showToast } = useToast();
+  const { showToast } = useToast();
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirmEmptyOpen, setConfirmEmptyOpen] = useState(false);
@@ -40,7 +39,7 @@ export default function LixeiraScreen() {
   const handleRestore = (id: string) => {
     const item = trashedWarranties.find((w) => w.id === id);
     const result = restoreFromTrash(id);
-    if (!result.success) {
+    if (result.success === false) {
       showToast(result.error, "error");
       return;
     }
@@ -169,12 +168,6 @@ export default function LixeiraScreen() {
           loading={isProcessing}
           onConfirm={handleConfirmEmpty}
           onCancel={() => setConfirmEmptyOpen(false)}
-        />
-
-        <Toast
-          message={toast.message}
-          visible={toast.visible}
-          variant={toast.variant}
         />
       </div>
     </LayoutHome>

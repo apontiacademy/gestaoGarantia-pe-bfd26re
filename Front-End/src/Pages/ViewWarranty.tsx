@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import LayoutHome from "../layout/LayoutHome";
 import Button from "../components/ui/Button";
 import EmptyState from "../components/ui/EmptyState";
-import Toast from "../components/ui/Toast";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import WarrantyActions from "../components/warranty/WarrantyActions";
 import WarrantyAttachmentsList from "../components/warranty/WarrantyAttachmentsList";
@@ -25,7 +24,7 @@ export default function ViewWarranty() {
     const navigate = useNavigate();
     const { warranties, updateWarranty, moveToTrash, restoreFromTrash } =
         useWarranty();
-    const { toast, showToast } = useToast();
+    const { showToast } = useToast();
 
     const warranty = useMemo(
         () => (id ? warranties.find((w) => w.id === id) : undefined),
@@ -114,7 +113,7 @@ export default function ViewWarranty() {
         }
 
         showToast("Garantia enviada para a lixeira.");
-        navigate("/lixeira");
+        navigate("/home");
     };
 
     const handleRestore = async () => {
@@ -206,12 +205,6 @@ export default function ViewWarranty() {
                 loading={isDeleting}
                 onConfirm={handleConfirmTrash}
                 onCancel={() => setConfirmTrashOpen(false)}
-            />
-
-            <Toast
-                message={toast.message}
-                visible={toast.visible}
-                variant={toast.variant}
             />
         </LayoutHome>
     );

@@ -15,7 +15,6 @@ import ResetPassword from "./Pages/ResetPassword";
 import CreateWarranty from "./Pages/CreateWarranty";
 import LixeiraScreen from "./Pages/Lixeira";
 import AuthLayout from "./layout/AuthLayout";
-import WarrantyRegister from "./Pages/WarrantyRegister";
 import ViewWarranty from "./Pages/ViewWarranty"; 
 function App() {
   return (
@@ -55,7 +54,6 @@ function App() {
             }
           />
           
-          <Route path="/warranty-register" element={<WarrantyRegister/>} />
           <Route path="/garantia/:id" element={<ViewWarranty />} />
           
           {/* Rota curinga para redirecionamento */}
