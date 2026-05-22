@@ -1,1 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&display=swap');
 @import "tailwindcss";
+
+@theme {
+    /* FONTE */
+    --font-sans: "Kantumruy Pro", sans-serif;
+
+    /* CORES PRINCIPAIS */
+    --color-primary: #6518ea;
+    --color-secondary: #ad7dff;
+    --color-pink: #dd90dd;
+    --color-pink-light: #ffb7ff;
+    --color-gray: #d9d9d9;
+    --color-gray-secondary: #374151;
+    --color-gray-dark: #1f2937;
+    --color-gray-medium: #9ca3af;
+    --color-fundo: #f8f7fc;
+    --color-yellow-button: #ffe796;
+    --color-yellow-hover: #db9200;
+    --color-yellow-light: #fef9c3;
+
+
+    /* CORES DE ALERTAS */
+    --color-red: #d41414;
+    --color-yellow: #c99503;
+    --color-green: #478e2c;
+
+    /* CORES DO GRADIENTE */
+    --color-primary-start: #8A5CF5;
+    --color-primary-end: #B16CFA;
+}
+
+@layer base {
+    body {
+        font-family: var(--font-sans);
+    }
+}
+
+/* ANIMAÇÃO DOS CIRCULOS LOGIN/USER_REGISTER */
+@keyframes float-slow {
+    0%, 100% { transform: translate(0, 0); }
+    33%       { transform: translate(12px, -16px); }
+    66%       { transform: translate(-8px, 10px); }
+}
+
+@keyframes float-slow-reverse {
+    0%, 100% { transform: translate(0, 0); }
+    33%       { transform: translate(-14px, 12px); }
+    66%       { transform: translate(10px, -10px); }
+}
+
+@layer utilities {
+    .animate-float {
+        animation: float-slow 8s ease-in-out infinite;
+    }
+    .animate-float-reverse {
+        animation: float-slow-reverse 10s ease-in-out infinite;
+    }
+}
+
+/* ANIMAÇÃO MUDANÇA DA TELA LOGIN E USER_REGISTER*/
+@keyframes slide-in-right {
+    from { opacity: 0; transform: translateX(24px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-left {
+    from { opacity: 0; transform: translateX(-24px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@layer utilities {
+    .animate-float { animation: float-slow 8s ease-in-out infinite; }
+    .animate-float-reverse { animation: float-slow-reverse 10s ease-in-out infinite; }
+    .animate-slide-in-right { animation: slide-in-right 0.35s ease-out both; }
+    .animate-slide-in-left  { animation: slide-in-left  0.35s ease-out both; }
+}
