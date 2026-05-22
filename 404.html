@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script>
+      const path = window.location.pathname;
+      const base = '/gestaoGarantia-pe-bfd26re'; 
+      const route = path.replace(base, '') || '/';
+      window.location.replace(
+        window.location.origin + base + '/?redirect=' + encodeURIComponent(route)
+      );
+    </script>
+  </head>
+  <body></body>
+</html>
