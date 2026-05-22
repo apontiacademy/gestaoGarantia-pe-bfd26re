@@ -2,7 +2,6 @@ import { Plus, CopyPlus, Search, Package, SearchX } from "lucide-react";
 import LayoutHome from "../layout/LayoutHome";
 import Dashboard from "../components/Dashboard";
 import Button from "../components/ui/Button";
-import FloatingButton from "../components/ui/FloatingButton";
 import WarrantyCard from "../components/ui/WarrantyCard";
 import EmptyState from "../components/ui/EmptyState";
 import { useNavigate } from "react-router-dom";
@@ -36,16 +35,6 @@ export default function Home() {
 
   return (
     <LayoutHome namePage="">
-      <div className="fixed bottom-8 right-6 flex flex-col gap-4">
-        <FloatingButton
-          icon={Plus}
-          onClick={() => {
-            navigate("/create-warranty");
-          }}
-        />
-        <FloatingButton icon={CopyPlus} />
-      </div>
-
       <div className="flex flex-col gap-4 mb-6">
         <div className="hidden md:flex items-center gap-4">
           {/* CAMPO DE PESQUISA */}
@@ -63,7 +52,7 @@ export default function Home() {
             />
           </div>
 
-          {/* BOTÕES DE CRIAR */}
+          {/* BOTÃO DE CRIAR */}
           <div className="flex gap-3">
             <Button
               variant="primary"
@@ -74,13 +63,6 @@ export default function Home() {
               className="flex items-center gap-2 py-2.5"
             >
               <Plus size={22} /> Nova Garantia
-            </Button>
-            <Button
-              variant="primary"
-              type="button"
-              className="flex items-cente gap-2 py-2.5"
-            >
-              <CopyPlus size={25} /> Novo Grupo de Garantia
             </Button>
           </div>
         </div>
