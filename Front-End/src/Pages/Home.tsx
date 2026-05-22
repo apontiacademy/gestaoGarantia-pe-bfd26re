@@ -1,4 +1,4 @@
-import { Plus, CopyPlus, Search, Package, SearchX } from "lucide-react";
+import { Plus, Search, Package, SearchX } from "lucide-react";
 import LayoutHome from "../layout/LayoutHome";
 import Dashboard from "../components/Dashboard";
 import Button from "../components/ui/Button";
@@ -35,74 +35,31 @@ export default function Home() {
 
   return (
     <LayoutHome namePage="">
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="hidden md:flex items-center gap-4">
-          {/* CAMPO DE PESQUISA */}
-          <div className="relative flex-1">
-            <Search
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-            />
-            <input
-              type="text"
-              placeholder="Pesquisar..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg h-12 pl-9 pr-4 bg-white focus:outline-none focus:ring-1 focus:ring-gray font-medium shadow border border-gray/50"
-            />
-          </div>
-
-          {/* BOTÃO DE CRIAR */}
-          <div className="flex gap-3">
-            <Button
-              variant="primary"
-              type="button"
-              onClick={() => {
-                navigate("/create-warranty");
-              }}
-              className="flex items-center gap-2 py-2.5"
-            >
-              <Plus size={22} /> Nova Garantia
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* PARA MOBILE */}
-      <div className="md:hidden flex flex-col gap-3 mb-5">
-
-        {/* SEARCH */}
-        <div className="relative">
+      <div className="flex flex-row items-center gap-2 sm:gap-4 mb-5 sm:mb-6 min-w-0">
+        <div className="relative flex-1 min-w-0">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+            className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray/70"
           />
           <input
             type="text"
             placeholder="Pesquisar..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg h-9 pl-9 pr-4 bg-white focus:outline-none focus:ring-1 focus:ring-gray font-medium shadow border border-gray/50"
+            className="w-full min-w-0 rounded-lg h-10 sm:h-12 pl-9 pr-3 sm:pr-4 text-sm sm:text-base bg-white focus:outline-none focus:ring-1 focus:ring-gray font-medium shadow border border-gray/50"
           />
         </div>
 
-        {/* BOTÕES NO MOBILE */}
-        <div className="flex gap-3">
-          <Button
-            variant="primary"
-            onClick={() => navigate("/create-warranty")}
-            className="flex-1 flex items-center justify-center gap-2 py-2"
-          >
-            <Plus size={18} /> Nova Garantia
-          </Button>
-
-          <Button
-            variant="primary"
-            className="flex-1 flex items-center justify-center gap-2 py-2"
-          >
-            <CopyPlus size={18} /> Novo Grupo
-          </Button>
-        </div>
+        <Button
+          variant="primary"
+          type="button"
+          onClick={() => navigate("/create-warranty")}
+          className="shrink-0 flex items-center justify-center gap-1 sm:gap-2 h-10 sm:h-12 px-5 py-1.5 sm:py-2 text-xs sm:text-base whitespace-nowrap"
+        >
+          <Plus size={14} className="hidden sm:block sm:w-5 sm:h-5" />
+          <span className="sm:hidden">Nova Garantia</span>
+          <span className="hidden sm:inline">Nova Garantia</span>
+        </Button>
       </div>
 
 
