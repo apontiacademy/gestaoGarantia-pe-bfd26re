@@ -21,7 +21,7 @@ app.use(express.json());
 app.use(cors({
   origin: [
     'http://localhost:5173',          // desenvolvimento local
-    'https://gestaogarantia-pe-bfd26re.onrender.com',   // coloca a URL do front aqui quando tiver
+    'https://gerenciador-de-garantia-aponti.netlify.app', 
   ],
   credentials: true,
 }));
