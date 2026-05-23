@@ -35,6 +35,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({ action, variant, onClick, l
 
   return (
     <button
+    type="button"
       onClick={onClick}
       className={`
         flex items-center justify-center gap-2 
