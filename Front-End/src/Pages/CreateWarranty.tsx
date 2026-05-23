@@ -3,7 +3,6 @@ import React, { useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Input from '../components/ui/Input';
 import ActionButton from '../components/ui/ActionButton';
-import WarrantyCard from '../components/ui/WarrantyCard';
 import LayoutHome from '../layout/LayoutHome';
 import { useWarranty } from '../contexts/WarrantyContext';
 import {
@@ -90,15 +89,6 @@ const CreateWarranty: React.FC = () => {
     ? 'Garantia Estendida'
     : 'Garantia de fábrica';
 
-  const previewTitle = useMemo(
-    () =>
-      buildWarrantyTitle(
-        productName,
-        brand.trim() || undefined,
-        model.trim() || undefined
-      ) || '—',
-    [productName, brand, model]
-  );
 
   async function handleSaveWarranty(): Promise<void> {
     const name = productName.trim();
@@ -158,12 +148,16 @@ const CreateWarranty: React.FC = () => {
         notes: notes.trim() || undefined,
         attachments,
       });
-      navigate('/home');
-    } catch {
-      window.alert('Não foi possível salvar a garantia. Tente um arquivo menor.');
-    } finally {
-      setIsSaving(false);
-    }
+      navigate('/home-demo');
+    } catch (error) {
+  console.log(error);
+
+  window.alert(
+    'Não foi possível salvar a garantia.'
+  );
+} finally {
+  setIsSaving(false);
+}
   }
 
   return (
@@ -345,7 +339,7 @@ const CreateWarranty: React.FC = () => {
                   />
 
                   <Input
-                    label="Valor"
+                    label="Valor unitario do produto"
                     type="text"
                     value={value}
                     placeholder="R$ 0,00"
@@ -520,18 +514,117 @@ const CreateWarranty: React.FC = () => {
               )}
 
               {/* ETAPA 4 */}
-              {step === 4 && (
-                <WarrantyCard
-                  title={previewTitle}
-                  story={storeName.trim() || undefined}
-                  nfNumber={nfNumber.trim() || undefined}
-                  purchaseDate={purchaseDateDisplay || undefined}
-                  expirationDate={expirationDateDisplay || undefined}
-                  warrantyType={warrantyTypeLabel}
-                  value={value || undefined}
-                  variant="home"
-                />
-              )}
+          {step === 4 && (
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 flex flex-col gap-4">
+
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">
+                  {productName || 'Produto sem nome'}
+                </h2>
+
+                <p className="text-sm text-gray-500 italic">
+                  {storeName || 'Loja não informada'}
+                </p>
+              </div>
+
+              <div className="border-t border-gray-200 pt-4 flex flex-col gap-2">
+
+                <p className="text-sm">
+                  <span className="font-semibold">
+                    Marca:
+                  </span>{' '}
+                  {brand || '—'}
+                </p>
+
+                <p className="text-sm">
+                  <span className="font-semibold">
+                    Modelo:
+                  </span>{' '}
+                  {model || '—'}
+                </p>
+
+                <p className="text-sm">
+                  <span className="font-semibold">
+                    Quantidade:
+                  </span>{' '}
+                  {quantity || '—'}
+                </p>
+
+                <p className="text-sm">
+                  <span className="font-semibold">
+                    Nº da Nota Fiscal:
+                  </span>{' '}
+                  {nfNumber || '—'}
+                </p>
+
+                <p className="text-sm">
+                  <span className="font-semibold">
+                    Data da Compra:
+                  </span>{' '}
+                  {purchaseDateDisplay || '—'}
+                </p>
+
+                <p className="text-sm">
+                  <span className="font-semibold">
+                    Garantia:
+                  </span>{' '}
+                  {warrantyPeriod} {warrantyUnit === 'months' ? 'meses' : 'dias'}
+                </p>
+
+                <p className="text-sm">
+                  <span className="font-semibold">
+                    Tipo:
+                  </span>{' '}
+                  {warrantyTypeLabel}
+                </p>
+
+                <p className="text-sm">
+                  <span className="font-semibold">
+                    Vencimento:
+                  </span>{' '}
+                  {expirationDateDisplay || '—'}
+                </p>
+
+                <p className="text-sm">
+                  <span className="font-semibold">
+                    Valor:
+                  </span>{' '}
+                  {value || 'R$ 0,00'}
+                </p>
+
+                {notes && (
+                  <div className="mt-2">
+                    <p className="font-semibold text-sm">
+                      Observações:
+                    </p>
+
+                    <p className="text-sm text-gray-600 wrap-break-word">
+                      {notes}
+                    </p>
+                  </div>
+                )}
+
+                {file && (
+                  <div className="mt-2 flex items-center gap-2 bg-gray-100 rounded-lg p-3">
+                    <FileCheck
+                      size={20}
+                      className="text-green-600"
+                    />
+
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">
+                        {file.name}
+                      </span>
+
+                      <span className="text-xs text-gray-500">
+                        {(file.size / 1024).toFixed(2)} KB
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
               {/* BOTÕES */}
               <div className="flex flex-col gap-3 mt-6">
