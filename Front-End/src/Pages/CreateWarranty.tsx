@@ -30,7 +30,6 @@ const CreateWarranty: React.FC = () => {
   const [warrantyUnit, setWarrantyUnit] = useState<'days' | 'months'>('months');
 
   const [hasMultipleUnits, setHasMultipleUnits] = useState(false);
-  const [unitValue, setUnitValue] = useState('');
 
   const [storeName, setStoreName] = useState('');
   const [cnpj, setCnpj] = useState('');
