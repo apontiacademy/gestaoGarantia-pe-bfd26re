@@ -29,6 +29,9 @@ const CreateWarranty: React.FC = () => {
   const [warrantyPeriod, setWarrantyPeriod] = useState('');
   const [warrantyUnit, setWarrantyUnit] = useState<'days' | 'months'>('months');
 
+  const [hasMultipleUnits, setHasMultipleUnits] = useState(false);
+  const [unitValue, setUnitValue] = useState('');
+
   const [storeName, setStoreName] = useState('');
   const [cnpj, setCnpj] = useState('');
   const [purchaseDate, setPurchaseDate] = useState('');
@@ -50,6 +53,20 @@ const CreateWarranty: React.FC = () => {
       minimumFractionDigits: 2,
     }).format(numberValue);
   }
+
+  function calculateUnitValue() {
+  const total = Number(value.replace(/\D/g, '')) / 100;
+  const qty = Number(quantity);
+
+  if (!total || !qty || qty <= 0) {
+    return 'R$ 0,00';
+  }
+
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(total / qty);
+}
 
   function removeFile() {
     setFile(null);
@@ -256,16 +273,28 @@ const CreateWarranty: React.FC = () => {
                     onChange={(e) => setModel(e.target.value)}
                   />
 
+                  <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={hasMultipleUnits}
+                    onChange={(e) =>
+                      setHasMultipleUnits(e.target.checked)
+                    }
+                    className="accent-primary-start w-4 h-4"
+                    />
+
+                    <label className="text-sm font-medium text-gray-700">Produto possui mais de uma unidade?</label>
+                  </div>
+                  {hasMultipleUnits && (
                   <Input
                     label="Quantidade de Produto"
                     type="number"
                     min={0}
-                    placeholder="Ex: 1"
+                    placeholder="Ex: 2"
                     className="bg-white border-none"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
-                  />
-
+                  />)}
                   <div className="flex gap-4 items-end">
 
                     <Input
@@ -339,7 +368,7 @@ const CreateWarranty: React.FC = () => {
                   />
 
                   <Input
-                    label="Valor unitario do produto"
+                    label="Valor Total da Compra"
                     type="text"
                     value={value}
                     placeholder="R$ 0,00"
@@ -348,6 +377,19 @@ const CreateWarranty: React.FC = () => {
                     }}
                     className="bg-white border-none"
                   />
+
+                  {hasMultipleUnits && quantity && (
+                  <div className="bg-purple-50 border border-primary-start rounded-xl p-4">
+
+                    <p className="text-sm text-gray-600">
+                      Valor por unidade
+                    </p>
+
+                    <p className="text-xl font-bold text-primary-start">
+                      {calculateUnitValue()}
+                    </p>
+                  </div>
+                )}
 
                   {/* Garantia Estendida */}
                   <div className="flex flex-col gap-1">
@@ -587,7 +629,7 @@ const CreateWarranty: React.FC = () => {
 
                 <p className="text-sm">
                   <span className="font-semibold">
-                    Valor:
+                    Valor Total:
                   </span>{' '}
                   {value || 'R$ 0,00'}
                 </p>
