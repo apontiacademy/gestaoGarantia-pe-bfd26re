@@ -3,7 +3,7 @@ interface NotificationCardProps {
     description: string;
     time: string;
     isNew?: boolean;
-    icon?: string;
+    onClick?: () => void;
 }
 
 export default function NotificationCard({
@@ -11,11 +11,14 @@ export default function NotificationCard({
     description,
     time,
     isNew,
+    onClick,
 }: NotificationCardProps) {
     return (
-        <div
+        <button
+            type="button"
+            onClick={onClick}
             className="
-                relative flex flex-col gap-1.5
+                relative flex flex-col gap-1.5 w-full text-left
                 px-4 py-3.5
                 border-b border-gray last:border-none
                 transition-colors duration-150
@@ -56,6 +59,6 @@ export default function NotificationCard({
                     </span>
                 </div>
             </div>
-        </div>
+        </button>
     );
 }
