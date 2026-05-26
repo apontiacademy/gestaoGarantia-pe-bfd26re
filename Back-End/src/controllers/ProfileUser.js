@@ -3,7 +3,7 @@ const { Usuario } = require('../models');
 // Busca dados do usuário logado
 async function BuscarPerfil(req, res) {
   try {
-    const usuario = await Usuario.findByPk(req.user.idUsuario, {
+    const usuario = await Usuario.findByPk(req.user.id_usuario || req.user.id, {
       attributes: ['id', 'nomeCompleto', 'email', 'fotoPerfil']
     });
 
@@ -23,7 +23,7 @@ async function AtualizarPerfil(req, res) {
   try {
     const { nomeCompleto, fotoPerfil } = req.body;
 
-    const usuario = await Usuario.findByPk(req.user.idUsuario);
+    const usuario = await Usuario.findByPk(req.user.id_usuario || req.user.id);
 
     if (!usuario) {
       return res.status(404).json({ error: 'Usuário não encontrado' });

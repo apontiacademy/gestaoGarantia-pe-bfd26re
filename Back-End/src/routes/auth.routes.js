@@ -19,7 +19,10 @@ function autenticarToken(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;        // ou req.usuario, dependendo do que você usa
+
+    req.user = decoded;      
+    req.usuario = decoded;
+    
     next();
   } catch (error) {
     return res.status(403).json({ message: 'Token inválido' });
