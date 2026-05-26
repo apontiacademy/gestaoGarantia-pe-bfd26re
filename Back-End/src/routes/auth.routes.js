@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 // Rotas de autenticação e gerenciamento de conta
 const controllerRegister = require('../controllers/RegisterUser');
 const controllerLogin = require('../controllers/loginAuth');
+const profileController = require('../controllers/ProfileUser');
 
 // Middleware para validação do token JWT
 function autenticarToken(req, res, next) {
@@ -64,5 +65,9 @@ router.post('/auth/verify-reset-code', controllerLogin.VerificarCodigoReset);
 
 // Redefinição de senha via token enviado por e-mail (usuário não autenticado)
 router.post('/auth/reset-password', controllerLogin.ResetarSenha);
+
+router.get('/users/me', autenticarToken, profileController.BuscarPerfil);
+
+router.put('/users/me', autenticarToken, profileController.AtualizarPerfil);
 
 module.exports = router;

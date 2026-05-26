@@ -16,6 +16,8 @@ import CreateWarranty from "./Pages/CreateWarranty";
 import LixeiraScreen from "./Pages/Lixeira";
 import AuthLayout from "./layout/AuthLayout";
 import ViewWarranty from "./Pages/ViewWarranty"; 
+import Settings from './Pages/Settings';
+
 function App() {
   return (
     <AuthProvider>
@@ -51,6 +53,15 @@ function App() {
               <ProtectedRoute>
                 <CreateWarranty />
               </ProtectedRoute> 
+            }
+          />
+
+          <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
             }
           />
           

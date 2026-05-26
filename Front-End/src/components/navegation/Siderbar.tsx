@@ -1,5 +1,8 @@
 import { useNavigate } from "react-router-dom";
+import { useAuth } from '../../contexts/AuthContext';
 import { X } from "lucide-react"
+
+
 
 type SidebarProps = {
     isOpen: boolean;
@@ -8,6 +11,8 @@ type SidebarProps = {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const navigate = useNavigate();
+    const { logout } = useAuth();
+
     return (
         <>
             {/* OVERLAY (BLUR NO FUNDO) */}
@@ -52,8 +57,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         Lixeira
                     </button>
 
-                    <button className="block w-full text-left hover:bg-gray-medium p-2 rounded">
+                    <button onClick={() => { navigate('/settings'); onClose(); }} className="block w-full text-left hover:bg-gray-medium p-2 rounded">
                         Configurações
+                    </button>
+
+                    <button onClick={() => { logout(); navigate('/login'); }} className="block w-full text-left hover:bg-gray-medium p-2 rounded">
+                        Sair
                     </button>
                 </nav>
             </aside>
