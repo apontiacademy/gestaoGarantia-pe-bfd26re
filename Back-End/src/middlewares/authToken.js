@@ -5,17 +5,28 @@ function autenticarToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
-    if(!token){
-        return res.status(401).json({error: "Token não fornecido"});
+    if (!token) {
+        return res.status(401).json({ error: "Token não fornecido" });
     }
-    jwt.verify(token, SECRET_KEY, (err, usuario) => {
-        console.log("erro verificação:", err);
-        console.log("decoded token:", usuario);
-        if(err){
-            return res.status(403).json({error: "Token inválido"});
-        }
-        req.usuario = usuario;
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        console.log("✅ Token decodificado com sucesso:", decoded);
+        
+        req.usuario = decoded;   // Mantém compatibilidade com o que você já usa
+        req.user = decoded;      // Padrão mais comum
+
         next();
-    });
+    } catch (err) {
+        console.error("❌ Erro na verificação do token:", err.name, err.message);
+        
+        if (err.name === 'TokenExpiredError') {
+            return res.status(403).json({ error: "Token expirado" });
+        }
+        
+        return res.status(403).json({ error: "Token inválido" });
+    }
 }
-module.exports =  autenticarToken ;
+
+module.exports = autenticarToken;
