@@ -1,12 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import type { User } from "../types/user";
 
-interface User {
-  id: number;
-  nomeCompleto: string; // era "nome", corrigido pro que o back retorna
-  email: string;
-  fotoPerfil?: string;  // novo campo opcional
-}
+export type { User };
 
 interface AuthContextData {
   user: User | null;

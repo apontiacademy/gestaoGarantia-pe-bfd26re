@@ -35,7 +35,6 @@ function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           
-          <Route path="/home-demo" element={<Home />} />
           <Route path="/lixeira" element={<LixeiraScreen />} />
           
           <Route

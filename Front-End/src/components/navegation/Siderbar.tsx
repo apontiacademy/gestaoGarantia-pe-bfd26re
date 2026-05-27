@@ -1,8 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '../../contexts/AuthContext';
-import { X } from "lucide-react"
-
-
+import { Trash2, X } from "lucide-react";
 
 type SidebarProps = {
     isOpen: boolean;
@@ -31,7 +29,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 className={`
                     fixed top-0 left-0 h-full w-64
                     bg-white shadow-xl
-                    z-50
+                    z-50 flex flex-col
                     transform transition-transform duration-300
                     ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
                 >
@@ -41,27 +39,33 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
                     <button
                         onClick={onClose}
-                        className="text-sm px-3 py-1 rounded hover:bg-gray-medium"
+                        className="cursor-pointer text-sm px-3 py-1 rounded hover:bg-gray-medium"
                     >
                         <X/>
                     </button>
                 </div>
 
                 {/* CONTEÚDO */}
-                <nav className="p-4 space-y-3">
-                    <button onClick={() => { navigate("/home-demo"); onClose();}} className="block w-full text-left hover:bg-gray-medium p-2 rounded">
-                        Minhas Garantias
-                    </button>
+                <nav className="flex flex-1 flex-col p-4">
+                    <div className="space-y-3">
+                        <button onClick={() => { navigate("/home-demo"); onClose();}} className="block w-full cursor-pointer text-left hover:bg-gray-medium p-2 rounded">
+                            Minhas Garantias
+                        </button>
 
-                    <button onClick={() => { navigate("/lixeira"); onClose();}} className="block w-full text-left hover:bg-gray-medium p-2 rounded">
-                        Lixeira
-                    </button>
+                        <button onClick={() => { navigate("/lixeira"); onClose();}} className="block w-full cursor-pointer text-left hover:bg-gray-medium p-2 rounded">
+                            Lixeira
+                        </button>
 
-                    <button onClick={() => { navigate('/settings'); onClose(); }} className="block w-full text-left hover:bg-gray-medium p-2 rounded">
-                        Configurações
-                    </button>
+                        <button onClick={() => { navigate('/settings'); onClose(); }} className="block w-full cursor-pointer text-left hover:bg-gray-medium p-2 rounded">
+                            Configurações
+                        </button>
+                    </div>
 
-                    <button onClick={() => { logout(); navigate('/login'); }} className="block w-full text-left hover:bg-gray-medium p-2 rounded">
+                    <button
+                        onClick={() => { logout(); onClose(); navigate('/login'); }}
+                        className="mt-auto flex w-full cursor-pointer items-center gap-2 rounded p-2 text-left text-red hover:bg-red/10 transition-colors"
+                    >
+                        <Trash2 size={18} />
                         Sair
                     </button>
                 </nav>

@@ -1,10 +1,12 @@
 import { api } from "./api";
+import type { User } from "../types/user";
 
 interface LoginPayload { email: string; senha: string; }
 interface RegisterPayload { nomeCompleto: string; email: string; senha: string; }
-interface AuthResponse {
+
+export interface AuthResponse {
   token: string;
-  user: { id: number; nome: string; email: string; role: "admin" | "user" };
+  user: User;
 }
 
 export const authService = {
@@ -14,20 +16,20 @@ export const authService = {
   register: (data: RegisterPayload) =>
     api.post<RegisterPayload>("/auth/register", data),
 
-forgotPassword: (email: string) =>
-  api.post<{ 
-    message: string; 
-    resetToken?: string 
-  }>("/auth/forgot-password", { email }),
+  forgotPassword: (email: string) =>
+    api.post<{
+      message: string;
+      resetToken?: string;
+    }>("/auth/forgot-password", { email }),
 
-verifyResetCode: (token: string, codigo: string) =>
-  api.post<{ 
-    message: string; 
-    token: string 
-  }>("/auth/verify-reset-code", { token, codigo }),
+  verifyResetCode: (token: string, codigo: string) =>
+    api.post<{
+      message: string;
+      token: string;
+    }>("/auth/verify-reset-code", { token, codigo }),
 
-resetPassword: (token: string, novaSenha: string) =>
-  api.post<{ 
-    message: string 
-  }>("/auth/reset-password", { token, novaSenha }),
+  resetPassword: (token: string, novaSenha: string) =>
+    api.post<{
+      message: string;
+    }>("/auth/reset-password", { token, novaSenha }),
 };
