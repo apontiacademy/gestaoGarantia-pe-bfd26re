@@ -43,14 +43,46 @@ const CreateWarranty: React.FC = () => {
 
   const steps = ['Produto', 'Compra', 'Nota Fiscal', 'Revisão'];
 
-  function formatCurrency(input: string) {
-    const onlyNumbers = input.replace(/\D/g, '');
-    const numberValue = Number(onlyNumbers) / 100;
+  function formatCurrencyFromDigits(digits: string): string {
+    if (!digits) return '';
+    const numberValue = Number(digits) / 100;
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
       minimumFractionDigits: 2,
     }).format(numberValue);
+  }
+
+  function handleValueChange(raw: string): void {
+    const digits = raw.replace(/\D/g, '');
+    setValue(formatCurrencyFromDigits(digits));
+  }
+
+  function handleValueKeyDown(
+    event: React.KeyboardEvent<HTMLInputElement>
+  ): void {
+    const allowedKeys = [
+      'Backspace',
+      'Delete',
+      'Tab',
+      'ArrowLeft',
+      'ArrowRight',
+      'Home',
+      'End',
+    ];
+    if (allowedKeys.includes(event.key)) return;
+    if (event.ctrlKey || event.metaKey) return;
+    if (!/^\d$/.test(event.key)) {
+      event.preventDefault();
+    }
+  }
+
+  function handleValuePaste(
+    event: React.ClipboardEvent<HTMLInputElement>
+  ): void {
+    event.preventDefault();
+    const digits = event.clipboardData.getData('text').replace(/\D/g, '');
+    setValue(formatCurrencyFromDigits(digits));
   }
 
   function calculateUnitValue() {
@@ -164,7 +196,7 @@ const CreateWarranty: React.FC = () => {
         notes: notes.trim() || undefined,
         attachments,
       });
-      navigate('/home-demo');
+      navigate('/home');
     } catch (error) {
   console.log(error);
 
@@ -369,11 +401,12 @@ const CreateWarranty: React.FC = () => {
                   <Input
                     label="Valor Total da Compra"
                     type="text"
+                    inputMode="numeric"
                     value={value}
                     placeholder="R$ 0,00"
-                    onChange={(e) => {
-                      setValue(formatCurrency(e.target.value));
-                    }}
+                    onChange={(e) => handleValueChange(e.target.value)}
+                    onKeyDown={handleValueKeyDown}
+                    onPaste={handleValuePaste}
                     className="bg-white border-none"
                   />
 

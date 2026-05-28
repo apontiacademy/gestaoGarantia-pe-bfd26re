@@ -71,7 +71,7 @@ export default function Home() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-5 min-w-0">
         {filteredWarranties.length === 0 ? (
           activeWarranties.length === 0 ? (
             <EmptyState
@@ -98,8 +98,8 @@ export default function Home() {
               warrantyType,
               value,
             }) => (
+              <div key={id} className="min-w-0">
               <WarrantyCard
-                key={id}
                 variant="home"
                 title={title}
                 story={story}
@@ -112,6 +112,7 @@ export default function Home() {
                   navigate(`/garantia/${id}`);
                 }}
               />
+              </div>
             )
           )
         )}
