@@ -121,7 +121,7 @@ export default function LixeiraScreen() {
 
         <div
           className="
-            p-4 grid grid-cols-1
+            p-4 grid grid-cols-1 min-w-0
             md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3
           "
         >
@@ -137,8 +137,8 @@ export default function LixeiraScreen() {
             </div>
           ) : (
             trashedWarranties.map((item) => (
+              <div key={item.id} className="min-w-0">
               <WarrantyCard
-                key={item.id}
                 title={item.title}
                 story={item.story}
                 nfNumber={item.nfNumber}
@@ -151,6 +151,7 @@ export default function LixeiraScreen() {
                 onSelect={(selected) => toggleSelect(item.id, selected)}
                 onRestore={() => handleRestore(item.id)}
               />
+              </div>
             ))
           )}
         </div>

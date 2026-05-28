@@ -48,7 +48,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 {/* CONTEÚDO */}
                 <nav className="flex flex-1 flex-col p-4">
                     <div className="space-y-3">
-                        <button onClick={() => { navigate("/home-demo"); onClose();}} className="block w-full cursor-pointer text-left hover:bg-gray-medium p-2 rounded">
+                        <button onClick={() => { navigate("/home"); onClose();}} className="block w-full cursor-pointer text-left hover:bg-gray-medium p-2 rounded">
                             Minhas Garantias
                         </button>
 
