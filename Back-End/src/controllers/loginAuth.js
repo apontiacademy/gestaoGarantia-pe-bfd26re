@@ -5,26 +5,32 @@ const { compararSenha } = require("../utils/hash");
 const { Resend } = require('resend');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-// Configuração do Nodemailer
+
+// ── Função interna de envio de email ─────────────────────
 async function enviarEmail(destinatario, codigo) {
   await resend.emails.send({
     from: 'onboarding@resend.dev',
     to: destinatario,
     subject: 'Código de Verificação - Aponti',
     html: `
-      <div style="font-family: sans-serif; max-width: 400px; margin: 0 auto;">
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2>Redefinição de senha</h2>
-        <p>Seu código de verificação é:</p>
-        <h1 style="letter-spacing: 8px; color: #6d28d9;">${codigo}</h1>
-        <p>O código expira em 15 minutos.</p>
-        <p>Se você não solicitou isso, ignore este email.</p>
+        <p>Utilize o código abaixo para redefinir sua senha:</p>
+        <h1 style="font-size: 32px; letter-spacing: 8px; color: #6d28d9; text-align: center; margin: 20px 0;">
+          ${codigo}
+        </h1>
+        <p style="color: #666; font-size: 14px;">
+          Este código é válido por <strong>20 minutos</strong>.<br>
+          Se você não solicitou esta redefinição, ignore este email.
+        </p>
       </div>
     `,
-  })
+  });
 }
 
+// ── Login ─────────────────────────────────────────────────
 async function Login(req, res) {
-  const { email, senha } = req.body; // Recebe email e senha do cliente
+  const { email, senha } = req.body;
 
   if (!email || !senha) {
     return res.status(400).json({ error: "Todos os campos são obrigatórios" });
@@ -55,6 +61,7 @@ async function Login(req, res) {
         id: usuario.id,
         nomeCompleto: usuario.nomeCompleto,
         email: usuario.email,
+        fotoPerfil: usuario.fotoPerfil ?? null,
       }
     });
 
@@ -64,30 +71,41 @@ async function Login(req, res) {
   }
 }
 
+// ── Alterar senha (usuário logado) ────────────────────────
 async function AlterarSenha(req, res) {
-const { senha, novaSenha } = req.body;
-const id_usuario = req.usuario.id_usuario;
+  const { senha, novaSenha } = req.body;
+  const id_usuario = req.user.id_usuario; // corrigido: era req.usuario
 
- try{
-        const usuario = await Usuario.findByPk(id_usuario);
-        if (!usuario) {
-            return res.status(404).json({ error: "Usuário não encontrado" });
-        }
-        
-        const senhaValida = await bcrypt.compare(senha, usuario.senha);
+  if (!senha || !novaSenha) {
+    return res.status(400).json({ error: "Todos os campos são obrigatórios" });
+  }
 
-        if (!senhaValida) {
-            return res.status(401).json({ error: "Senha incorreta" });
-        }
-        usuario.senha =  await bcrypt.hash(novaSenha, 10);
-        await usuario.save();
+  if (novaSenha.length < 6) {
+    return res.status(400).json({ error: "A nova senha deve ter no mínimo 6 caracteres" });
+  }
 
-        res.status(200).json({ message: "Senha alterada com sucesso" });
-    } catch(error){
-        res.status(500).json({ error: "Erro ao alterar senha" });
+  try {
+    const usuario = await Usuario.findByPk(id_usuario);
+    if (!usuario) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
     }
+
+    const senhaValida = await bcrypt.compare(senha, usuario.senha);
+    if (!senhaValida) {
+      return res.status(401).json({ error: "Senha atual incorreta" });
+    }
+
+    usuario.senha = await bcrypt.hash(novaSenha, 10);
+    await usuario.save();
+
+    return res.status(200).json({ message: "Senha alterada com sucesso" });
+  } catch (error) {
+    console.error("Erro ao alterar senha:", error);
+    return res.status(500).json({ error: "Erro ao alterar senha" });
+  }
 }
 
+// ── Esqueci minha senha ───────────────────────────────────
 async function EsqueciSenha(req, res) {
   const { email } = req.body;
 
@@ -96,11 +114,11 @@ async function EsqueciSenha(req, res) {
   }
 
   try {
-    const usuario = await Usuario.findOne({ 
-      where: { email: email.toLowerCase() } 
+    const usuario = await Usuario.findOne({
+      where: { email: email.toLowerCase() }
     });
 
-    // Por segurança é melhor sempre retornar 200
+    // Sempre retorna 200 por segurança (não revela se email existe)
     if (!usuario) {
       return res.status(200).json({ message: "Código de recuperação enviado" });
     }
@@ -108,48 +126,30 @@ async function EsqueciSenha(req, res) {
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     const resetToken = jwt.sign(
-      { 
+      {
         id_usuario: usuario.id,
         email: usuario.email,
+        codigo: resetCode,          // código dentro do token
         tipo: "reset_password"
       },
       process.env.JWT_SECRET,
-      { expiresIn: '20m' } 
+      { expiresIn: '20m' }
     );
 
-    await transporter.sendMail({
-      from: `"Suporte Aponti" <${process.env.EMAIL_USER}>`,
-      to: usuario.email,
-      subject: 'Código de Recuperação - Aponti',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2>Seu código de recuperação</h2>
-          <p>Utilize o código abaixo para redefinir sua senha:</p>
-          
-          <h1 style="font-size: 32px; letter-spacing: 8px; color: #3b82f6; text-align: center; margin: 20px 0;">
-            ${resetCode}
-          </h1>
-          
-          <p style="color: #666; font-size: 14px;">
-            Este código é válido por <strong>20 minutos</strong>.<br>
-            Se você não solicitou esta redefinição, ignore este email.
-          </p>
-        </div>
-      `  
-    });
+    await enviarEmail(usuario.email, resetCode);
 
-    // Retorna o token pro frontend usar depois
-    res.status(200).json({ 
+    return res.status(200).json({
       message: "Código de recuperação enviado",
       resetToken
     });
 
   } catch (err) {
     console.error("Erro ao processar EsqueciSenha:", err);
-    res.status(500).json({ error: "Erro ao enviar código de recuperação" });
+    return res.status(500).json({ error: "Erro ao enviar código de recuperação" });
   }
 }
 
+// ── Verificar código de reset ─────────────────────────────
 async function VerificarCodigoReset(req, res) {
   const { token, codigo } = req.body;
 
@@ -164,21 +164,25 @@ async function VerificarCodigoReset(req, res) {
       return res.status(401).json({ error: "Token inválido" });
     }
 
-    // Aqui a gente pode adicionar validação extra quando salvar o código no banco
+    // Valida o código contra o que está dentro do token
+    if (decoded.codigo !== codigo.trim()) {
+      return res.status(401).json({ error: "Código incorreto" });
+    }
 
-    res.status(200).json({ 
+    return res.status(200).json({
       message: "Código válido",
-      token  // devolve o msm token pra usar no reset
+      token // devolve o mesmo token pro front usar no reset
     });
 
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({ error: "Código expirado. Solicite um novo." });
     }
-    res.status(401).json({ error: "Código inválido" });
+    return res.status(401).json({ error: "Código inválido" });
   }
 }
 
+// ── Resetar senha ─────────────────────────────────────────
 async function ResetarSenha(req, res) {
   const { token, novaSenha } = req.body;
 
@@ -193,8 +197,11 @@ async function ResetarSenha(req, res) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const usuario = await Usuario.findByPk(decoded.id_usuario);
+    if (decoded.tipo !== "reset_password") {
+      return res.status(401).json({ error: "Token inválido" });
+    }
 
+    const usuario = await Usuario.findByPk(decoded.id_usuario);
     if (!usuario) {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
@@ -202,13 +209,13 @@ async function ResetarSenha(req, res) {
     usuario.senha = await bcrypt.hash(novaSenha, 10);
     await usuario.save();
 
-    res.status(200).json({ message: "Senha alterada com sucesso" });
+    return res.status(200).json({ message: "Senha redefinida com sucesso" });
 
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({ error: "Sessão expirada. Solicite um novo código." });
     }
-    res.status(401).json({ error: "Token inválido" });
+    return res.status(401).json({ error: "Token inválido" });
   }
 }
 
