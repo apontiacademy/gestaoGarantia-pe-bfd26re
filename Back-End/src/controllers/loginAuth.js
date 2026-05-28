@@ -1,19 +1,27 @@
 const { Usuario } = require('../models');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const nodemailer = require('nodemailer');
 const { compararSenha } = require("../utils/hash");
+const { Resend } = require('resend');
 
+const resend = new Resend(process.env.RESEND_API_KEY);
 // Configuração do Nodemailer
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, 
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+async function enviarEmail(destinatario, codigo) {
+  await resend.emails.send({
+    from: 'onboarding@resend.dev',
+    to: destinatario,
+    subject: 'Código de Verificação - Aponti',
+    html: `
+      <div style="font-family: sans-serif; max-width: 400px; margin: 0 auto;">
+        <h2>Redefinição de senha</h2>
+        <p>Seu código de verificação é:</p>
+        <h1 style="letter-spacing: 8px; color: #6d28d9;">${codigo}</h1>
+        <p>O código expira em 15 minutos.</p>
+        <p>Se você não solicitou isso, ignore este email.</p>
+      </div>
+    `,
+  })
+}
 
 async function Login(req, res) {
   const { email, senha } = req.body; // Recebe email e senha do cliente
