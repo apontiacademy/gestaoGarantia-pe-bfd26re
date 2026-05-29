@@ -10,8 +10,9 @@ class DocumentoFiscalController {
             const {
                 produto_id,
                 cnpj_emissor,
-                valor,
-                quantidade,
+                valor, 
+                quantidade, 
+                valorInformado,
                 data_compra,
                 numero_nf,
                 serie_nota,
@@ -19,12 +20,14 @@ class DocumentoFiscalController {
                 tipo
             } = req.body;
 
-            const valorFinal = calcularValorTotal(valor, quantidade);
+            const resultado = calcularValorTotal(valor, quantidade, valorInformado);
 
             const documentoFiscal = await DocumentoFiscal.create({
                 produto_id,
                 cnpj_emissor,
-                valor: valorFinal,
+                valor_unitario: resultado.valor_unitario,
+                valor: resultado.valor_total,
+                quantidade: resultado.quantidade,
                 data_compra,
                 numero_nf,
                 serie_nota,
