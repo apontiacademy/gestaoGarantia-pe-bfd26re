@@ -1,37 +1,38 @@
 import { type Warranty } from "../services/warrantyService";
-import { parseWarrantyDate } from "./warrantyDates";
+import {
+  getWarrantyStatus,
+  type WarrantyUiStatus,
+} from "./warrantyStatus";
 
 export type StatusFilterOption = "all" | "active" | "expiring" | "expired";
 
-const SOON_THRESHOLD_DAYS = 30;
+function resolveUiStatus(warranty: Warranty): WarrantyUiStatus {
+  if (warranty.status) return warranty.status;
+  return getWarrantyStatus(warranty).status;
+}
+
+function matchesFilter(
+  uiStatus: WarrantyUiStatus,
+  filter: StatusFilterOption
+): boolean {
+  if (filter === "all") return true;
+  if (filter === "active") return uiStatus === "Ativo";
+  if (filter === "expiring") return uiStatus === "A vencer";
+  if (filter === "expired") return uiStatus === "Vencida";
+  return true;
+}
 
 export function countWarrantiesByStatus(
   warranties: Warranty[]
 ): Record<StatusFilterOption, number> {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
   let active = 0;
   let expiring = 0;
   let expired = 0;
 
   for (const w of warranties) {
-    if (!w.expirationDate) {
-      active++;
-      continue;
-    }
-    const exp = parseWarrantyDate(w.expirationDate);
-    if (Number.isNaN(exp.getTime())) {
-      active++;
-      continue;
-    }
-    exp.setHours(0, 0, 0, 0);
-    const diffDays = Math.ceil(
-      (exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    if (diffDays < 0) expired++;
-    else if (diffDays <= SOON_THRESHOLD_DAYS) expiring++;
+    const uiStatus = resolveUiStatus(w);
+    if (uiStatus === "Vencida") expired++;
+    else if (uiStatus === "A vencer") expiring++;
     else active++;
   }
 
@@ -48,23 +49,5 @@ export function applyStatusFilter(
   filter: StatusFilterOption
 ): Warranty[] {
   if (filter === "all") return warranties;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  return warranties.filter((w) => {
-    if (!w.expirationDate) return filter === "active";
-    const exp = parseWarrantyDate(w.expirationDate);
-    if (Number.isNaN(exp.getTime())) return filter === "active";
-    exp.setHours(0, 0, 0, 0);
-    const diffDays = Math.ceil(
-      (exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    if (filter === "expired") return diffDays < 0;
-    if (filter === "expiring")
-      return diffDays >= 0 && diffDays <= SOON_THRESHOLD_DAYS;
-    if (filter === "active") return diffDays > SOON_THRESHOLD_DAYS;
-    return true;
-  });
+  return warranties.filter((w) => matchesFilter(resolveUiStatus(w), filter));
 }

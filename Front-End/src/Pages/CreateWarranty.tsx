@@ -9,7 +9,6 @@ import {
   computeExpirationDateBR,
   formatDateBRFromIso,
 } from '../utils/warrantyDates';
-import { buildWarrantyTitle } from '../services/warrantyService';
 import { fileToAttachment } from '../utils/warrantyAttachments';
 import { formatCnpj } from '../utils/cnpj';
 
@@ -163,11 +162,6 @@ const CreateWarranty: React.FC = () => {
       return;
     }
 
-    const nf = nfNumber.trim();
-    const b = brand.trim();
-    const m = model.trim();
-    const joinedTitle = buildWarrantyTitle(name, b || undefined, m || undefined);
-
     let attachments;
     if (file) {
       setIsSaving(true);
@@ -180,32 +174,39 @@ const CreateWarranty: React.FC = () => {
         );
         return;
       }
+    } else {
+      setIsSaving(true);
     }
 
     try {
-      addWarranty({
-        title: joinedTitle,
-        story: storeName.trim() || undefined,
-        storeCnpj: cnpj.trim() ? formatCnpj(cnpj) : undefined,
-        nfNumber: nf || undefined,
+      await addWarranty({
+        productName: name,
+        brand: brand.trim(),
+        model: model.trim(),
+        purchaseDate,
+        warrantyPeriod: periodNum,
+        warrantyUnit,
+        hasExtendedWarranty,
+        extendedExtraMonths: extraMonths,
+        extendedWarrantyNumber: extendedWarrantyNumber.trim() || undefined,
+        storeName: storeName.trim() || undefined,
+        cnpj: cnpj.trim() || undefined,
+        nfNumber: nfNumber.trim() || undefined,
         quantity: quantity.trim() || undefined,
-        purchaseDate: purchaseDateDisplay || undefined,
-        expirationDate: expiration,
-        warrantyType: warrantyTypeLabel,
         value: value || undefined,
-        notes: notes.trim() || undefined,
+        notes,
         attachments,
       });
       navigate('/home');
     } catch (error) {
-  console.log(error);
-
-  window.alert(
-    'Não foi possível salvar a garantia.'
-  );
-} finally {
-  setIsSaving(false);
-}
+      window.alert(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível salvar a garantia.'
+      );
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -464,7 +465,7 @@ const CreateWarranty: React.FC = () => {
 
                       <Input
                         label="Número da Garantia Estendida"
-                        type="number"
+                        type="text"
                         placeholder="Ex: 9928..."
                         className="bg-white border-none"
                         value={extendedWarrantyNumber}

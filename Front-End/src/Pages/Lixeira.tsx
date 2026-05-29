@@ -36,9 +36,9 @@ export default function LixeiraScreen() {
     });
   };
 
-  const handleRestore = (id: string) => {
+  const handleRestore = async (id: string) => {
     const item = trashedWarranties.find((w) => w.id === id);
-    const result = restoreFromTrash(id);
+    const result = await restoreFromTrash(id);
     if (result.success === false) {
       showToast(result.error, "error");
       return;
@@ -146,6 +146,8 @@ export default function LixeiraScreen() {
                 expirationDate={item.expirationDate}
                 warrantyType={item.warrantyType}
                 value={item.value}
+                status={item.status}
+                daysToExpire={item.daysToExpire}
                 variant="trash"
                 selected={selectedIds.has(item.id)}
                 onSelect={(selected) => toggleSelect(item.id, selected)}

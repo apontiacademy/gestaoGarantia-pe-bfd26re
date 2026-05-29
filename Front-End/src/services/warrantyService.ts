@@ -6,6 +6,8 @@ export interface WarrantyAttachment {
   dataUrl: string;
 }
 
+import type { WarrantyUiStatus } from "../utils/warrantyStatus";
+
 export interface Warranty {
   id: string;
   title: string;
@@ -19,6 +21,10 @@ export interface Warranty {
   value?: string;
   notes?: string;
   attachments?: WarrantyAttachment[];
+  /** Status da UI — vindo do back (`Ativa` → `Ativo`, etc.) ou calculado localmente */
+  status?: WarrantyUiStatus;
+  /** Dias até vencer (`dias_restantes` do back); null se vencida */
+  daysToExpire?: number | null;
   /** ISO 8601 — presente quando a garantia está na lixeira (soft delete). */
   deletedAt?: string;
 }
@@ -44,7 +50,7 @@ function isStoredWarrantyItem(value: unknown): value is Warranty {
   return typeof o.id === 'string' && typeof o.title === 'string';
 }
 
-function persistWarranties(list: Warranty[]): boolean {
+export function persistWarranties(list: Warranty[]): boolean {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
     return true;
@@ -95,6 +101,20 @@ export function saveWarranty(data: WarrantyInput): Warranty {
   };
   persistWarranties([...prev, newWarranty]);
   return newWarranty;
+}
+
+/** Grava ou substitui garantia pelo id (ex.: após criar na API). */
+export function persistWarranty(warranty: Warranty): Warranty {
+  const list = getWarranties();
+  const index = list.findIndex((w) => w.id === warranty.id);
+  if (index >= 0) {
+    const next = [...list];
+    next[index] = warranty;
+    persistWarranties(next);
+  } else {
+    persistWarranties([...list, warranty]);
+  }
+  return warranty;
 }
 
 const WARRANTY_SCALAR_FIELDS = [

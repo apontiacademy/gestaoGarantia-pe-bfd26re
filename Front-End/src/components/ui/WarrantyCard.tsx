@@ -1,5 +1,5 @@
 import React from "react";
-import { calculateWarrantyStatus } from "../../utils/warrantyStatus";
+import { getWarrantyStatus } from "../../utils/warrantyStatus";
 
 interface WarrantyCardProps {
   title: string;
@@ -10,6 +10,8 @@ interface WarrantyCardProps {
   expirationDate?: string; //data de vencimento
   warrantyType?: string; //tipo de garantia (de fabrica ou extendida)
   value?: string; //valor da garantia/aparelho
+  status?: string;
+  daysToExpire?: number | null;
 
   variant: "home" | "trash"; // variação do card para lixeira ou home
   onViewMore?: () => void; //ver mais (home)
@@ -27,13 +29,19 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
   expirationDate,
   warrantyType,
   value,
+  status: statusProp,
+  daysToExpire: daysToExpireProp,
   variant,
   onViewMore,
   onRestore,
   selected = false,
   onSelect,
 }) => {
-  const warrantyInfo = calculateWarrantyStatus(expirationDate);
+  const warrantyInfo = getWarrantyStatus({
+    expirationDate,
+    status: statusProp,
+    daysToExpire: daysToExpireProp,
+  });
 
   const currentStatus = warrantyInfo.status;
   const currentDaysToExpire = warrantyInfo.daysToExpire;

@@ -69,7 +69,7 @@ export default function Nav({
         <nav
             className="
         flex items-center justify-between fixed top-0 w-full z-50
-        bg-primary/10 backdrop-blur-md border-b border-gray/25
+        bg-[#E9E0F9] border-b border-gray/25
         px-4 py-3"
         >
             {/* LEFT */}

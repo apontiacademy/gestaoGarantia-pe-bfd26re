@@ -1,6 +1,6 @@
 import { isWarrantyDeleted, type Warranty } from "../../services/warrantyService";
 import { formatCnpj } from "../../utils/cnpj";
-import { calculateWarrantyStatus } from "../../utils/warrantyStatus";
+import { getWarrantyStatus } from "../../utils/warrantyStatus";
 import WarrantyAttachmentsList from "./WarrantyAttachmentsList";
 
 function statusDotClass(status: string): string {
@@ -56,7 +56,7 @@ interface WarrantyDetailViewProps {
 }
 
 export default function WarrantyDetailView({ warranty }: WarrantyDetailViewProps) {
-  const { status } = calculateWarrantyStatus(warranty.expirationDate);
+  const { status } = getWarrantyStatus(warranty);
   const hasExtendedWarranty =
     warranty.warrantyType?.toLowerCase().includes("estendida") ?? false;
   const inTrash = isWarrantyDeleted(warranty);

@@ -103,7 +103,7 @@ export default function ViewWarranty() {
     const handleConfirmTrash = async () => {
         if (!id) return;
         setIsDeleting(true);
-        const result = moveToTrash(id);
+        const result = await moveToTrash(id);
         setIsDeleting(false);
         setConfirmTrashOpen(false);
 
@@ -119,7 +119,7 @@ export default function ViewWarranty() {
     const handleRestore = async () => {
         if (!id) return;
         setIsDeleting(true);
-        const result = restoreFromTrash(id);
+        const result = await restoreFromTrash(id);
         setIsDeleting(false);
 
         if (result.success === false) {

@@ -21,8 +21,14 @@ async function request<T>(
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: "Erro desconhecido" }));
-    throw new Error(error.error ?? `Erro ${response.status}`);
+    const body = await response.json().catch(() => ({}));
+    const message =
+      (typeof body === "object" && body !== null
+        ? (body as Record<string, unknown>).error ??
+          (body as Record<string, unknown>).erro ??
+          (body as Record<string, unknown>).message
+        : undefined) ?? `Erro ${response.status}`;
+    throw new Error(String(message));
   }
 
   // 204 No Content não tem body
@@ -37,5 +43,7 @@ export const api = {
     request<T>(endpoint, { method: "POST", body: JSON.stringify(body) }),
   put: <T>(endpoint: string, body: unknown) =>
     request<T>(endpoint, { method: "PUT", body: JSON.stringify(body) }),
+  patch: <T>(endpoint: string, body: unknown) =>
+    request<T>(endpoint, { method: "PATCH", body: JSON.stringify(body) }),
   delete: <T>(endpoint: string) => request<T>(endpoint, { method: "DELETE" }),
 };

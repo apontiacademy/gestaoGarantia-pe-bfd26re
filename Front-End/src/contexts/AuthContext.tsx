@@ -4,6 +4,13 @@ import type { User } from "../types/user";
 
 export type { User };
 
+/** Disparado após login/logout para recarregar dados da API. */
+export const GARANTIAS_SESSION_EVENT = "garantias:session-updated";
+
+function notifySessionUpdated(): void {
+  window.dispatchEvent(new Event(GARANTIAS_SESSION_EVENT));
+}
+
 interface AuthContextData {
   user: User | null;
   token: string | null;
@@ -30,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("@garantias:user", JSON.stringify(user));
     setToken(token);
     setUser(user);
+    notifySessionUpdated();
   }, []);
 
   const logout = useCallback(() => {
@@ -37,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("@garantias:user");
     setToken(null);
     setUser(null);
+    notifySessionUpdated();
   }, []);
 
   // Atualiza campos do usuário no contexto e localStorage sem precisar relogar

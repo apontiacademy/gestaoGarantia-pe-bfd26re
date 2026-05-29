@@ -6,7 +6,8 @@ import WarrantyCard from "../components/ui/WarrantyCard";
 import EmptyState from "../components/ui/EmptyState";
 import { useNavigate } from "react-router-dom";
 import { useWarranty } from "../contexts/WarrantyContext";
-import { useMemo, useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useMemo, useState, useEffect } from "react";
 import {
   applyStatusFilter,
   countWarrantiesByStatus,
@@ -15,8 +16,16 @@ import {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { activeWarranties } = useWarranty();
+  const { isAuthenticated } = useAuth();
+  const { activeWarranties, loadWarrantiesFromApi, isLoadingWarranties } =
+    useWarranty();
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      void loadWarrantiesFromApi();
+    }
+  }, [isAuthenticated, loadWarrantiesFromApi]);
   const [statusFilter, setStatusFilter] =
     useState<StatusFilterOption>("all");
 
@@ -72,7 +81,11 @@ export default function Home() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-5 min-w-0">
-        {filteredWarranties.length === 0 ? (
+        {isLoadingWarranties && activeWarranties.length === 0 ? (
+          <p className="col-span-full text-center text-gray-dark/80 py-8">
+            Carregando suas garantias…
+          </p>
+        ) : filteredWarranties.length === 0 ? (
           activeWarranties.length === 0 ? (
             <EmptyState
               icon={Package}
@@ -97,6 +110,8 @@ export default function Home() {
               expirationDate,
               warrantyType,
               value,
+              status,
+              daysToExpire,
             }) => (
               <div key={id} className="min-w-0">
               <WarrantyCard
@@ -108,6 +123,8 @@ export default function Home() {
                 expirationDate={expirationDate}
                 warrantyType={warrantyType}
                 value={value}
+                status={status}
+                daysToExpire={daysToExpire}
                 onViewMore={() => {
                   navigate(`/garantia/${id}`);
                 }}
