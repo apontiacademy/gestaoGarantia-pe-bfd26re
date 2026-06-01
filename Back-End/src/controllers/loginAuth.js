@@ -2,15 +2,14 @@ const { Usuario } = require('../models');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { compararSenha } = require("../utils/hash");
-const Brevo = require('@getbrevo/brevo');
+const { TransactionalEmailsApi, SendSmtpEmail, ApiClient } = require('@getbrevo/brevo');
 
-// Configura o cliente do Brevo
-const brevoClient = new Brevo.TransactionalEmailsApi();
-brevoClient.authentications['api-key'].apiKey = process.env.BREVO_API_KEY;
+const apiInstance = new TransactionalEmailsApi();
+apiInstance.authentications['api-key'].apiKey = process.env.BREVO_API_KEY;
 
 // ── Função interna de envio de email ─────────────────────
 async function enviarEmail(destinatario, codigo) {
-  const email = new Brevo.SendSmtpEmail();
+  const email = new SendSmtpEmail();
 
   email.subject = 'Código de Verificação - Aponti';
   email.htmlContent = `
@@ -26,10 +25,10 @@ async function enviarEmail(destinatario, codigo) {
       </p>
     </div>
   `;
-  email.sender = { name: 'Recuperar Senha - Aponti', email: 'gabrifelipegf@gmail.com' };
+  email.sender = { name: 'Aponti', email: 'gabrifelipegf@gmail.com' };
   email.to = [{ email: destinatario }];
 
-  await brevoClient.sendTransacEmail(email);
+  await apiInstance.sendTransacEmail(email);
 }
 
 // ── Login ─────────────────────────────────────────────────
