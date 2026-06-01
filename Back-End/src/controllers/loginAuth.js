@@ -2,30 +2,34 @@ const { Usuario } = require('../models');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { compararSenha } = require("../utils/hash");
-const { Resend } = require('resend');
+const Brevo = require('@getbrevo/brevo');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Configura o cliente do Brevo
+const brevoClient = new Brevo.TransactionalEmailsApi();
+brevoClient.authentications['api-key'].apiKey = process.env.BREVO_API_KEY;
 
 // ── Função interna de envio de email ─────────────────────
 async function enviarEmail(destinatario, codigo) {
-  await resend.emails.send({
-    from: 'onboarding@resend.dev',
-    to: destinatario,
-    subject: 'Código de Verificação - Aponti',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2>Redefinição de senha</h2>
-        <p>Utilize o código abaixo para redefinir sua senha:</p>
-        <h1 style="font-size: 32px; letter-spacing: 8px; color: #6d28d9; text-align: center; margin: 20px 0;">
-          ${codigo}
-        </h1>
-        <p style="color: #666; font-size: 14px;">
-          Este código é válido por <strong>20 minutos</strong>.<br>
-          Se você não solicitou esta redefinição, ignore este email.
-        </p>
-      </div>
-    `,
-  });
+  const email = new Brevo.SendSmtpEmail();
+
+  email.subject = 'Código de Verificação - Aponti';
+  email.htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h2>Redefinição de senha</h2>
+      <p>Utilize o código abaixo para redefinir sua senha:</p>
+      <h1 style="font-size: 32px; letter-spacing: 8px; color: #6d28d9; text-align: center; margin: 20px 0;">
+        ${codigo}
+      </h1>
+      <p style="color: #666; font-size: 14px;">
+        Este código é válido por <strong>20 minutos</strong>.<br>
+        Se você não solicitou esta redefinição, ignore este email.
+      </p>
+    </div>
+  `;
+  email.sender = { name: 'Recuperar Senha - Aponti', email: 'gabrifelipegf@gmail.com' };
+  email.to = [{ email: destinatario }];
+
+  await brevoClient.sendTransacEmail(email);
 }
 
 // ── Login ─────────────────────────────────────────────────
@@ -74,7 +78,7 @@ async function Login(req, res) {
 // ── Alterar senha (usuário logado) ────────────────────────
 async function AlterarSenha(req, res) {
   const { senha, novaSenha } = req.body;
-  const id_usuario = req.user.id_usuario; // corrigido: era req.usuario
+  const id_usuario = req.user.id_usuario;
 
   if (!senha || !novaSenha) {
     return res.status(400).json({ error: "Todos os campos são obrigatórios" });
@@ -118,7 +122,6 @@ async function EsqueciSenha(req, res) {
       where: { email: email.toLowerCase() }
     });
 
-    // Sempre retorna 200 por segurança (não revela se email existe)
     if (!usuario) {
       return res.status(200).json({ message: "Código de recuperação enviado" });
     }
@@ -129,7 +132,7 @@ async function EsqueciSenha(req, res) {
       {
         id_usuario: usuario.id,
         email: usuario.email,
-        codigo: resetCode,          // código dentro do token
+        codigo: resetCode,
         tipo: "reset_password"
       },
       process.env.JWT_SECRET,
@@ -164,14 +167,13 @@ async function VerificarCodigoReset(req, res) {
       return res.status(401).json({ error: "Token inválido" });
     }
 
-    // Valida o código contra o que está dentro do token
     if (decoded.codigo !== codigo.trim()) {
       return res.status(401).json({ error: "Código incorreto" });
     }
 
     return res.status(200).json({
       message: "Código válido",
-      token // devolve o mesmo token pro front usar no reset
+      token
     });
 
   } catch (err) {
