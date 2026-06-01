@@ -2,14 +2,16 @@ const { Usuario } = require('../models');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { compararSenha } = require("../utils/hash");
-const { TransactionalEmailsApi, SendSmtpEmail, ApiClient } = require('@getbrevo/brevo');
+const SibApiV3Sdk = require('sib-api-v3-sdk');
 
-const apiInstance = new TransactionalEmailsApi();
-apiInstance.authentications['api-key'].apiKey = process.env.BREVO_API_KEY;
+const sibClient = SibApiV3Sdk.ApiClient.instance;
+sibClient.authentications['api-key'].apiKey = process.env.BREVO_API_KEY;
+
+const transactionalApi = new SibApiV3Sdk.TransactionalEmailsApi();
 
 // ── Função interna de envio de email ─────────────────────
 async function enviarEmail(destinatario, codigo) {
-  const email = new SendSmtpEmail();
+  const email = new SibApiV3Sdk.SendSmtpEmail();
 
   email.subject = 'Código de Verificação - Aponti';
   email.htmlContent = `
@@ -28,7 +30,7 @@ async function enviarEmail(destinatario, codigo) {
   email.sender = { name: 'Aponti', email: 'gabrifelipegf@gmail.com' };
   email.to = [{ email: destinatario }];
 
-  await apiInstance.sendTransacEmail(email);
+  await transactionalApi.sendTransacEmail(email);
 }
 
 // ── Login ─────────────────────────────────────────────────
