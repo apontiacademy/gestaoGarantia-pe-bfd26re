@@ -58,13 +58,13 @@ export default function LixeiraScreen() {
     return trashedWarranties;
   }, [trashedWarranties, selectedIds]);
 
-  const handleConfirmEmpty = () => {
+  const handleConfirmEmpty = async () => {
     if (targetsToDelete.length === 0) return;
 
     setIsProcessing(true);
     let deleted = 0;
     for (const w of targetsToDelete) {
-      if (permanentlyDelete(w.id)) deleted++;
+      if (await permanentlyDelete(w.id)) deleted++;
     }
     setIsProcessing(false);
     setConfirmEmptyOpen(false);

@@ -28,6 +28,7 @@ import {
   trashWarrantyViaApi,
 } from "../services/warrantyApiService";
 import type { CreateWarrantyFormData } from "../utils/warrantyApiMapper";
+import { deleteWarrantyAttachmentsFromCloudinary } from "../utils/warrantyCloudinaryCleanup";
 import { GARANTIAS_SESSION_EVENT } from "./AuthContext";
 
 interface WarrantyContextData {
@@ -45,7 +46,7 @@ interface WarrantyContextData {
   restoreFromTrash: (
     id: string
   ) => Promise<ReturnType<typeof restoreWarranty>>;
-  permanentlyDelete: (id: string) => boolean;
+  permanentlyDelete: (id: string) => Promise<boolean>;
   refreshWarranties: () => void;
   loadWarrantiesFromApi: () => Promise<void>;
   isLoadingWarranties: boolean;
@@ -83,7 +84,9 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
       );
       const activeFromApi = fromApi.map((w) => ({
         ...w,
-        attachments: w.attachments ?? attachmentById.get(w.id),
+        attachments: w.attachments?.length
+          ? w.attachments
+          : attachmentById.get(w.id),
       }));
       const activeIds = new Set(activeFromApi.map((w) => w.id));
       const trashedLocal = local
@@ -162,9 +165,16 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
     async (id: string) => {
       const item = warranties.find((w) => w.id === id);
       try {
+        if (item?.attachments?.length) {
+          await deleteWarrantyAttachmentsFromCloudinary(item.attachments);
+        }
+
         await trashWarrantyViaApi(id);
         const result = softDeleteWarranty(id);
         if (result.success) {
+          if (item?.attachments?.length) {
+            updateWarrantyInStorage(id, { attachments: [] });
+          }
           refreshWarranties();
           if (item) {
             pushNotification({
@@ -218,8 +228,13 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
   );
 
   const permanentlyDelete = useCallback(
-    (id: string) => {
+    async (id: string) => {
       const item = warranties.find((w) => w.id === id);
+
+      if (item?.attachments?.length) {
+        await deleteWarrantyAttachmentsFromCloudinary(item.attachments);
+      }
+
       const ok = permanentlyDeleteWarranty(id);
       if (ok) {
         refreshWarranties();

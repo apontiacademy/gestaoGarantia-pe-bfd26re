@@ -1,5 +1,7 @@
 import {
   buildWarrantyTitle,
+  getAttachmentUrl,
+  normalizeAttachment,
   type Warranty,
   type WarrantyAttachment,
 } from "../services/warrantyService";
@@ -49,6 +51,72 @@ interface WarrantyMeta {
   expirationDate?: string;
   extendedWarrantyNumber?: string;
   extendedExtraMonths?: number;
+  attachments?: StoredAttachmentMeta[];
+}
+
+interface StoredAttachmentMeta {
+  id: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  url: string;
+  publicId?: string;
+  resourceType?: "image" | "raw";
+  deleteToken?: string;
+}
+
+function serializeAttachmentsForMeta(
+  attachments?: WarrantyAttachment[]
+): StoredAttachmentMeta[] | undefined {
+  if (!attachments?.length) return undefined;
+
+  const stored: StoredAttachmentMeta[] = [];
+  for (const file of attachments) {
+    const url = getAttachmentUrl(normalizeAttachment(file));
+    if (!url || url.startsWith("data:")) continue;
+    stored.push({
+      id: file.id,
+      name: file.name,
+      mimeType: file.mimeType,
+      size: file.size,
+      url,
+      publicId: file.publicId,
+      resourceType: file.resourceType,
+      deleteToken: file.deleteToken,
+    });
+  }
+
+  return stored.length > 0 ? stored : undefined;
+}
+
+function attachmentsFromMeta(
+  meta: WarrantyMeta
+): WarrantyAttachment[] | undefined {
+  if (!meta.attachments?.length) return undefined;
+  return meta.attachments.map((file) =>
+    normalizeAttachment({
+      id: file.id,
+      name: file.name,
+      mimeType: file.mimeType,
+      size: file.size,
+      url: file.url,
+      publicId: file.publicId,
+      resourceType: file.resourceType,
+      deleteToken: file.deleteToken,
+    })
+  );
+}
+
+function resolveWarrantyAttachments(
+  meta: WarrantyMeta,
+  passed?: WarrantyAttachment[]
+): WarrantyAttachment[] | undefined {
+  const fromMeta = attachmentsFromMeta(meta);
+  if (fromMeta?.length) return fromMeta;
+  if (passed?.length) {
+    return passed.map((file) => normalizeAttachment(file));
+  }
+  return undefined;
 }
 
 function buildPurchaseValuesMeta(
@@ -87,6 +155,7 @@ function buildMetaObject(form: CreateWarrantyFormData): WarrantyMeta {
     storeCnpj: form.cnpj?.trim() ? formatCnpj(form.cnpj) : undefined,
     nfNumber: form.nfNumber?.trim() || undefined,
     quantity: form.quantity?.trim() || undefined,
+    attachments: serializeAttachmentsForMeta(form.attachments),
     ...buildPurchaseValuesMeta(form),
     ...(form.hasExtendedWarranty
       ? {
@@ -103,9 +172,12 @@ function buildMetaObject(form: CreateWarrantyFormData): WarrantyMeta {
 
 function metaToJson(meta: WarrantyMeta): string {
   const cleaned = Object.fromEntries(
-    Object.entries(meta).filter(
-      ([, v]) => v !== undefined && String(v).trim() !== ""
-    )
+    Object.entries(meta).filter(([, v]) => {
+      if (v === undefined || v === null) return false;
+      if (Array.isArray(v)) return v.length > 0;
+      if (typeof v === "string") return v.trim() !== "";
+      return true;
+    })
   );
   return JSON.stringify(cleaned);
 }
@@ -270,7 +342,7 @@ export function apiGarantiaToWarranty(
     warrantyType,
     ...valueFields,
     notes: notes || undefined,
-    attachments,
+    attachments: resolveWarrantyAttachments(meta, attachments),
     status: mapApiStatusToUi(garantia.status) ?? statusInfo.status,
     daysToExpire: statusInfo.daysToExpire,
     deletedAt: garantia.deletado_em

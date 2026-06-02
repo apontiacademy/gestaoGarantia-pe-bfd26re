@@ -3,7 +3,51 @@ export interface WarrantyAttachment {
   name: string;
   mimeType: string;
   size: number;
-  dataUrl: string;
+  /** URL pública no Cloudinary (preferencial) */
+  url?: string;
+  /** Legado: base64 no localStorage — não usar em novos cadastros */
+  dataUrl?: string;
+  /** Identificador no Cloudinary para exclusão */
+  publicId?: string;
+  resourceType?: "image" | "raw";
+  deleteToken?: string;
+}
+
+export function getAttachmentUrl(file: WarrantyAttachment): string {
+  return file.url ?? file.dataUrl ?? "";
+}
+
+export function normalizeAttachment(
+  file: WarrantyAttachment
+): WarrantyAttachment {
+  const href = getAttachmentUrl(file);
+  const isDataUrl = href.startsWith("data:");
+  return {
+    ...file,
+    url: !isDataUrl && href ? href : file.url,
+    dataUrl: isDataUrl ? href : undefined,
+  };
+}
+
+function slimAttachments(
+  attachments?: WarrantyAttachment[]
+): WarrantyAttachment[] | undefined {
+  if (!attachments?.length) return undefined;
+  return attachments.map((file) => {
+    const normalized = normalizeAttachment(file);
+    const href = getAttachmentUrl(normalized);
+    return {
+      id: normalized.id,
+      name: normalized.name,
+      mimeType: normalized.mimeType,
+      size: normalized.size,
+      url: href && !href.startsWith("data:") ? href : undefined,
+      dataUrl: href.startsWith("data:") ? href : undefined,
+      publicId: normalized.publicId,
+      resourceType: normalized.resourceType,
+      deleteToken: normalized.deleteToken,
+    };
+  });
 }
 
 import type { WarrantyUiStatus } from "../utils/warrantyStatus";
@@ -57,7 +101,11 @@ function isStoredWarrantyItem(value: unknown): value is Warranty {
 
 export function persistWarranties(list: Warranty[]): boolean {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    const slim = list.map((w) => ({
+      ...w,
+      attachments: slimAttachments(w.attachments),
+    }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
     return true;
   } catch {
     return false;
