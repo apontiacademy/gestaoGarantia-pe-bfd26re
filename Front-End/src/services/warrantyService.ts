@@ -18,7 +18,12 @@ export interface Warranty {
   purchaseDate?: string;
   expirationDate?: string;
   warrantyType?: string;
+  /** Valor total formatado (legado / compatibilidade com cards) */
   value?: string;
+  unitValue?: string;
+  totalValue?: string;
+  /** Prazo da garantia em dias (campo `prazo_dias` da API) */
+  warrantyPeriodDays?: number;
   notes?: string;
   attachments?: WarrantyAttachment[];
   /** Status da UI — vindo do back (`Ativa` → `Ativo`, etc.) ou calculado localmente */
@@ -127,6 +132,8 @@ const WARRANTY_SCALAR_FIELDS = [
   'expirationDate',
   'warrantyType',
   'value',
+  'unitValue',
+  'totalValue',
   'notes',
 ] as const satisfies readonly (keyof WarrantyInput)[];
 
@@ -149,6 +156,14 @@ function applyWarrantyUpdate(current: Warranty, updates: WarrantyUpdate): Warran
       } else {
         next[field] = value;
       }
+    }
+  }
+
+  if ("warrantyPeriodDays" in updates) {
+    if (updates.warrantyPeriodDays === undefined) {
+      delete next.warrantyPeriodDays;
+    } else {
+      next.warrantyPeriodDays = updates.warrantyPeriodDays;
     }
   }
 

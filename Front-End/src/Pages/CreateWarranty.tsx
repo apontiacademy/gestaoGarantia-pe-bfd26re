@@ -84,19 +84,23 @@ const CreateWarranty: React.FC = () => {
     setValue(formatCurrencyFromDigits(digits));
   }
 
-  function calculateUnitValue() {
-  const total = Number(value.replace(/\D/g, '')) / 100;
-  const qty = Number(quantity);
-
-  if (!total || !qty || qty <= 0) {
-    return 'R$ 0,00';
+  function parseUnitPrice(): number {
+    return Number(value.replace(/\D/g, '')) / 100;
   }
 
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(total / qty);
-}
+  function calculateTotalValue(): string {
+    const unitPrice = parseUnitPrice();
+    const qty = Number(quantity);
+
+    if (!unitPrice || !hasMultipleUnits || !qty || qty <= 0) {
+      return 'R$ 0,00';
+    }
+
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(unitPrice * qty);
+  }
 
   function removeFile() {
     setFile(null);
@@ -400,7 +404,7 @@ const CreateWarranty: React.FC = () => {
                   />
 
                   <Input
-                    label="Valor Total da Compra"
+                    label="Valor unitário do produto"
                     type="text"
                     inputMode="numeric"
                     value={value}
@@ -415,11 +419,11 @@ const CreateWarranty: React.FC = () => {
                   <div className="bg-purple-50 border border-primary-start rounded-xl p-4">
 
                     <p className="text-sm text-gray-600">
-                      Valor por unidade
+                      Valor total
                     </p>
 
                     <p className="text-xl font-bold text-primary-start">
-                      {calculateUnitValue()}
+                      {calculateTotalValue()}
                     </p>
                   </div>
                 )}
@@ -662,10 +666,19 @@ const CreateWarranty: React.FC = () => {
 
                 <p className="text-sm">
                   <span className="font-semibold">
-                    Valor Total:
+                    Valor unitário:
                   </span>{' '}
                   {value || 'R$ 0,00'}
                 </p>
+
+                {hasMultipleUnits && Number(quantity) > 0 ? (
+                  <p className="text-sm">
+                    <span className="font-semibold">
+                      Valor total:
+                    </span>{' '}
+                    {calculateTotalValue()}
+                  </p>
+                ) : null}
 
                 {notes && (
                   <div className="mt-2">

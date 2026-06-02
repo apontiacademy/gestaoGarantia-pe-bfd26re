@@ -51,6 +51,15 @@ function DetailRow({
   );
 }
 
+function formatWarrantyPeriodDays(days?: number): string | undefined {
+  if (days == null || days <= 0) return undefined;
+  if (days % 30 === 0 && days >= 30) {
+    const months = days / 30;
+    return months === 1 ? "1 mês" : `${months} meses`;
+  }
+  return days === 1 ? "1 dia" : `${days} dias`;
+}
+
 interface WarrantyDetailViewProps {
   warranty: Warranty;
 }
@@ -60,6 +69,14 @@ export default function WarrantyDetailView({ warranty }: WarrantyDetailViewProps
   const hasExtendedWarranty =
     warranty.warrantyType?.toLowerCase().includes("estendida") ?? false;
   const inTrash = isWarrantyDeleted(warranty);
+
+  const quantity = Math.max(1, Number(warranty.quantity) || 1);
+  const showTotalValue = quantity > 1;
+  const unitValue = warranty.unitValue;
+  const totalValue = warranty.totalValue ?? warranty.value;
+  const warrantyPeriodLabel = formatWarrantyPeriodDays(
+    warranty.warrantyPeriodDays
+  );
 
   return (
     <>
@@ -99,7 +116,14 @@ export default function WarrantyDetailView({ warranty }: WarrantyDetailViewProps
           <h2 className="font-semibold text-lg">Detalhes</h2>
           <dl className="space-y-2 text-sm">
             <DetailRow label="Data da compra" value={warranty.purchaseDate} />
-            <DetailRow label="Vencimento" value={warranty.expirationDate} />
+            <DetailRow
+              label="Prazo de vencimento"
+              value={warranty.expirationDate}
+            />
+            <DetailRow
+              label="Prazo da garantia"
+              value={warrantyPeriodLabel}
+            />
             <DetailRow label="Loja" value={warranty.story} />
             <DetailRow
               label="CNPJ da loja"
@@ -115,10 +139,26 @@ export default function WarrantyDetailView({ warranty }: WarrantyDetailViewProps
             <DetailRow label="Quantidade" value={warranty.quantity} />
           </dl>
 
-          {warranty.value ? (
-            <div className="mt-4">
-              <p className="text-sm text-gray-500">Valor</p>
-              <p className="text-2xl font-bold text-green-600">{warranty.value}</p>
+          {(unitValue || totalValue) ? (
+            <div className="mt-4 space-y-3">
+              {unitValue ? (
+                <div>
+                  <p className="text-sm text-gray-500">Valor unitário</p>
+                  <p className="text-2xl font-bold text-green-600">{unitValue}</p>
+                </div>
+              ) : null}
+              {showTotalValue && totalValue ? (
+                <div>
+                  <p className="text-sm text-gray-500">Valor total</p>
+                  <p className="text-2xl font-bold text-green-600">{totalValue}</p>
+                </div>
+              ) : null}
+              {!unitValue && totalValue && !showTotalValue ? (
+                <div>
+                  <p className="text-sm text-gray-500">Valor</p>
+                  <p className="text-2xl font-bold text-green-600">{totalValue}</p>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </section>
