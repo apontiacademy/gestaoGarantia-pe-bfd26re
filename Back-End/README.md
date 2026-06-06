@@ -60,6 +60,26 @@ Para rodar sem `nodemon` (sem reinício automático):
 npm start
 ```
 
+## Rodando com Docker
+
+Pré-requisitos: Docker instalado.
+
+1. Cria o arquivo `.env` na raiz do projeto (usa o `.env.exemplo` como base)
+2. Sobe os containers:
+```bash
+   docker compose up --build
+```
+3. Roda as migrations (primeira vez):
+```bash
+   docker compose exec backend npx sequelize-cli db:migrate
+```
+4. Acessa http://localhost:5173
+
+Para derrubar:
+```bash
+docker compose down
+```
+
 ## Observações
 
 - O servidor principal está em `src/app.js`.
