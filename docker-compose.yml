@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: garantias_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./Back-End
+    container_name: garantias_backend
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: db     
+      DB_PORT: 5432
+      JWT_SECRET: ${JWT_SECRET}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      FRONTEND_URL: ${FRONTEND_URL}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./Back-End/src:/app/src 
+
+  frontend:
+    build:
+      context: ./Front-End
+    container_name: garantias_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: http://localhost:3000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./Front-End/src:/app/src 
+
+volumes:
+  postgres_data:
