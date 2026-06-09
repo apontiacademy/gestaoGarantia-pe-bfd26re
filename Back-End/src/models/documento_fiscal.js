@@ -5,7 +5,6 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // O documento pertence a um produto (1:1)
       this.belongsTo(models.Produto, { foreignKey: 'produto_id', as: 'produto' });
-      this.belongsToMany(models.Grupo, { through: 'Documento_Fiscal_Grupo', foreignKey: 'documento_fiscal_id',as: 'grupos' });
       this.belongsToMany(models.Arquivo_Documento, { through: 'Documento_Fiscal_Arquivo_Documento', foreignKey: 'documento_fiscal_id',as: 'arquivos' });
     }
   }

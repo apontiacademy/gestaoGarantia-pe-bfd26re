@@ -11,13 +11,11 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       this.belongsTo(models.Usuario, { foreignKey: 'id_usuario', as: 'usuario' }); 
-      // Associação com o modelo Usuario, usando idUsuario como chave estrangeira
+      // Associação com o modelo Usuario, usando id_usuario como chave estrangeira
       this.hasMany(models.Garantia, {foreignKey: 'produto_id', as:'garantias'});
       //  Associação com modelo Garantia
       this.hasOne(models.Documento_Fiscal, { foreignKey: 'produto_id', as: 'documento_fiscal' });
       //Associação com o modelo Documento Fiscal
-      this.belongsToMany(models.Grupo, { through: 'Produto_Grupo', foreignKey: 'produto_id',as: 'grupos' });
-      //Associação ao modelo de Grupo
     }
   }
   Produto.init({
