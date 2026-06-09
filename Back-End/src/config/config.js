@@ -4,7 +4,7 @@ require('dotenv').config({
   path: require('path').resolve(__dirname, '../../.env')
 });
 
-console.log(process.env.DB_PASS);
+console.log("DB_PASS =", process.env.DB_PASS ? "OK" : "FALTANDO");
 
 module.exports = {
   "development": {
