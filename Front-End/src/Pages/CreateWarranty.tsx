@@ -213,6 +213,15 @@ const CreateWarranty: React.FC = () => {
     }
   }
 
+  function handleFormSubmit(e: React.FormEvent): void {
+    e.preventDefault();
+    if (step < 4) {
+      setStep(step + 1);
+      return;
+    }
+    void handleSaveWarranty();
+  }
+
   return (
     <LayoutHome
       namePage="Cadastro de Garantia"
@@ -280,7 +289,7 @@ const CreateWarranty: React.FC = () => {
             </div>
 
             {/* Form */}
-            <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
+            <form className="flex flex-col gap-4" onSubmit={handleFormSubmit}>
 
               {/* ETAPA 1 */}
               {step === 1 && (
@@ -311,6 +320,8 @@ const CreateWarranty: React.FC = () => {
 
                   <div className="flex items-center gap-2">
                   <input
+                    id="has-multiple-units"
+                    name="hasMultipleUnits"
                     type="checkbox"
                     checked={hasMultipleUnits}
                     onChange={(e) =>
@@ -319,7 +330,7 @@ const CreateWarranty: React.FC = () => {
                     className="accent-primary-start w-4 h-4"
                     />
 
-                    <label className="text-sm font-medium text-gray-700">Produto possui mais de uma unidade?</label>
+                    <label htmlFor="has-multiple-units" className="text-sm font-medium text-gray-700">Produto possui mais de uma unidade?</label>
                   </div>
                   {hasMultipleUnits && (
                   <Input
@@ -431,11 +442,13 @@ const CreateWarranty: React.FC = () => {
                   {/* Garantia Estendida */}
                   <div className="flex flex-col gap-1">
 
-                    <label className="text-sm font-semibold text-gray-700 ml-1">
+                    <label htmlFor="extended-warranty" className="text-sm font-semibold text-gray-700 ml-1">
                       Garantia Estendida?
                     </label>
 
                     <select
+                      id="extended-warranty"
+                      name="extendedWarranty"
                       className="
                         w-full px-4 py-2.5
                         bg-white border-none rounded-lg shadow-sm
@@ -493,11 +506,13 @@ const CreateWarranty: React.FC = () => {
                   {/* Observações */}
                   <div className="flex flex-col gap-1">
 
-                    <label className="text-sm font-semibold text-gray-700 ml-1">
+                    <label htmlFor="warranty-notes" className="text-sm font-semibold text-gray-700 ml-1">
                       Observações
                     </label>
 
                     <textarea
+                      id="warranty-notes"
+                      name="notes"
                       className="
                         w-full px-4 py-2
                         bg-white border-none rounded-lg
@@ -514,7 +529,7 @@ const CreateWarranty: React.FC = () => {
                   {/* Upload */}
                   <div className="flex flex-col gap-1">
 
-                    <label className="text-sm font-semibold text-gray-700 ml-1">
+                    <label htmlFor="nf-file" className="text-sm font-semibold text-gray-700 ml-1">
                       Nota Fiscal (PDF ou Imagem)
                     </label>
 
@@ -532,6 +547,8 @@ const CreateWarranty: React.FC = () => {
                       `}
                     >
                       <input
+                        id="nf-file"
+                        name="nfFile"
                         type="file"
                         ref={fileInputRef}
                         className="hidden"
@@ -721,21 +738,22 @@ const CreateWarranty: React.FC = () => {
                   <ActionButton
                     action="create"
                     variant="primary"
+                    type="submit"
                     label="Continuar"
-                    onClick={() => setStep(step + 1)}
                   />
                 ) : (
                   <ActionButton
                     action="create"
                     variant="primary"
+                    type="submit"
                     label={isSaving ? 'Salvando...' : 'Salvar Garantia'}
-                    onClick={() => void handleSaveWarranty()}
                   />
                 )}
 
                 <ActionButton
                   action="edit"
                   variant="ghost"
+                  type="button"
                   label={
                     step === 1
                       ? 'Cancelar'

@@ -1,5 +1,5 @@
-const DocumentoFiscal = require('../models/documento_fiscal');
-const calcularValorTotal = require('../utils/documentoFiscalUtil');
+const {Documento_Fiscal} = require('../models');
+const {calcularValorTotal} = require('../utils/documentoFiscalUtil');
 
 class DocumentoFiscalController {
 
@@ -12,7 +12,7 @@ class DocumentoFiscalController {
                 cnpj_emissor,
                 valor, 
                 quantidade, 
-                valorInformado,
+                valorInformado, //booleano true ou false
                 data_compra,
                 numero_nf,
                 serie_nota,
@@ -22,7 +22,7 @@ class DocumentoFiscalController {
 
             const resultado = calcularValorTotal(valor, quantidade, valorInformado);
 
-            const documentoFiscal = await DocumentoFiscal.create({
+            const documentoFiscal = await Documento_Fiscal.create({
                 produto_id,
                 cnpj_emissor,
                 valor_unitario: resultado.valor_unitario,

@@ -131,6 +131,11 @@ export default function ViewWarranty() {
         navigate("/home");
     };
 
+    const handleSubmitEdit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        await handleSave();
+    };
+
     if (!id || !warranty) {
         return (
             <LayoutHome
@@ -164,7 +169,7 @@ export default function ViewWarranty() {
         >
             <div className="max-w-7xl mx-auto p-4 space-y-6">
                 {isEditing && draftValues ? (
-                    <>
+                    <form onSubmit={handleSubmitEdit} className="space-y-6">
                         <h2 className="text-lg font-semibold">Editar garantia</h2>
                         <WarrantyFormFields
                             values={draftValues}
@@ -178,22 +183,41 @@ export default function ViewWarranty() {
                                 <WarrantyAttachmentsList attachments={warranty.attachments!} />
                             </div>
                         ) : null}
-                    </>
+                        <footer className="flex flex-wrap justify-end gap-3 pt-4 border-t">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={handleCancelEdit}
+                                disabled={isSaving || isDeleting}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                disabled={isSaving || isDeleting}
+                                className={isSaving ? "opacity-70" : ""}
+                            >
+                                {isSaving ? "Salvando..." : "Salvar alterações"}
+                            </Button>
+                        </footer>
+                    </form>
                 ) : (
-                    <WarrantyDetailView warranty={warranty} />
+                    <>
+                        <WarrantyDetailView warranty={warranty} />
+                        <WarrantyActions
+                            isEditing={isEditing}
+                            isDeleted={isDeleted}
+                            isSaving={isSaving}
+                            isDeleting={isDeleting}
+                            onEdit={handleStartEdit}
+                            onCancel={handleCancelEdit}
+                            onSave={handleSave}
+                            onDelete={() => setConfirmTrashOpen(true)}
+                            onRestore={handleRestore}
+                        />
+                    </>
                 )}
-
-                <WarrantyActions
-                    isEditing={isEditing}
-                    isDeleted={isDeleted}
-                    isSaving={isSaving}
-                    isDeleting={isDeleting}
-                    onEdit={handleStartEdit}
-                    onCancel={handleCancelEdit}
-                    onSave={handleSave}
-                    onDelete={() => setConfirmTrashOpen(true)}
-                    onRestore={handleRestore}
-                />
             </div>
 
             <ConfirmDialog

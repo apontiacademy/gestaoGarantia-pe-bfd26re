@@ -19,6 +19,7 @@ interface WarrantyCardProps {
 
   selected?: boolean; //select para quadno estiver na lixeira
   onSelect?: (selected: boolean) => void;
+  warrantyId?: string;
 }
 
 const WarrantyCard: React.FC<WarrantyCardProps> = ({
@@ -36,6 +37,7 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
   onRestore,
   selected = false,
   onSelect,
+  warrantyId,
 }) => {
   const warrantyInfo = getWarrantyStatus({
     expirationDate,
@@ -88,9 +90,12 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
             <div className="flex flex-col items-end gap-1 shrink-0">
               {variant === "trash" && (
                 <input
+                  id={warrantyId ? `warranty-select-${warrantyId}` : undefined}
+                  name={warrantyId ? `warranty-select-${warrantyId}` : undefined}
                   type="checkbox"
                   checked={selected}
                   onChange={(e) => onSelect?.(e.target.checked)}
+                  aria-label={`Selecionar garantia ${title}`}
                   className="w-5 h-5 rounded border-gray-dark/60 accent-gray-dark cursor-pointer"
                 />
               )}

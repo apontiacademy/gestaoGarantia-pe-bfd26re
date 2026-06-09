@@ -139,6 +139,7 @@ export default function LixeiraScreen() {
             trashedWarranties.map((item) => (
               <div key={item.id} className="min-w-0">
               <WarrantyCard
+                warrantyId={item.id}
                 title={item.title}
                 story={item.story}
                 nfNumber={item.nfNumber}

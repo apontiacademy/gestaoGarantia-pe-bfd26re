@@ -52,7 +52,8 @@ export default function Settings() {
   };
 
   // ── Salvar perfil ────────────────────────────────────────
-  const handleSaveProfile = async () => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!nomeCompleto.trim()) {
       setProfileError('O nome não pode estar vazio.');
       return;
@@ -93,7 +94,8 @@ export default function Settings() {
   };
 
   // ── Trocar senha ─────────────────────────────────────────
-  const handleChangePassword = async () => {
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!passwordForm.senhaAtual || !passwordForm.novaSenha || !passwordForm.confirmar) {
       setPasswordError('Preencha todos os campos.');
       return;
@@ -142,6 +144,7 @@ export default function Settings() {
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <button
+            type="button"
             onClick={() => navigate('/home')}
             className="p-2 rounded-lg hover:bg-gray transition"
           >
@@ -153,6 +156,7 @@ export default function Settings() {
         {/* Abas */}
         <div className="flex gap-2 mb-6">
           <button
+            type="button"
             onClick={() => setSection('profile')}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
               section === 'profile'
@@ -163,6 +167,7 @@ export default function Settings() {
             Meu Perfil
           </button>
           <button
+            type="button"
             onClick={() => setSection('password')}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
               section === 'password'
@@ -176,7 +181,10 @@ export default function Settings() {
 
         {/* ── Seção: Perfil ── */}
         {section === 'profile' && (
-          <div className="bg-white rounded-2xl p-6 shadow-sm flex flex-col gap-5">
+          <form
+            onSubmit={handleSaveProfile}
+            className="bg-white rounded-2xl p-6 shadow-sm flex flex-col gap-5"
+          >
 
             {/* Avatar */}
             <div className="flex flex-col items-center gap-3">
@@ -193,6 +201,7 @@ export default function Settings() {
                   </div>
                 )}
                 <button
+                  type="button"
                   onClick={() => fileInputRef.current?.click()}
                   className="absolute bottom-0 right-0 bg-yellow-button hover:bg-yellow-hover text-black rounded-full p-2 shadow transition"
                 >
@@ -201,11 +210,14 @@ export default function Settings() {
               </div>
               <p className="text-xs text-gray-medium">JPG ou PNG • máx. 5MB</p>
               <input
+                id="profile-photo"
+                name="profilePhoto"
                 ref={fileInputRef}
                 type="file"
                 accept="image/jpeg,image/png"
                 onChange={handleFotoChange}
                 className="hidden"
+                aria-label="Foto de perfil"
               />
             </div>
 
@@ -213,6 +225,7 @@ export default function Settings() {
             <Input
               label="Nome completo"
               type="text"
+              name="nomeCompleto"
               value={nomeCompleto}
               onChange={(e) => {
                 setNomeCompleto(e.target.value);
@@ -223,9 +236,9 @@ export default function Settings() {
 
             {/* Email — só leitura */}
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-700 ml-1">
+              <span className="text-sm font-semibold text-gray-700 ml-1">
                 Email
-              </label>
+              </span>
               <p className="w-full px-4 py-2 bg-gray border border-gray rounded-lg text-gray-medium text-sm">
                 {user?.email}
               </p>
@@ -242,8 +255,8 @@ export default function Settings() {
             )}
 
             <Button
+              type="submit"
               variant="primary"
-              onClick={handleSaveProfile}
               disabled={savingProfile}
             >
               {savingProfile ? (
@@ -254,12 +267,15 @@ export default function Settings() {
                 </span>
               )}
             </Button>
-          </div>
+          </form>
         )}
 
         {/* ── Seção: Senha ── */}
         {section === 'password' && (
-          <div className="bg-white rounded-2xl p-6 shadow-sm flex flex-col gap-4">
+          <form
+            onSubmit={handleChangePassword}
+            className="bg-white rounded-2xl p-6 shadow-sm flex flex-col gap-4"
+          >
             <div className="flex items-center gap-2 mb-1">
               <KeyRound size={18} className="text-primary" />
               <p className="text-sm text-gray-dark">
@@ -271,6 +287,7 @@ export default function Settings() {
               <Input
                 label="Senha atual"
                 type={showPasswords ? 'text' : 'password'}
+                name="senhaAtual"
                 placeholder="Digite sua senha atual"
                 value={passwordForm.senhaAtual}
                 onChange={(e) => {
@@ -278,6 +295,7 @@ export default function Settings() {
                   setPasswordError('');
                   setPasswordSuccess('');
                 }}
+                autoComplete="current-password"
               />
             </div>
 
@@ -285,12 +303,14 @@ export default function Settings() {
               <Input
                 label="Nova senha"
                 type={showPasswords ? 'text' : 'password'}
+                name="novaSenha"
                 placeholder="Mínimo 6 caracteres"
                 value={passwordForm.novaSenha}
                 onChange={(e) => {
                   setPasswordForm({ ...passwordForm, novaSenha: e.target.value });
                   setPasswordError('');
                 }}
+                autoComplete="new-password"
               />
             </div>
 
@@ -298,12 +318,14 @@ export default function Settings() {
               <Input
                 label="Confirmar nova senha"
                 type={showPasswords ? 'text' : 'password'}
+                name="confirmar"
                 placeholder="Repita a nova senha"
                 value={passwordForm.confirmar}
                 onChange={(e) => {
                   setPasswordForm({ ...passwordForm, confirmar: e.target.value });
                   setPasswordError('');
                 }}
+                autoComplete="new-password"
               />
             </div>
 
@@ -325,13 +347,13 @@ export default function Settings() {
             )}
 
             <Button
+              type="submit"
               variant="primary"
-              onClick={handleChangePassword}
               disabled={savingPassword}
             >
               {savingPassword ? 'Alterando...' : 'Alterar senha'}
             </Button>
-          </div>
+          </form>
         )}
       </div>
     </LayoutHome>
