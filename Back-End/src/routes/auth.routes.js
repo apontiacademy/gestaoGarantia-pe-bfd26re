@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const { Usuario } = require('../models');
 
 // Rotas de autenticação e gerenciamento de conta
 const controllerRegister = require('../controllers/RegisterUser');
@@ -32,7 +33,7 @@ function autenticarToken(req, res, next) {
 // Perfil do usuário autenticado
 router.get('/auth/profile', autenticarToken, async (req, res) => {
   try {
-    const userId = req.user.idUsuario || req.user.id;
+    const userId = req.user.id_usuario || req.user.id;
     const user = await Usuario.findByPk(userId);   // ← Você precisa importar Usuario
 
     if (!user) {
