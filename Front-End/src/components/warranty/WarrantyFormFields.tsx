@@ -89,10 +89,12 @@ export default function WarrantyFormFields({
       </div>
 
       <div className="flex flex-col gap-1 w-full">
-        <label className="text-sm font-semibold text-gray-700 ml-1">
+        <label htmlFor="warranty-type" className="text-sm font-semibold text-gray-700 ml-1">
           Tipo de garantia
         </label>
         <select
+          id="warranty-type"
+          name="warrantyType"
           value={values.warrantyType}
           onChange={(e) => onChange("warrantyType", e.target.value)}
           disabled={disabled}
@@ -116,10 +118,12 @@ export default function WarrantyFormFields({
       />
 
       <div className="flex flex-col gap-1 w-full">
-        <label className="text-sm font-semibold text-gray-700 ml-1">
+        <label htmlFor="warranty-notes" className="text-sm font-semibold text-gray-700 ml-1">
           Observações
         </label>
         <textarea
+          id="warranty-notes"
+          name="notes"
           value={values.notes}
           onChange={(e) => onChange("notes", e.target.value)}
           disabled={disabled}

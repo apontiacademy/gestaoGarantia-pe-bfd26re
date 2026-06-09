@@ -21,7 +21,8 @@ export default function ForgotPassword() {
 
   const inputsRef = useRef<HTMLInputElement[]>([]);
 
-  const handleSendEmail = async () => {
+  const handleSendEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!email) {
       setError('Informe seu email.');
       return;
@@ -66,7 +67,8 @@ export default function ForgotPassword() {
     }
   };
 
-  const handleVerifyCode = async () => {
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
     const fullCode = code.join('').trim();
 
     if (fullCode.length !== 6) {
@@ -113,29 +115,34 @@ export default function ForgotPassword() {
               Insira seu email para receber o código de verificação.
             </p>
 
+            <form onSubmit={handleSendEmail} className="flex flex-col gap-4">
             <Input
               label="Email"
               type="email"
+              name="email"
               placeholder="Seu email"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
                 setError('');
               }}
+              autoComplete="email"
               className="bg-white border-none"
             />
 
             {error && <p className="text-xs text-red text-center">{error}</p>}
 
-            <Button 
-              variant="primary" 
-              onClick={handleSendEmail} 
+            <Button
+              type="submit"
+              variant="primary"
               disabled={loading}
             >
               {loading ? 'Enviando...' : 'Enviar Código'}
             </Button>
+            </form>
 
             <button
+              type="button"
               onClick={() => navigate('/login')}
               className="flex items-center gap-2 text-sm font-semibold text-gray-medium hover:text-primary-start transition-colors mx-auto"
             >
@@ -151,11 +158,17 @@ export default function ForgotPassword() {
               <strong>{email}</strong>
             </p>
 
+            <form onSubmit={handleVerifyCode} className="flex flex-col gap-4">
             <div className="flex justify-center gap-3 my-6">
               {code.map((digit, index) => (
                 <input
                   key={index}
+                  id={`forgot-code-${index}`}
+                  name={`forgot-code-${index}`}
                   type="text"
+                  inputMode="numeric"
+                  autoComplete={index === 0 ? "one-time-code" : "off"}
+                  aria-label={`Dígito ${index + 1} do código de verificação`}
                   maxLength={1}
                   value={digit}
                   ref={(el) => { if (el) inputsRef.current[index] = el; }}
@@ -168,14 +181,15 @@ export default function ForgotPassword() {
 
             {error && <p className="text-xs text-red text-center">{error}</p>}
 
-            <Button 
-              variant="primary" 
-              onClick={handleVerifyCode} 
+            <Button
+              type="submit"
+              variant="primary"
               disabled={loading}
               className="w-full"
             >
               {loading ? 'Verificando...' : 'Verificar Código'}
             </Button>
+            </form>
 
             <button
               type="button"
@@ -185,6 +199,7 @@ export default function ForgotPassword() {
             </button>
 
             <button
+              type="button"
               onClick={() => setStep('email')}
               className="flex items-center gap-2 text-sm font-semibold text-gray-medium hover:text-primary-start transition-colors mx-auto"
             >

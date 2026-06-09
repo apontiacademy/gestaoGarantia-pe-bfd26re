@@ -45,19 +45,29 @@ export default function Home() {
   return (
     <LayoutHome namePage="">
       <div className="flex flex-row items-center gap-2 sm:gap-4 mb-5 sm:mb-6 min-w-0">
-        <div className="relative flex-1 min-w-0">
+        <form
+          role="search"
+          onSubmit={(e) => e.preventDefault()}
+          className="relative flex-1 min-w-0"
+        >
+          <label htmlFor="search-warranties" className="sr-only">
+            Pesquisar garantias
+          </label>
           <Search
             size={16}
             className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray/70"
+            aria-hidden
           />
           <input
-            type="text"
+            id="search-warranties"
+            name="search"
+            type="search"
             placeholder="Pesquisar..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full min-w-0 rounded-lg h-10 sm:h-12 pl-9 pr-3 sm:pr-4 text-sm sm:text-base bg-white focus:outline-none focus:ring-1 focus:ring-gray font-medium shadow border border-gray/50"
           />
-        </div>
+        </form>
 
         <Button
           variant="primary"

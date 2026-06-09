@@ -40,7 +40,8 @@ export default function ResetPassword() {
     setError('');
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!form.novaSenha || !form.confirmar) {
       setError('Preencha todos os campos.');
       return;
@@ -82,6 +83,7 @@ export default function ResetPassword() {
           Escolha uma senha segura para sua conta.
         </p>
 
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="relative">
           <Input
             label="Nova senha"
@@ -90,6 +92,7 @@ export default function ResetPassword() {
             placeholder="Mínimo 6 caracteres"
             value={form.novaSenha}
             onChange={handleChange}
+            autoComplete="new-password"
             className="bg-white border-none"
           />
           <button
@@ -108,6 +111,7 @@ export default function ResetPassword() {
           placeholder="Repita a senha"
           value={form.confirmar}
           onChange={handleChange}
+          autoComplete="new-password"
           className="bg-white border-none"
         />
 
@@ -115,15 +119,17 @@ export default function ResetPassword() {
           <p className="text-xs text-red text-center">{error}</p>
         )}
 
-        <Button 
-          variant="primary" 
-          onClick={handleSubmit} 
+        <Button
+          type="submit"
+          variant="primary"
           disabled={loading || !token}
         >
           {loading ? 'Salvando...' : 'Redefinir Senha'}
         </Button>
+        </form>
 
         <button
+          type="button"
           onClick={() => navigate('/forgot-password')}
           className="text-sm font-semibold text-gray-medium hover:text-primary-start transition-colors"
         >
