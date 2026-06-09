@@ -2,7 +2,7 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class Garantia_Estendida extends Model {
+  class GarantiaEstendida extends Model {
     static associate(models) {
       // Relacionamento 1:1 - Esta tabela "pertence a" uma Garantia
       this.belongsTo(models.Garantia, { 
@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
 
-  Garantia_Estendida.init({
+  GarantiaEstendida.init({
     garantia_id: DataTypes.INTEGER,
     numero_apolice: {
       type: DataTypes.STRING,
@@ -28,9 +28,9 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     sequelize,
-    modelName: 'Garantia_Estendida',
+    modelName: 'GarantiaEstendida',
     tableName: 'Garantias_Estendidas',
   });
 
-  return Garantia_Estendida;
+  return GarantiaEstendida;
 };

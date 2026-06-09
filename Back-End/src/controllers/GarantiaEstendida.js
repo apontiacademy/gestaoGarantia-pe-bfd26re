@@ -1,5 +1,5 @@
 // Importação dos modelos
-const { garantia_estendida, Garantia } = require('../models');
+const { GarantiaEstendida, Garantia } = require('../models');
 const { calcularStatusApolice } = require('../utils/garantiaEstendidaUtils'); 
 
 async function registrarGarantiaEstendida(req, res) {
@@ -21,7 +21,7 @@ async function registrarGarantiaEstendida(req, res) {
       return res.status(404).json({ erro: 'Garantia principal não encontrada' });
     }
 
-    const garantiaEstendida = await garantia_estendida.create({
+    const garantiaEstendida = await GarantiaEstendida.create({
       garantia_id,
       numero_apolice,
       nome_seguradora,
@@ -37,7 +37,7 @@ async function registrarGarantiaEstendida(req, res) {
 
 async function listarGarantiasEstendidas(req, res) {
   try {
-    const garantias = await garantia_estendida.findAll({
+    const garantias = await GarantiaEstendida.findAll({
       include: [
         {
           model: Garantia,
@@ -56,7 +56,7 @@ async function listarGarantiaEstendidaPorId(req, res) {
   try {
     const { id } = req.params;
 
-    const garantia = await garantia_estendida.findByPk(id, {
+    const garantia = await GarantiaEstendida.findByPk(id, {
       include: [{ model: Garantia, as: 'garantia' }]
     });
 
@@ -87,12 +87,12 @@ async function atualizarGarantiaEstendida(req, res) {
       return res.status(400).json({ erro: 'O valor não pode ser negativo' });
     }
 
-    const registro = await garantia_estendida.findByPk(id);
+    const registro = await GarantiaEstendida.findByPk(id);
     if (!registro) {
       return res.status(404).json({ mensagem: 'Registro não encontrado' });
     }
 
-    await garantia_estendida.update({
+    await GarantiaEstendida.update({
       numero_apolice,
       nome_seguradora,
       valor
@@ -100,7 +100,7 @@ async function atualizarGarantiaEstendida(req, res) {
       where: { id_garantia_estendida: id }
     });
 
-    const atualizada = await garantia_estendida.findByPk(id);
+    const atualizada = await GarantiaEstendida.findByPk(id);
     return res.json(atualizada);
   } catch (error) {
     return res.status(500).json({ erro: error.message });
@@ -113,7 +113,7 @@ async function excluirGarantiaEstendida(req, res) {
 
     // No diagrama image_cc4c1e.jpg, essa tabela não mostra campos de 'soft delete' 
     // como a tabela Garantia, mas seguindo o padrão de segurança:
-    const deletado = await garantia_estendida.destroy({
+    const deletado = await GarantiaEstendida.destroy({
       where: { id_garantia_estendida: id }
     });
 

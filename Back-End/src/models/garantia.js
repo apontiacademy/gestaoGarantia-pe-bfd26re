@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       this.belongsTo(models.Produto,{foreignKey:'produto_id', as: 'produto'}); 
       //Uma garantia pertence a um produto
-      this.hasOne(models.Garantia_Estendida, { foreignKey: 'garantia_id', as: 'detalhes_estendida' });
+      this.hasOne(models.GarantiaEstendida, { foreignKey: 'garantia_id', as: 'detalhes_estendida' });
       this.hasMany(models.Notificacao, { foreignKey: 'garantia_id', as: 'notificacoes' });
     }
   }
