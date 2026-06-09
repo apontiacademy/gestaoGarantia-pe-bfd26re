@@ -86,7 +86,10 @@ export default function ViewWarranty() {
         }
 
         setIsSaving(true);
-        const result = updateWarranty(id, formValuesToWarrantyUpdate(draftValues));
+        const result = await updateWarranty(
+            id,
+            formValuesToWarrantyUpdate(draftValues)
+        );
         setIsSaving(false);
 
         if (result.success === false) {

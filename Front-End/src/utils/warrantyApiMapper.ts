@@ -13,8 +13,10 @@ import {
   formatDateBRFromIso,
   parseWarrantyDate,
 } from "./warrantyDates";
-import { formatCnpj } from "./cnpj";
-import { formatCurrencyBRL } from "./currency";
+import { formatCnpj, onlyCnpjDigits } from "./cnpj";
+import { formatCurrencyBRL, parseDecimalValue } from "./currency";
+import type { ApiDocumentoFiscal } from "../services/documentoFiscalService";
+import type { CreateDocumentoFiscalPayload } from "../services/documentoFiscalService";
 import { getWarrantyStatus, mapApiStatusToUi } from "./warrantyStatus";
 
 const META_MARKER = "---meta---";
@@ -41,11 +43,17 @@ export interface CreateWarrantyFormData {
 interface WarrantyMeta {
   notes?: string;
   storeName?: string;
+  /** Legado — migrado para documento_fiscal */
   storeCnpj?: string;
+  /** Legado — migrado para documento_fiscal */
   nfNumber?: string;
+  /** Legado — migrado para documento_fiscal */
   quantity?: string;
+  /** Legado — migrado para documento_fiscal */
   value?: string;
+  /** Legado — migrado para documento_fiscal */
   unitValue?: string;
+  /** Legado — migrado para documento_fiscal */
   totalValue?: string;
   /** Data de vencimento em DD/MM/AAAA (redundância para exibição) */
   expirationDate?: string;
@@ -119,11 +127,9 @@ function resolveWarrantyAttachments(
   return undefined;
 }
 
-function buildPurchaseValuesMeta(
+function buildExpirationMeta(
   form: CreateWarrantyFormData
-): Pick<WarrantyMeta, "value" | "unitValue" | "totalValue" | "expirationDate"> {
-  /** `form.value` é o preço unitário informado no cadastro */
-  const unitNum = parseCurrencyToNumber(form.value);
+): Pick<WarrantyMeta, "expirationDate"> {
   const expirationDate = computeExpirationDateBR(
     form.purchaseDate,
     form.warrantyPeriod,
@@ -131,32 +137,15 @@ function buildPurchaseValuesMeta(
     form.hasExtendedWarranty ? form.extendedExtraMonths : 0
   );
 
-  const expirationPart = expirationDate
-    ? { expirationDate }
-    : {};
-
-  if (unitNum <= 0) return expirationPart;
-
-  const qty = Math.max(1, Number(form.quantity) || 1);
-  const purchaseTotal = unitNum * qty;
-
-  return {
-    ...expirationPart,
-    value: formatCurrencyBRL(purchaseTotal),
-    unitValue: form.value?.trim() || formatCurrencyBRL(unitNum),
-    totalValue: formatCurrencyBRL(purchaseTotal),
-  };
+  return expirationDate ? { expirationDate } : {};
 }
 
 function buildMetaObject(form: CreateWarrantyFormData): WarrantyMeta {
   return {
     notes: form.notes?.trim() || undefined,
     storeName: form.storeName?.trim() || undefined,
-    storeCnpj: form.cnpj?.trim() ? formatCnpj(form.cnpj) : undefined,
-    nfNumber: form.nfNumber?.trim() || undefined,
-    quantity: form.quantity?.trim() || undefined,
     attachments: serializeAttachmentsForMeta(form.attachments),
-    ...buildPurchaseValuesMeta(form),
+    ...buildExpirationMeta(form),
     ...(form.hasExtendedWarranty
       ? {
           extendedWarrantyNumber:
@@ -170,6 +159,69 @@ function buildMetaObject(form: CreateWarrantyFormData): WarrantyMeta {
   };
 }
 
+export function buildDocumentoFiscalPayload(
+  produtoId: number,
+  input: {
+    cnpj?: string;
+    nfNumber?: string;
+    quantity?: string;
+    value?: string;
+    purchaseDate: string;
+  }
+): CreateDocumentoFiscalPayload {
+  const cnpjDigits = onlyCnpjDigits(input.cnpj ?? "");
+  const qty = Math.max(1, Number(input.quantity) || 1);
+  const unitNum = parseCurrencyToNumber(input.value);
+  const dataCompra = warrantyDateToIso(input.purchaseDate) || input.purchaseDate;
+
+  return {
+    produto_id: produtoId,
+    cnpj_emissor: cnpjDigits.length === 14 ? cnpjDigits : "00000000000000",
+    valor: unitNum > 0 ? unitNum : 0.01,
+    quantidade: qty,
+    valorInformado: true,
+    data_compra: dataCompra,
+    numero_nf: input.nfNumber?.trim() || "S/N",
+    tipo: "Nota Fiscal",
+  };
+}
+
+function documentoFiscalToWarrantyFields(
+  doc: ApiDocumentoFiscal
+): Pick<
+  Warranty,
+  | "storeCnpj"
+  | "nfNumber"
+  | "quantity"
+  | "value"
+  | "unitValue"
+  | "totalValue"
+  | "purchaseDate"
+> {
+  const unitNum = parseDecimalValue(doc.valor_unitario);
+  const totalNum = parseDecimalValue(doc.valor);
+  const qty = doc.quantidade ?? 1;
+
+  const unitValue =
+    Number.isFinite(unitNum) && unitNum > 0
+      ? formatCurrencyBRL(unitNum)
+      : undefined;
+  const totalValue =
+    Number.isFinite(totalNum) && totalNum > 0
+      ? formatCurrencyBRL(totalNum)
+      : undefined;
+
+  return {
+    storeCnpj: doc.cnpj_emissor ? formatCnpj(doc.cnpj_emissor) : undefined,
+    nfNumber: doc.numero_nf || undefined,
+    quantity: String(qty),
+    purchaseDate: formatDateBRFromIso(doc.data_compra) || undefined,
+    unitValue,
+    totalValue,
+    value: totalValue ?? unitValue,
+  };
+}
+
 function metaToJson(meta: WarrantyMeta): string {
   const cleaned = Object.fromEntries(
     Object.entries(meta).filter(([, v]) => {
@@ -180,6 +232,65 @@ function metaToJson(meta: WarrantyMeta): string {
     })
   );
   return JSON.stringify(cleaned);
+}
+
+export function warrantyDateToIso(date?: string): string {
+  if (!date?.trim()) return "";
+  const trimmed = date.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+  const d = parseWarrantyDate(trimmed);
+  if (Number.isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+export function computePrazoDiasFromDates(
+  purchaseDate?: string,
+  expirationDate?: string,
+  fallbackDays?: number
+): number {
+  if (purchaseDate?.trim() && expirationDate?.trim()) {
+    const start = parseWarrantyDate(purchaseDate);
+    const end = parseWarrantyDate(expirationDate);
+    if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
+      const diffMs = end.getTime() - start.getTime();
+      return Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+    }
+  }
+  if (typeof fallbackDays === "number" && fallbackDays > 0) {
+    return fallbackDays;
+  }
+  return 1;
+}
+
+export function buildObservacaoFromWarranty(
+  warranty: Pick<
+    Warranty,
+    | "notes"
+    | "story"
+    | "expirationDate"
+    | "attachments"
+  >
+): string {
+  const meta: WarrantyMeta = {
+    notes: warranty.notes?.trim() || undefined,
+    storeName: warranty.story?.trim() || undefined,
+    expirationDate: warranty.expirationDate?.trim() || undefined,
+    attachments: serializeAttachmentsForMeta(warranty.attachments),
+  };
+
+  const json = metaToJson(meta);
+  if (json === "{}") return "";
+
+  const userNotes = meta.notes ?? "";
+  const metaBlock = `${META_MARKER}\n${json}`;
+
+  if (userNotes) {
+    return `${userNotes}\n\n${metaBlock}`;
+  }
+  return metaBlock;
 }
 
 export function computePrazoDias(form: CreateWarrantyFormData): number {
@@ -305,11 +416,20 @@ export function apiGarantiaToWarranty(
   );
 
   const { notes, meta } = parseObservacao(garantia.observacao);
-  const valueFields = resolveValuesFromMeta(meta);
+  const doc = produto?.documento_fiscal ?? undefined;
+  const fiscalFromDoc = doc ? documentoFiscalToWarrantyFields(doc) : {};
+  const fiscalFromMeta = {
+    storeCnpj: meta.storeCnpj,
+    nfNumber: meta.nfNumber,
+    quantity: meta.quantity,
+    ...resolveValuesFromMeta(meta),
+  };
 
-  const purchaseDate = formatDateBRFromIso(
-    garantia.data_inicio?.slice(0, 10) ?? String(garantia.data_inicio ?? "")
-  );
+  const purchaseDate =
+    fiscalFromDoc.purchaseDate ||
+    formatDateBRFromIso(
+      garantia.data_inicio?.slice(0, 10) ?? String(garantia.data_inicio ?? "")
+    );
   const expirationDate = resolveExpirationDate(garantia, meta);
 
   const warrantyType =
@@ -332,15 +452,17 @@ export function apiGarantiaToWarranty(
     id: String(garantia.id),
     title,
     story: meta.storeName,
-    storeCnpj: meta.storeCnpj,
-    nfNumber: meta.nfNumber,
-    quantity: meta.quantity,
+    storeCnpj: fiscalFromDoc.storeCnpj ?? fiscalFromMeta.storeCnpj,
+    nfNumber: fiscalFromDoc.nfNumber ?? fiscalFromMeta.nfNumber,
+    quantity: fiscalFromDoc.quantity ?? fiscalFromMeta.quantity,
     purchaseDate: purchaseDate || undefined,
     expirationDate: expirationDate || undefined,
     warrantyPeriodDays:
       typeof garantia.prazo_dias === "number" ? garantia.prazo_dias : undefined,
     warrantyType,
-    ...valueFields,
+    value: fiscalFromDoc.value ?? fiscalFromMeta.value,
+    unitValue: fiscalFromDoc.unitValue ?? fiscalFromMeta.unitValue,
+    totalValue: fiscalFromDoc.totalValue ?? fiscalFromMeta.totalValue,
     notes: notes || undefined,
     attachments: resolveWarrantyAttachments(meta, attachments),
     status: mapApiStatusToUi(garantia.status) ?? statusInfo.status,

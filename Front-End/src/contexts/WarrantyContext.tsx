@@ -26,6 +26,7 @@ import {
   fetchWarrantiesFromApi,
   restoreWarrantyViaApi,
   trashWarrantyViaApi,
+  updateWarrantyViaApi,
 } from "../services/warrantyApiService";
 import type { CreateWarrantyFormData } from "../utils/warrantyApiMapper";
 import { deleteWarrantyAttachmentsFromCloudinary } from "../utils/warrantyCloudinaryCleanup";
@@ -39,7 +40,7 @@ interface WarrantyContextData {
   updateWarranty: (
     id: string,
     updates: WarrantyUpdate
-  ) => ReturnType<typeof updateWarrantyInStorage>;
+  ) => Promise<ReturnType<typeof updateWarrantyInStorage>>;
   moveToTrash: (
     id: string
   ) => Promise<ReturnType<typeof softDeleteWarranty>>;
@@ -55,6 +56,30 @@ interface WarrantyContextData {
 const WarrantyContext = createContext<WarrantyContextData>(
   {} as WarrantyContextData
 );
+
+const FISCAL_CACHE_FIELDS = [
+  "storeCnpj",
+  "nfNumber",
+  "quantity",
+  "value",
+  "unitValue",
+  "totalValue",
+] as const satisfies readonly (keyof Warranty)[];
+
+function mergeFiscalFieldsFromLocal(
+  warranty: Warranty,
+  local?: Warranty
+): Warranty {
+  if (!local) return warranty;
+
+  const merged = { ...warranty };
+  for (const field of FISCAL_CACHE_FIELDS) {
+    if (!merged[field] && local[field]) {
+      merged[field] = local[field];
+    }
+  }
+  return merged;
+}
 
 export function WarrantyProvider({ children }: { children: ReactNode }) {
   const { pushNotification } = useNotifications();
@@ -79,22 +104,26 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
     try {
       const fromApi = await fetchWarrantiesFromApi();
       const local = getWarranties();
-      const attachmentById = new Map(
-        local.map((w) => [w.id, w.attachments] as const)
-      );
-      const activeFromApi = fromApi.map((w) => ({
-        ...w,
-        attachments: w.attachments?.length
-          ? w.attachments
-          : attachmentById.get(w.id),
-      }));
+      const localById = new Map(local.map((w) => [w.id, w] as const));
+      const activeFromApi = fromApi.map((w) => {
+        const cached = localById.get(w.id);
+        return mergeFiscalFieldsFromLocal(
+          {
+            ...w,
+            attachments: w.attachments?.length
+              ? w.attachments
+              : cached?.attachments,
+          },
+          cached
+        );
+      });
       const activeIds = new Set(activeFromApi.map((w) => w.id));
       const trashedLocal = local
         .filter(isWarrantyDeleted)
         .filter((w) => !activeIds.has(w.id))
         .map((w) => ({
           ...w,
-          attachments: w.attachments ?? attachmentById.get(w.id),
+          attachments: w.attachments ?? localById.get(w.id)?.attachments,
         }));
       const merged = [...activeFromApi, ...trashedLocal];
       persistWarranties(merged);
@@ -145,20 +174,34 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
   );
 
   const updateWarranty = useCallback(
-    (id: string, updates: WarrantyUpdate) => {
-      const result = updateWarrantyInStorage(id, updates);
-      if (result.success) {
-        refreshWarranties();
+    async (id: string, updates: WarrantyUpdate) => {
+      const current = warranties.find((w) => w.id === id);
+      if (!current) {
+        return { success: false as const, error: "Garantia não encontrada." };
+      }
+
+      try {
+        const updated = await updateWarrantyViaApi(id, updates, current);
+        persistWarranty(updated);
+        await loadWarrantiesFromApi();
         pushNotification({
           type: "updated",
           title: "Garantia atualizada",
-          description: `"${result.warranty.title}" foi salva com sucesso.`,
-          warrantyId: result.warranty.id,
+          description: `"${updated.title}" foi salva com sucesso.`,
+          warrantyId: updated.id,
         });
+        return { success: true as const, warranty: updated };
+      } catch (err) {
+        return {
+          success: false as const,
+          error:
+            err instanceof Error
+              ? err.message
+              : "Não foi possível salvar a garantia.",
+        };
       }
-      return result;
     },
-    [refreshWarranties, pushNotification]
+    [warranties, loadWarrantiesFromApi, pushNotification]
   );
 
   const moveToTrash = useCallback(

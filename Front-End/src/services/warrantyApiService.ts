@@ -1,3 +1,4 @@
+import { documentoFiscalService } from "./documentoFiscalService";
 import { garantiaService } from "./garantiaService";
 import {
   productService,
@@ -6,12 +7,20 @@ import {
 } from "./productService";
 import {
   apiGarantiaToWarranty,
+  buildDocumentoFiscalPayload,
   buildObservacao,
+  buildObservacaoFromWarranty,
   computePrazoDias,
+  computePrazoDiasFromDates,
   parseCurrencyToNumber,
+  warrantyDateToIso,
   type CreateWarrantyFormData,
 } from "../utils/warrantyApiMapper";
-import type { Warranty } from "./warrantyService";
+import {
+  buildWarrantyTitle,
+  type Warranty,
+  type WarrantyUpdate,
+} from "./warrantyService";
 
 function isApiProduct(value: unknown): value is ApiProduct {
   if (typeof value !== "object" || value === null) return false;
@@ -62,6 +71,16 @@ export async function createWarrantyViaApi(
 
   const produtoId = await resolveProductId({ nome, marca, modelo });
 
+  const documentoFiscal = await documentoFiscalService.create(
+    buildDocumentoFiscalPayload(produtoId, {
+      cnpj: form.cnpj,
+      nfNumber: form.nfNumber,
+      quantity: form.quantity,
+      value: form.value,
+      purchaseDate: form.purchaseDate,
+    })
+  );
+
   const garantia = await garantiaService.create({
     produto_id: produtoId,
     prazo_dias: computePrazoDias(form),
@@ -88,9 +107,17 @@ export async function createWarrantyViaApi(
     }
   }
 
-  const garantiaComProduto = garantia.produto
-    ? garantia
-    : { ...garantia, produto: { id: produtoId, id_usuario: 0, nome, marca, modelo } };
+  const produtoBase = garantia.produto ?? {
+    id: produtoId,
+    id_usuario: 0,
+    nome,
+    marca,
+    modelo,
+  };
+  const garantiaComProduto = {
+    ...garantia,
+    produto: { ...produtoBase, documento_fiscal: documentoFiscal },
+  };
 
   return apiGarantiaToWarranty(garantiaComProduto, form.attachments);
 }
@@ -118,6 +145,85 @@ export async function trashWarrantyViaApi(id: string): Promise<void> {
 export async function restoreWarrantyViaApi(id: string): Promise<void> {
   if (!isApiWarrantyId(id)) return;
   await garantiaService.restore(Number(id));
+}
+
+export async function updateWarrantyViaApi(
+  id: string,
+  updates: WarrantyUpdate,
+  current: Warranty
+): Promise<Warranty> {
+  if (!isApiWarrantyId(id)) {
+    throw new Error(
+      "Esta garantia foi criada apenas localmente e não pode ser sincronizada com o servidor."
+    );
+  }
+
+  const garantiaId = Number(id);
+  const garantia = await garantiaService.getById(garantiaId);
+  const produto = garantia.produto;
+
+  if (!produto) {
+    throw new Error("Produto da garantia não encontrado no servidor.");
+  }
+
+  const { deletedAt, ...scalarUpdates } = updates;
+  void deletedAt;
+  const merged: Warranty = { ...current, ...scalarUpdates };
+  const dataInicio = warrantyDateToIso(merged.purchaseDate);
+  if (!dataInicio) {
+    throw new Error("Data de compra inválida.");
+  }
+
+  const prazoDias = computePrazoDiasFromDates(
+    merged.purchaseDate,
+    merged.expirationDate,
+    merged.warrantyPeriodDays ?? garantia.prazo_dias
+  );
+
+  const tipo =
+    merged.warrantyType === "Garantia Estendida" ? "Estendida" : "Normal";
+
+  const observacao = buildObservacaoFromWarranty(merged);
+
+  const newTitle = merged.title.trim();
+  const currentTitle = buildWarrantyTitle(
+    produto.nome,
+    produto.marca,
+    produto.modelo
+  );
+
+  let produtoAtualizado = produto;
+  if (newTitle && newTitle !== currentTitle) {
+    await productService.update(produto.id, {
+      nome: newTitle,
+      marca: "",
+      modelo: "",
+    });
+    produtoAtualizado = { ...produto, nome: newTitle, marca: "", modelo: "" };
+  }
+
+  const updated = await garantiaService.update(garantiaId, {
+    produto_id: garantia.produto_id,
+    prazo_dias: prazoDias,
+    data_inicio: dataInicio,
+    tipo,
+    observacao,
+  });
+
+  const mapped = apiGarantiaToWarranty(
+    { ...updated, produto: produtoAtualizado },
+    merged.attachments
+  );
+
+  return {
+    ...mapped,
+    storeCnpj: merged.storeCnpj ?? mapped.storeCnpj,
+    nfNumber: merged.nfNumber ?? mapped.nfNumber,
+    quantity: merged.quantity ?? mapped.quantity,
+    value: merged.value ?? mapped.value,
+    unitValue: merged.unitValue ?? mapped.unitValue,
+    totalValue: merged.totalValue ?? mapped.totalValue,
+  };
 }
 
 export async function fetchWarrantiesFromApi(): Promise<Warranty[]> {

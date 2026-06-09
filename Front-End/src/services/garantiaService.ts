@@ -24,6 +24,14 @@ export interface CreateGarantiaPayload {
   observacao?: string;
 }
 
+export interface UpdateGarantiaPayload {
+  produto_id: number;
+  prazo_dias: number;
+  data_inicio: string;
+  tipo: "Normal" | "Estendida";
+  observacao?: string;
+}
+
 export interface CreateGarantiaEstendidaPayload {
   garantia_id: number;
   numero_apolice: string;
@@ -36,6 +44,11 @@ export const garantiaService = {
     api.post<ApiGarantia>("/garantias", data),
 
   list: () => api.get<ApiGarantia[]>("/garantias"),
+
+  getById: (id: number) => api.get<ApiGarantia>(`/garantias/${id}`),
+
+  update: (id: number, data: UpdateGarantiaPayload) =>
+    api.put<ApiGarantia>(`/garantias/${id}`, data),
 
   /** Soft delete — envia para lixeira no servidor */
   moveToTrash: (id: number) =>
