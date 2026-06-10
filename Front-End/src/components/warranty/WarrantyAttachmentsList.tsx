@@ -1,4 +1,4 @@
-import { ExternalLink, FileText } from "lucide-react";
+import { ExternalLink, FileText, X } from "lucide-react";
 import {
   getAttachmentUrl,
   type WarrantyAttachment,
@@ -8,11 +8,15 @@ import { formatFileSize } from "../../utils/warrantyAttachments";
 interface WarrantyAttachmentsListProps {
   attachments: WarrantyAttachment[];
   className?: string;
+  onRemove?: (attachmentId: string) => void;
+  removingId?: string | null;
 }
 
 export default function WarrantyAttachmentsList({
   attachments,
   className = "",
+  onRemove,
+  removingId = null,
 }: WarrantyAttachmentsListProps) {
   if (attachments.length === 0) {
     return (
@@ -44,18 +48,31 @@ export default function WarrantyAttachmentsList({
                 </p>
               </div>
             </div>
-            {href ? (
-              <a
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                download={isRemote && isPdf ? undefined : file.name}
-                className="flex items-center gap-1 text-sm text-primary hover:underline shrink-0"
-              >
-                Abrir
-                <ExternalLink size={14} />
-              </a>
-            ) : null}
+            <div className="flex items-center gap-2 shrink-0">
+              {href ? (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download={isRemote && isPdf ? undefined : file.name}
+                  className="flex items-center gap-1 text-sm text-primary hover:underline"
+                >
+                  Abrir
+                  <ExternalLink size={14} />
+                </a>
+              ) : null}
+              {onRemove ? (
+                <button
+                  type="button"
+                  onClick={() => onRemove(file.id)}
+                  disabled={removingId === file.id}
+                  className="p-1 rounded text-red hover:text-red/60 hover:bg-red-50 disabled:opacity-50 cursor-pointer"
+                  aria-label={`Remover ${file.name}`}
+                >
+                  <X size={16} />
+                </button>
+              ) : null}
+            </div>
           </li>
         );
       })}
