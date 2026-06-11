@@ -41,7 +41,7 @@ async function listarGarantiasEstendidas(req, res) {
       include: [
         {
           model: Garantia,
-          as: 'garantia'
+          as: 'garantia_base'
         }
       ]
     });
@@ -57,7 +57,7 @@ async function listarGarantiaEstendidaPorId(req, res) {
     const { id } = req.params;
 
     const garantia = await GarantiaEstendida.findByPk(id, {
-      include: [{ model: Garantia, as: 'garantia' }]
+      include: [{ model: Garantia, as: 'garantia_base' }]
     });
 
     if (!garantia) {
@@ -97,7 +97,7 @@ async function atualizarGarantiaEstendida(req, res) {
       nome_seguradora,
       valor
     }, {
-      where: { id_garantia_estendida: id }
+      where: { garantia_id: id }
     });
 
     const atualizada = await GarantiaEstendida.findByPk(id);
@@ -107,14 +107,30 @@ async function atualizarGarantiaEstendida(req, res) {
   }
 }
 
+async function atualizarStatusGarantiaEstendida(req, res) {
+  try {
+    const { id } = req.params;
+    const garantia = await GarantiaEstendida.findByPk(id);
+
+    if (!garantia) {
+      return res.status(404).json({ mensagem: 'Garantia estendida não encontrada' });
+    }
+      const infoGarantiaEstendida = calcularStatusApolice(garantia.data_fim);
+      return res.json({
+        ...garantia.toJSON(),
+        ...infoGarantiaEstendida
+      });
+  } catch (error) {
+    return res.status(500).json({ erro: error.message });
+  }
+}
+
+
 async function excluirGarantiaEstendida(req, res) {
   try {
     const { id } = req.params;
-
-    // No diagrama image_cc4c1e.jpg, essa tabela não mostra campos de 'soft delete' 
-    // como a tabela Garantia, mas seguindo o padrão de segurança:
     const deletado = await GarantiaEstendida.destroy({
-      where: { id_garantia_estendida: id }
+      where: { garantia_id: id }
     });
 
     if (!deletado) {
@@ -132,5 +148,6 @@ module.exports = {
   listarGarantiasEstendidas,
   listarGarantiaEstendidaPorId,
   atualizarGarantiaEstendida,
+  atualizarStatusGarantiaEstendida,
   excluirGarantiaEstendida
 };

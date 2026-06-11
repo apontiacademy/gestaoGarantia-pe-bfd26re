@@ -38,6 +38,7 @@ router.get('/garantias-estendidas', autenticarToken, controllerGarantiaEstendida
 router.get('/garantias-estendidas/:id', autenticarToken, controllerGarantiaEstendida.listarGarantiaEstendidaPorId);
 router.post('/garantias-estendidas', autenticarToken, controllerGarantiaEstendida.registrarGarantiaEstendida);
 router.put('/garantias-estendidas/:id', autenticarToken, controllerGarantiaEstendida.atualizarGarantiaEstendida);
+router.patch('/garantias-estendidas/:id', autenticarToken, controllerGarantiaEstendida.atualizarStatusGarantiaEstendida);
 router.delete('/garantias-estendidas/:id', autenticarToken, controllerGarantiaEstendida.excluirGarantiaEstendida);
 
 module.exports = router;
