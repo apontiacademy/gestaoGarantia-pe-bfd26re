@@ -62,9 +62,15 @@ function formatWarrantyPeriodDays(days?: number): string | undefined {
 
 interface WarrantyDetailViewProps {
   warranty: Warranty;
+  onRemoveAttachment?: (attachmentId: string) => void;
+  removingAttachmentId?: string | null;
 }
 
-export default function WarrantyDetailView({ warranty }: WarrantyDetailViewProps) {
+export default function WarrantyDetailView({
+  warranty,
+  onRemoveAttachment,
+  removingAttachmentId = null,
+}: WarrantyDetailViewProps) {
   const { status } = getWarrantyStatus(warranty);
   const hasExtendedWarranty =
     warranty.warrantyType?.toLowerCase().includes("estendida") ?? false;
@@ -168,6 +174,8 @@ export default function WarrantyDetailView({ warranty }: WarrantyDetailViewProps
             <p className="font-medium mb-2">Arquivos</p>
             <WarrantyAttachmentsList
               attachments={warranty.attachments ?? []}
+              onRemove={!inTrash ? onRemoveAttachment : undefined}
+              removingId={removingAttachmentId}
             />
           </div>
 

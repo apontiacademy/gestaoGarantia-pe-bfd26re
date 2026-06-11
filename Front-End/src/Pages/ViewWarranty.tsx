@@ -12,6 +12,7 @@ import WarrantyFormFields from "../components/warranty/WarrantyFormFields";
 import { useWarranty } from "../contexts/WarrantyContext";
 import { isWarrantyDeleted } from "../services/warrantyService";
 import { useToast } from "../hooks/useToast";
+import { deleteWarrantyAttachmentsFromCloudinary } from "../utils/warrantyCloudinaryCleanup";
 import {
     formValuesToWarrantyUpdate,
     validateWarrantyForm,
@@ -41,6 +42,12 @@ export default function ViewWarranty() {
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [confirmTrashOpen, setConfirmTrashOpen] = useState(false);
+    const [attachmentToRemove, setAttachmentToRemove] = useState<string | null>(
+        null
+    );
+    const [removingAttachmentId, setRemovingAttachmentId] = useState<
+        string | null
+    >(null);
 
     const isDeleted = warranty ? isWarrantyDeleted(warranty) : false;
 
@@ -139,6 +146,50 @@ export default function ViewWarranty() {
         await handleSave();
     };
 
+    const handleRequestRemoveAttachment = (attachmentId: string) => {
+        setAttachmentToRemove(attachmentId);
+    };
+
+    const handleConfirmRemoveAttachment = async () => {
+        if (!id || !warranty || !attachmentToRemove) return;
+
+        const file = warranty.attachments?.find((a) => a.id === attachmentToRemove);
+        if (!file) {
+            setAttachmentToRemove(null);
+            return;
+        }
+
+        setRemovingAttachmentId(attachmentToRemove);
+        try {
+            await deleteWarrantyAttachmentsFromCloudinary([file]);
+
+            const remaining =
+                warranty.attachments?.filter((a) => a.id !== attachmentToRemove) ??
+                [];
+
+            const result = await updateWarranty(id, {
+                attachments: remaining.length > 0 ? remaining : [],
+            });
+
+            if (result.success === false) {
+                showToast(result.error, "error");
+                return;
+            }
+
+            showToast("Anexo removido com sucesso.");
+        } catch (err) {
+            showToast(
+                err instanceof Error
+                    ? err.message
+                    : "Não foi possível remover o anexo.",
+                "error"
+            );
+        } finally {
+            setRemovingAttachmentId(null);
+            setAttachmentToRemove(null);
+        }
+    };
+
     if (!id || !warranty) {
         return (
             <LayoutHome
@@ -183,7 +234,11 @@ export default function ViewWarranty() {
                         {(warranty.attachments?.length ?? 0) > 0 ? (
                             <div className="border rounded-lg p-3">
                                 <p className="font-medium mb-2">Arquivos anexados</p>
-                                <WarrantyAttachmentsList attachments={warranty.attachments!} />
+                                <WarrantyAttachmentsList
+                                    attachments={warranty.attachments!}
+                                    onRemove={handleRequestRemoveAttachment}
+                                    removingId={removingAttachmentId}
+                                />
                             </div>
                         ) : null}
                         <footer className="flex flex-wrap justify-end gap-3 pt-4 border-t">
@@ -207,7 +262,11 @@ export default function ViewWarranty() {
                     </form>
                 ) : (
                     <>
-                        <WarrantyDetailView warranty={warranty} />
+                        <WarrantyDetailView
+                            warranty={warranty}
+                            onRemoveAttachment={handleRequestRemoveAttachment}
+                            removingAttachmentId={removingAttachmentId}
+                        />
                         <WarrantyActions
                             isEditing={isEditing}
                             isDeleted={isDeleted}
@@ -232,6 +291,17 @@ export default function ViewWarranty() {
                 loading={isDeleting}
                 onConfirm={handleConfirmTrash}
                 onCancel={() => setConfirmTrashOpen(false)}
+            />
+
+            <ConfirmDialog
+                open={attachmentToRemove != null}
+                title="Remover anexo?"
+                description="O arquivo será removido desta garantia. Essa ação não pode ser desfeita."
+                confirmLabel="Remover anexo"
+                variant="danger"
+                loading={removingAttachmentId != null}
+                onConfirm={handleConfirmRemoveAttachment}
+                onCancel={() => setAttachmentToRemove(null)}
             />
         </LayoutHome>
     );
