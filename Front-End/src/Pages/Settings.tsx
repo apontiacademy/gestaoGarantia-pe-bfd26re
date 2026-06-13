@@ -1,17 +1,16 @@
 import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Camera, Save, KeyRound, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Camera, Save, KeyRound, Eye, EyeOff } from 'lucide-react';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import LayoutHome from '../layout/LayoutHome';
 import { useAuth } from '../contexts/AuthContext';
 import { userService } from '../services/userService';
 import { uploadImageToCloudinary } from '../services/cloudinaryService';
+import { Bolt } from 'lucide-react';
 
 type Section = 'profile' | 'password';
 
 export default function Settings() {
-  const navigate = useNavigate();
   const { user, updateUser } = useAuth();
 
   const [section, setSection] = useState<Section>('profile');
@@ -138,23 +137,11 @@ export default function Settings() {
     .toUpperCase() ?? '?';
 
   return (
-    <LayoutHome>
+    <LayoutHome namePage="Configurações" namePageIcon={Bolt} >
       <div className="max-w-lg mx-auto">
 
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <button
-            type="button"
-            onClick={() => navigate('/home')}
-            className="p-2 rounded-lg hover:bg-gray transition"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <h1 className="text-xl font-semibold">Configurações</h1>
-        </div>
-
         {/* Abas */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 mt-10">
           <button
             type="button"
             onClick={() => setSection('profile')}
@@ -203,7 +190,7 @@ export default function Settings() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute bottom-0 right-0 bg-yellow-button hover:bg-yellow-hover text-black rounded-full p-2 shadow transition"
+                  className="absolute bottom-0 right-0 bg-yellow-button hover:bg-yellow-hover text-black rounded-full p-2 shadow transition cursor-pointer"
                 >
                   <Camera size={16} />
                 </button>
