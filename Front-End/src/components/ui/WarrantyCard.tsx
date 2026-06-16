@@ -24,9 +24,12 @@ interface WarrantyCardProps {
   onViewMore?: () => void; //ver mais (home)
   onRestore?: () => void; //restaurar (lixiera)
 
-  selected?: boolean; //select para quadno estiver na lixeira
+  selected?: boolean; //select para quando estiver na lixeira
   onSelect?: (selected: boolean) => void;
   warrantyId?: string;
+  
+  // SOLUÇÃO DO ERRO TS: Propriedade que identifica se o usuário atual é visitante
+  isGuest?: boolean; 
 }
 
 const WarrantyCard: React.FC<WarrantyCardProps> = ({
@@ -48,6 +51,7 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
   selected = false,
   onSelect,
   warrantyId,
+  isGuest = false, // Valor padrão como falso se não for enviado
 }) => {
   const { status: currentStatus, daysToExpire: currentDaysToExpire } =
     getWarrantyExpirationInfo({
@@ -71,7 +75,8 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
     warrantyType;
 
   // Verifica se há alguma info no lado direito do header (status / checkbox)
-  const hasHeaderRight = variant === "trash" || currentStatus;
+  // O checkbox só aparece na lixeira se NÃO for visitante
+  const hasHeaderRight = (variant === "trash" && !isGuest) || currentStatus;
 
   // Verifica se há valor para exibir no rodapé
   const hasFooter =
@@ -106,7 +111,8 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
 
           {hasHeaderRight && (
             <div className="flex flex-col items-end gap-1 shrink-0">
-              {variant === "trash" && (
+              {/* Checkbox oculto para visitantes para evitar ações de deleção/restauração */}
+              {variant === "trash" && !isGuest && (
                 <input
                   id={warrantyId ? `warranty-select-${warrantyId}` : undefined}
                   name={warrantyId ? `warranty-select-${warrantyId}` : undefined}
@@ -190,7 +196,7 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
               <span className="min-w-0 flex-1" />
             )}
 
-            {/* Botão Ver Mais */}
+            {/* Botão Ver Mais - Fica liberado para todos lerem os dados */}
             {variant === "home" && (
               <button
                 onClick={onViewMore}
@@ -200,8 +206,8 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
               </button>
             )}
 
-            {/* Botão Restaurar */}
-            {variant === "trash" && (
+            {/* Botão Restaurar - Ocultado se for visitante para não alterar o banco de dados */}
+            {variant === "trash" && !isGuest && (
               <button
                 onClick={onRestore}
                 className="shrink-0 border border-green/80 text-green rounded-full px-4 sm:px-6 py-1 text-sm font-medium hover:bg-green/80 hover:text-white transition-colors duration-200 whitespace-nowrap"

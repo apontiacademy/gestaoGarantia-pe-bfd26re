@@ -21,11 +21,11 @@ export default function Home() {
     useWarranty();
   const [search, setSearch] = useState("");
 
+  // AJUSTE: Permite carregar as garantias da API tanto para logados quanto para visitantes
   useEffect(() => {
-    if (isAuthenticated) {
-      void loadWarrantiesFromApi();
-    }
-  }, [isAuthenticated, loadWarrantiesFromApi]);
+    void loadWarrantiesFromApi();
+  }, [loadWarrantiesFromApi]);
+
   const [statusFilter, setStatusFilter] =
     useState<StatusFilterOption>("all");
 
@@ -69,18 +69,20 @@ export default function Home() {
           />
         </form>
 
-        <Button
-          variant="primary"
-          type="button"
-          onClick={() => navigate("/create-warranty")}
-          className="shrink-0 flex items-center justify-center gap-1 sm:gap-2 h-10 sm:h-12 px-5 py-1.5 sm:py-2 text-xs sm:text-base whitespace-nowrap"
-        >
-          <Plus size={14} className="hidden sm:block sm:w-5 sm:h-5" />
-          <span className="sm:hidden">Nova Garantia</span>
-          <span className="hidden sm:inline">Nova Garantia</span>
-        </Button>
+        {/* CONDICIONAL: Botão "Nova Garantia" só aparece para usuários autenticados */}
+        {isAuthenticated && (
+          <Button
+            variant="primary"
+            type="button"
+            onClick={() => navigate("/create-warranty")}
+            className="shrink-0 flex items-center justify-center gap-1 sm:gap-2 h-10 sm:h-12 px-5 py-1.5 sm:py-2 text-xs sm:text-base whitespace-nowrap"
+          >
+            <Plus size={14} className="hidden sm:block sm:w-5 sm:h-5" />
+            <span className="sm:hidden">Nova Garantia</span>
+            <span className="hidden sm:inline">Nova Garantia</span>
+          </Button>
+        )}
       </div>
-
 
       <div>
         <Dashboard
@@ -93,14 +95,14 @@ export default function Home() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-5 min-w-0">
         {isLoadingWarranties && activeWarranties.length === 0 ? (
           <p className="col-span-full text-center text-gray-dark/80 py-8">
-            Carregando suas garantias…
+            Carregando garantias…
           </p>
         ) : filteredWarranties.length === 0 ? (
           activeWarranties.length === 0 ? (
             <EmptyState
               icon={Package}
               title="Nenhuma garantia ainda"
-              description="Cadastre a primeira para acompanhar vencimentos e documentos em um só lugar."
+              description="Nenhuma garantia encontrada no sistema no momento."
             />
           ) : (
             <EmptyState
@@ -127,24 +129,26 @@ export default function Home() {
               daysToExpire,
             }) => (
               <div key={id} className="min-w-0">
-              <WarrantyCard
-                variant="home"
-                title={title}
-                story={story}
-                nfNumber={nfNumber}
-                purchaseDate={purchaseDate}
-                expirationDate={expirationDate}
-                warrantyType={warrantyType}
-                quantity={quantity}
-                value={value}
-                unitValue={unitValue}
-                totalValue={totalValue}
-                status={status}
-                daysToExpire={daysToExpire}
-                onViewMore={() => {
-                  navigate(`/garantia/${id}`);
-                }}
-              />
+                <WarrantyCard
+                  variant="home"
+                  title={title}
+                  story={story}
+                  nfNumber={nfNumber}
+                  purchaseDate={purchaseDate}
+                  expirationDate={expirationDate}
+                  warrantyType={warrantyType}
+                  quantity={quantity}
+                  value={value}
+                  unitValue={unitValue}
+                  totalValue={totalValue}
+                  status={status}
+                  daysToExpire={daysToExpire}
+                  onViewMore={() => {
+                    navigate(`/garantia/${id}`);
+                  }}
+                  // PROPRIEDADE EXTRA: Passa para o card a informação se é um visitante ou não
+                  isGuest={!isAuthenticated}
+                />
               </div>
             )
           )
