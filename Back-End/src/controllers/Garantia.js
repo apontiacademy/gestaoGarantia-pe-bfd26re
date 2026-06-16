@@ -48,7 +48,7 @@ async function RegistrarGarantia(req, res) {
 
     
     await criarNotificacao(
-      req.user.id,
+      req.user.id_usuario,
       'created',
       'Garantia criada com sucesso',
       garantia.id
@@ -166,7 +166,7 @@ async function atualizarGarantia(req, res) {
 
     
     await criarNotificacao(
-      req.user.id,
+      req.user.id_usuario,
       'updated',
       'Garantia alterada com sucesso',
       id
@@ -249,7 +249,7 @@ async function atualizarStatusGarantia(req, res) {
 
     
     await criarNotificacao(
-      req.user.id,
+      req.user.id_usuario,
       'updated',
       'Status da garantia atualizado',
       id
@@ -278,7 +278,7 @@ async function excluirGarantia(req, res) {
 
     
     await criarNotificacao(
-      req.user.id,
+      req.user.id_usuario,
       'trashed',
       'Garantia movida para a lixeira',
       id
