@@ -3,9 +3,16 @@ const { Notificacao } = require('../models');
 async function listar(req, res) {
   try {
 
+    // const usuarioId =
+    //   req.user.idUsuario ||
+    //   req.user.id;
+
+    // const usuarioId = req.user.id_usuario;
+
     const usuarioId =
-      req.user.idUsuario ||
-      req.user.id;
+    req.user.id_usuario ||
+    req.user.idUsuario ||
+    req.user.id;
 
     const notificacoes = await Notificacao.findAll({
       where: {
@@ -49,9 +56,14 @@ async function marcarComoLida(req, res) {
 async function marcarTodasComoLidas(req, res) {
   try {
 
-    const usuarioId =
-      req.user.idUsuario ||
-      req.user.id;
+    // const usuarioId =
+    //   req.user.idUsuario ||
+    //   req.user.id;
+
+     const usuarioId =
+    req.user.id_usuario ||
+    req.user.idUsuario ||
+    req.user.id;
 
     await Notificacao.update(
       { lida: true },
@@ -76,9 +88,14 @@ async function marcarTodasComoLidas(req, res) {
 async function limparTodas(req, res) {
   try {
 
-    const usuarioId =
-      req.user.idUsuario ||
-      req.user.id;
+    // const usuarioId =
+    //   req.user.idUsuario ||
+    //   req.user.id;
+
+     const usuarioId =
+    req.user.id_usuario ||
+    req.user.idUsuario ||
+    req.user.id;
 
     await Notificacao.destroy({
       where: {
