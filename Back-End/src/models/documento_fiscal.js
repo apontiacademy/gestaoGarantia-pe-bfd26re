@@ -31,6 +31,15 @@ module.exports = (sequelize, DataTypes) => {
     allowNull: false,
     defaultValue: 0
   },
+  urlCloudinary: {
+  type: DataTypes.TEXT,
+  allowNull: true,
+  validate: {
+    isUrl: {
+      msg: "O link do Cloudinary fornecido não é uma URL válida."
+      }
+    }
+  },
     data_compra: DataTypes.DATEONLY,
     numero_nf: DataTypes.STRING,
     serie_nota: DataTypes.STRING,
