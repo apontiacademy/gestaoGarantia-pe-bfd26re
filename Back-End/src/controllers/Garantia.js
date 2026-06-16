@@ -1,6 +1,5 @@
 const { Garantia, Produto, Documento_Fiscal } = require('../models');
 const { calcularStatusGarantia } = require('../utils/garantiaUtils');
-const { criarNotificacao } = require('../utils/notificacaoUtils');
 
 const produtoInclude = {
   model: Produto,
@@ -45,14 +44,6 @@ async function RegistrarGarantia(req, res) {
       observacao,
       data_cadastro: new Date()
     });
-
-    
-    await criarNotificacao(
-      req.user.id,
-      'created',
-      'Garantia criada com sucesso',
-      garantia.id
-    );
 
     return res.status(201).json(garantia);
 
@@ -164,14 +155,6 @@ async function atualizarGarantia(req, res) {
       where: { id }
     });
 
-    
-    await criarNotificacao(
-      req.user.id,
-      'updated',
-      'Garantia alterada com sucesso',
-      id
-    );
-
     const garantiaAtualizada = await Garantia.findOne({
       where: { id },
       include: [produtoInclude]
@@ -247,14 +230,6 @@ async function atualizarStatusGarantia(req, res) {
       where: { id }
     });
 
-    
-    await criarNotificacao(
-      req.user.id,
-      'updated',
-      'Status da garantia atualizado',
-      id
-    );
-
     const garantiaAtualizada = await Garantia.findByPk(id);
 
     return res.json(garantiaAtualizada);
@@ -275,14 +250,6 @@ async function excluirGarantia(req, res) {
     }, {
       where: { id }
     });
-
-    
-    await criarNotificacao(
-      req.user.id,
-      'trashed',
-      'Garantia movida para a lixeira',
-      id
-    );
 
     return res.json({
       mensagem: 'Garantia excluída com sucesso'
