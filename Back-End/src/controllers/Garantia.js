@@ -1,5 +1,17 @@
-const { Garantia, Produto } = require('../models');
+const { Garantia, Produto, Documento_Fiscal } = require('../models');
 const {calcularStatusGarantia} = require('../utils/garantiaUtils');
+
+const produtoInclude = {
+  model: Produto,
+  as: 'produto',
+  include: [
+    {
+      model: Documento_Fiscal,
+      as: 'documento_fiscal',
+      required: false,
+    },
+  ],
+};
 
 async function RegistrarGarantia(req, res) {
   try {
@@ -42,12 +54,7 @@ async function listarGarantias(req, res) {
   try {
     const garantias = await Garantia.findAll({
       where: { deletado_em: null },
-      include: [
-        {
-          model: Produto,
-          as: 'produto'
-        }
-      ]
+      include: [produtoInclude]
     });
 
       const garantiasComStatus = garantias.map((garantia) => {
@@ -75,12 +82,7 @@ async function listarGarantiaPorId(req, res) {
 
     const garantia = await Garantia.findOne({
       where: { id, deletado_em: null },
-      include: [
-        {
-          model: Produto,
-          as: 'produto'
-        }
-      ]
+      include: [produtoInclude]
     });
 
     if (!garantia) {
@@ -95,8 +97,6 @@ async function listarGarantiaPorId(req, res) {
       ...garantia.toJSON(),
       ...infoGarantia
     });
-
-    // return res.json(garantia);
   } catch (error) {
     return res.status(500).json({ erro: error.message });
   }
@@ -135,8 +135,21 @@ async function atualizarGarantia(req, res) {
       where: { id }
     });
 
-    const garantiaAtualizada = await Garantia.findByPk(id);
-    return res.json(garantiaAtualizada);
+    const garantiaAtualizada = await Garantia.findOne({
+      where: { id },
+      include: [produtoInclude],
+    });
+
+    if (!garantiaAtualizada) {
+      return res.status(404).json({ mensagem: 'Garantia não encontrada' });
+    }
+
+    const infoGarantia = calcularStatusGarantia(garantiaAtualizada.data_fim);
+
+    return res.json({
+      ...garantiaAtualizada.toJSON(),
+      ...infoGarantia,
+    });
   } catch (error) {
     return res.status(500).json({ erro: error.message });
   }
