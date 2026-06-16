@@ -5,24 +5,24 @@ const bcrypt = require('bcrypt');
 async function registerUser(req, res) {
   const { nomeCompleto, email, senha } = req.body;
 
-    const emailNormalizado = email.toLowerCase();
+  if (!nomeCompleto || !email || !senha) {
+    return res.status(400).json({ error: "Todos os campos são obrigatórios" });
+  }
 
-      if (!nomeCompleto || !email || !senha) {
-        return res.status(400).json({ error: "Todos os campos são obrigatórios" });
+  const emailNormalizado = email.toLowerCase();
+
+  try {
+    const emailExistente = await Usuario.findOne({ where: { email: emailNormalizado } });
+    if (emailExistente) {
+      return res.status(400).json({ error: "Email já registrado" });
     }
 
     const hash = await bcrypt.hash(senha, 10);
 
-    const emailExistente = await Usuario.findOne({ where: { email: emailNormalizado } }); // Verificar se o email já existe no banco de dados
-    if (emailExistente) {
-        return res.status(400).json({ error: "Email já registrado" });
-    }
-  
-  try {
     const novoUsuario = await Usuario.create({
       nomeCompleto,
-      email : emailNormalizado,
-      senha : hash
+      email: emailNormalizado,
+      senha: hash
     });
 
     res.status(201).json({
@@ -32,8 +32,8 @@ async function registerUser(req, res) {
   } catch (error) {
     console.error("Erro ao registrar usuário:", error);
 
-    if(error.name === 'SequelizeUniqueConstraintError') {
-        return res.status(400).json({ error: "Email já registrado" });
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({ error: "Email já registrado" });
     }
     res.status(500).json({ error: "Erro ao registrar usuário" });
   }
