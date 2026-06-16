@@ -17,7 +17,8 @@ class DocumentoFiscalController {
                 numero_nf,
                 serie_nota,
                 chave_acesso,
-                tipo
+                tipo,
+                urlCloudinary
             } = req.body;
 
             const resultado = calcularValorTotal(valor, quantidade, valorInformado);
@@ -32,7 +33,8 @@ class DocumentoFiscalController {
                 numero_nf,
                 serie_nota,
                 chave_acesso,
-                tipo
+                tipo,
+                urlCloudinary
             });
 
             return res.status(201).json(documentoFiscal);
@@ -58,7 +60,8 @@ class DocumentoFiscalController {
                 numero_nf,
                 serie_nota,
                 chave_acesso,
-                tipo
+                tipo,
+                urlCloudinary
             } = req.body;
 
             const documento = await Documento_Fiscal.findOne({
@@ -80,7 +83,8 @@ class DocumentoFiscalController {
                 numero_nf,
                 serie_nota,
                 chave_acesso,
-                tipo
+                tipo,
+                urlCloudinary
             });
 
             return res.json(documento);
