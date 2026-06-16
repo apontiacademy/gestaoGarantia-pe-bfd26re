@@ -1,6 +1,10 @@
 import { isWarrantyDeleted, type Warranty } from "../../services/warrantyService";
 import { formatCnpj } from "../../utils/cnpj";
-import { getWarrantyStatus } from "../../utils/warrantyStatus";
+import {
+  formatDaysToExpireLabel,
+  getWarrantyExpirationInfo,
+  resolveWarrantyFiscalDisplay,
+} from "../../utils/warrantyDisplay";
 import WarrantyAttachmentsList from "./WarrantyAttachmentsList";
 
 function statusDotClass(status: string): string {
@@ -71,15 +75,13 @@ export default function WarrantyDetailView({
   onRemoveAttachment,
   removingAttachmentId = null,
 }: WarrantyDetailViewProps) {
-  const { status } = getWarrantyStatus(warranty);
+  const { status, daysToExpire } = getWarrantyExpirationInfo(warranty);
+  const daysToExpireLabel = formatDaysToExpireLabel(daysToExpire, status);
   const hasExtendedWarranty =
     warranty.warrantyType?.toLowerCase().includes("estendida") ?? false;
   const inTrash = isWarrantyDeleted(warranty);
 
-  const quantity = Math.max(1, Number(warranty.quantity) || 1);
-  const showTotalValue = quantity > 1;
-  const unitValue = warranty.unitValue;
-  const totalValue = warranty.totalValue ?? warranty.value;
+  const fiscal = resolveWarrantyFiscalDisplay(warranty);
   const warrantyPeriodLabel = formatWarrantyPeriodDays(
     warranty.warrantyPeriodDays
   );
@@ -126,6 +128,9 @@ export default function WarrantyDetailView({
               label="Prazo de vencimento"
               value={warranty.expirationDate}
             />
+            {daysToExpireLabel ? (
+              <DetailRow label="Vence em" value={daysToExpireLabel} />
+            ) : null}
             <DetailRow
               label="Prazo da garantia"
               value={warrantyPeriodLabel}
@@ -145,24 +150,24 @@ export default function WarrantyDetailView({
             <DetailRow label="Quantidade" value={warranty.quantity} />
           </dl>
 
-          {(unitValue || totalValue) ? (
+          {(fiscal.unitValue || fiscal.totalValue) ? (
             <div className="mt-4 space-y-3">
-              {unitValue ? (
+              {fiscal.unitValue ? (
                 <div>
                   <p className="text-sm text-gray-500">Valor unitário</p>
-                  <p className="text-2xl font-bold text-green-600">{unitValue}</p>
+                  <p className="text-2xl font-bold text-green-600">{fiscal.unitValue}</p>
                 </div>
               ) : null}
-              {showTotalValue && totalValue ? (
+              {fiscal.showTotalValue && fiscal.totalValue ? (
                 <div>
                   <p className="text-sm text-gray-500">Valor total</p>
-                  <p className="text-2xl font-bold text-green-600">{totalValue}</p>
+                  <p className="text-2xl font-bold text-green-600">{fiscal.totalValue}</p>
                 </div>
               ) : null}
-              {!unitValue && totalValue && !showTotalValue ? (
+              {!fiscal.unitValue && fiscal.totalValue && !fiscal.showTotalValue ? (
                 <div>
                   <p className="text-sm text-gray-500">Valor</p>
-                  <p className="text-2xl font-bold text-green-600">{totalValue}</p>
+                  <p className="text-2xl font-bold text-green-600">{fiscal.totalValue}</p>
                 </div>
               ) : null}
             </div>

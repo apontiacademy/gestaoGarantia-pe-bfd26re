@@ -1,4 +1,6 @@
+import type { ApiDocumentoFiscal } from "./documentoFiscalService";
 import { documentoFiscalService } from "./documentoFiscalService";
+import type { ApiGarantia } from "./garantiaService";
 import { garantiaService } from "./garantiaService";
 import {
   productService,
@@ -7,7 +9,9 @@ import {
 } from "./productService";
 import {
   apiGarantiaToWarranty,
+  mergeAttachmentMetadataFromLocal,
   buildDocumentoFiscalPayload,
+  buildDocumentoFiscalPayloadFromWarranty,
   buildObservacao,
   buildObservacaoFromWarranty,
   computePrazoDias,
@@ -78,6 +82,8 @@ export async function createWarrantyViaApi(
       quantity: form.quantity,
       value: form.value,
       purchaseDate: form.purchaseDate,
+      storeName: form.storeName,
+      attachmentUrl: form.attachments?.[0]?.url,
     })
   );
 
@@ -135,6 +141,83 @@ function getLoggedUserId(): number | null {
 
 export function isApiWarrantyId(id: string): boolean {
   return /^\d+$/.test(id);
+}
+
+async function syncDocumentoFiscalForProduto(
+  produtoId: number,
+  warranty: Warranty,
+  existing?: ApiDocumentoFiscal | null
+): Promise<ApiDocumentoFiscal | null | undefined> {
+  const payload = buildDocumentoFiscalPayloadFromWarranty(produtoId, warranty);
+  const { produto_id: _id, ...updateBody } = payload;
+
+  if (existing) {
+    try {
+      return await documentoFiscalService.update(produtoId, updateBody);
+    } catch {
+      return existing;
+    }
+  }
+
+  try {
+    return await documentoFiscalService.create(payload);
+  } catch {
+    return existing ?? null;
+  }
+}
+
+function attachDocumentoToProduto<T extends { produto?: ApiProduct | null }>(
+  garantia: T,
+  documento?: ApiDocumentoFiscal | null
+): T {
+  if (!documento || !garantia.produto) return garantia;
+  return {
+    ...garantia,
+    produto: { ...garantia.produto, documento_fiscal: documento },
+  };
+}
+
+function hasDocumentoFiscal(garantia: ApiGarantia): boolean {
+  return Boolean(garantia.produto?.documento_fiscal);
+}
+
+async function enrichGarantiaWithDocumento(
+  garantia: ApiGarantia
+): Promise<ApiGarantia> {
+  if (hasDocumentoFiscal(garantia)) return garantia;
+
+  try {
+    const detail = await garantiaService.getById(garantia.id);
+    if (!detail.produto?.documento_fiscal) return garantia;
+
+    return {
+      ...garantia,
+      produto: {
+        ...(garantia.produto ?? detail.produto)!,
+        documento_fiscal: detail.produto!.documento_fiscal,
+      },
+    };
+  } catch {
+    return garantia;
+  }
+}
+
+async function enrichGarantiasWithDocumento(
+  garantias: ApiGarantia[]
+): Promise<ApiGarantia[]> {
+  const needsEnrich = garantias.filter((g) => !hasDocumentoFiscal(g));
+  if (needsEnrich.length === 0) return garantias;
+
+  const enrichedById = new Map<number, ApiGarantia>();
+  await Promise.all(
+    needsEnrich.map(async (garantia) => {
+      enrichedById.set(garantia.id, await enrichGarantiaWithDocumento(garantia));
+    })
+  );
+
+  return garantias.map(
+    (garantia) => enrichedById.get(garantia.id) ?? garantia
+  );
 }
 
 export async function trashWarrantyViaApi(id: string): Promise<void> {
@@ -196,13 +279,18 @@ export async function updateWarrantyViaApi(
   if (newTitle && newTitle !== currentTitle) {
     await productService.update(produto.id, {
       nome: newTitle,
-      marca: "",
-      modelo: "",
+      marca: produto.marca?.trim() || "—",
+      modelo: produto.modelo?.trim() || "—",
     });
-    produtoAtualizado = { ...produto, nome: newTitle, marca: "", modelo: "" };
+    produtoAtualizado = {
+      ...produto,
+      nome: newTitle,
+      marca: produto.marca?.trim() || "—",
+      modelo: produto.modelo?.trim() || "—",
+    };
   }
 
-  const updated = await garantiaService.update(garantiaId, {
+  await garantiaService.update(garantiaId, {
     produto_id: garantia.produto_id,
     prazo_dias: prazoDias,
     data_inicio: dataInicio,
@@ -210,20 +298,40 @@ export async function updateWarrantyViaApi(
     observacao,
   });
 
-  const mapped = apiGarantiaToWarranty(
-    { ...updated, produto: produtoAtualizado },
-    merged.attachments
+  const enrichedGarantia = await garantiaService.getById(garantiaId);
+  const produtoAfterGarantia = enrichedGarantia.produto ?? produtoAtualizado;
+  const existingDoc = produtoAfterGarantia.documento_fiscal ?? null;
+
+  const documentoFiscal = await syncDocumentoFiscalForProduto(
+    produto.id,
+    merged,
+    existingDoc
   );
 
-  return {
-    ...mapped,
-    storeCnpj: merged.storeCnpj ?? mapped.storeCnpj,
-    nfNumber: merged.nfNumber ?? mapped.nfNumber,
-    quantity: merged.quantity ?? mapped.quantity,
-    value: merged.value ?? mapped.value,
-    unitValue: merged.unitValue ?? mapped.unitValue,
-    totalValue: merged.totalValue ?? mapped.totalValue,
-  };
+  const refreshed = await garantiaService.getById(garantiaId);
+  const produtoComDocumento = attachDocumentoToProduto(
+    { ...refreshed, produto: refreshed.produto ?? produtoAtualizado },
+    documentoFiscal ?? refreshed.produto?.documento_fiscal ?? existingDoc
+  );
+
+  return apiGarantiaToWarranty(produtoComDocumento, merged.attachments);
+}
+
+export async function fetchWarrantyByIdFromApi(
+  id: string,
+  local?: Warranty
+): Promise<Warranty | null> {
+  if (!isApiWarrantyId(id)) return null;
+
+  const garantia = await garantiaService.getById(Number(id));
+  const userId = getLoggedUserId();
+
+  if (userId != null && garantia.produto?.id_usuario !== userId) {
+    return null;
+  }
+
+  const mapped = apiGarantiaToWarranty(garantia);
+  return local ? mergeAttachmentMetadataFromLocal(mapped, local) : mapped;
 }
 
 export async function fetchWarrantiesFromApi(): Promise<Warranty[]> {
@@ -235,5 +343,7 @@ export async function fetchWarrantiesFromApi(): Promise<Warranty[]> {
       ? garantias.filter((g) => g.produto?.id_usuario === userId)
       : garantias;
 
-  return filtered.map((g) => apiGarantiaToWarranty(g));
+  const enriched = await enrichGarantiasWithDocumento(filtered);
+
+  return enriched.map((g) => apiGarantiaToWarranty(g));
 }

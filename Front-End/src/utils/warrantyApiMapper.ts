@@ -1,6 +1,5 @@
 import {
   buildWarrantyTitle,
-  getAttachmentUrl,
   normalizeAttachment,
   type Warranty,
   type WarrantyAttachment,
@@ -73,30 +72,6 @@ interface StoredAttachmentMeta {
   deleteToken?: string;
 }
 
-function serializeAttachmentsForMeta(
-  attachments?: WarrantyAttachment[]
-): StoredAttachmentMeta[] | undefined {
-  if (!attachments?.length) return undefined;
-
-  const stored: StoredAttachmentMeta[] = [];
-  for (const file of attachments) {
-    const url = getAttachmentUrl(normalizeAttachment(file));
-    if (!url || url.startsWith("data:")) continue;
-    stored.push({
-      id: file.id,
-      name: file.name,
-      mimeType: file.mimeType,
-      size: file.size,
-      url,
-      publicId: file.publicId,
-      resourceType: file.resourceType,
-      deleteToken: file.deleteToken,
-    });
-  }
-
-  return stored.length > 0 ? stored : undefined;
-}
-
 function attachmentsFromMeta(
   meta: WarrantyMeta
 ): WarrantyAttachment[] | undefined {
@@ -115,48 +90,64 @@ function attachmentsFromMeta(
   );
 }
 
+function fileNameFromUrl(url: string): string {
+  try {
+    const pathname = new URL(url).pathname;
+    const base = pathname.split("/").pop() ?? "";
+    return decodeURIComponent(base) || "Nota fiscal";
+  } catch {
+    return "Nota fiscal";
+  }
+}
+
+function mimeFromUrl(url: string): string {
+  const lower = url.toLowerCase();
+  if (lower.includes(".pdf")) return "application/pdf";
+  if (lower.includes(".png")) return "image/png";
+  if (lower.includes(".webp")) return "image/webp";
+  if (lower.includes(".jpg") || lower.includes(".jpeg")) return "image/jpeg";
+  return "application/octet-stream";
+}
+
+const CHAVE_ACESSO_MAX_LENGTH = 44;
+
+/** `chave_acesso` no back aceita no máximo 44 chars (chave NF-e). URLs de anexo não cabem. */
+function resolveDocumentoFiscalChaveAcesso(value?: string): string | undefined {
+  const trimmed = value?.trim();
+  if (!trimmed || trimmed.length > CHAVE_ACESSO_MAX_LENGTH) return undefined;
+  if (/^https?:\/\//i.test(trimmed)) return undefined;
+  return trimmed;
+}
+
+function attachmentsFromChaveAcesso(
+  doc?: ApiDocumentoFiscal
+): WarrantyAttachment[] | undefined {
+  const url = doc?.chave_acesso?.trim();
+  if (!url || !/^https?:\/\//i.test(url)) return undefined;
+
+  return [
+    normalizeAttachment({
+      id: `doc-fiscal-${doc!.id}`,
+      name: fileNameFromUrl(url),
+      mimeType: mimeFromUrl(url),
+      size: 0,
+      url,
+    }),
+  ];
+}
+
 function resolveWarrantyAttachments(
   meta: WarrantyMeta,
-  passed?: WarrantyAttachment[]
+  passed?: WarrantyAttachment[],
+  fromDocumento?: WarrantyAttachment[]
 ): WarrantyAttachment[] | undefined {
+  if (fromDocumento?.length) return fromDocumento;
   const fromMeta = attachmentsFromMeta(meta);
   if (fromMeta?.length) return fromMeta;
   if (passed?.length) {
     return passed.map((file) => normalizeAttachment(file));
   }
   return undefined;
-}
-
-function buildExpirationMeta(
-  form: CreateWarrantyFormData
-): Pick<WarrantyMeta, "expirationDate"> {
-  const expirationDate = computeExpirationDateBR(
-    form.purchaseDate,
-    form.warrantyPeriod,
-    form.warrantyUnit,
-    form.hasExtendedWarranty ? form.extendedExtraMonths : 0
-  );
-
-  return expirationDate ? { expirationDate } : {};
-}
-
-function buildMetaObject(form: CreateWarrantyFormData): WarrantyMeta {
-  return {
-    notes: form.notes?.trim() || undefined,
-    storeName: form.storeName?.trim() || undefined,
-    attachments: serializeAttachmentsForMeta(form.attachments),
-    ...buildExpirationMeta(form),
-    ...(form.hasExtendedWarranty
-      ? {
-          extendedWarrantyNumber:
-            form.extendedWarrantyNumber?.trim() || undefined,
-          extendedExtraMonths:
-            form.extendedExtraMonths > 0
-              ? form.extendedExtraMonths
-              : undefined,
-        }
-      : {}),
-  };
 }
 
 export function buildDocumentoFiscalPayload(
@@ -167,12 +158,20 @@ export function buildDocumentoFiscalPayload(
     quantity?: string;
     value?: string;
     purchaseDate: string;
+    storeName?: string;
+    /** Chave NF-e (44 dígitos). URL de anexo não é enviada — coluna VARCHAR(44). */
+    chaveAcesso?: string;
+    attachmentUrl?: string;
   }
 ): CreateDocumentoFiscalPayload {
   const cnpjDigits = onlyCnpjDigits(input.cnpj ?? "");
   const qty = Math.max(1, Number(input.quantity) || 1);
   const unitNum = parseCurrencyToNumber(input.value);
   const dataCompra = warrantyDateToIso(input.purchaseDate) || input.purchaseDate;
+  const storeName = input.storeName?.trim();
+  const chaveAcesso =
+    resolveDocumentoFiscalChaveAcesso(input.chaveAcesso) ??
+    resolveDocumentoFiscalChaveAcesso(input.attachmentUrl);
 
   return {
     produto_id: produtoId,
@@ -182,8 +181,37 @@ export function buildDocumentoFiscalPayload(
     valorInformado: true,
     data_compra: dataCompra,
     numero_nf: input.nfNumber?.trim() || "S/N",
+    serie_nota: storeName || undefined,
+    chave_acesso: chaveAcesso,
     tipo: "Nota Fiscal",
   };
+}
+
+export function buildDocumentoFiscalPayloadFromWarranty(
+  produtoId: number,
+  warranty: Pick<
+    Warranty,
+    | "storeCnpj"
+    | "nfNumber"
+    | "quantity"
+    | "unitValue"
+    | "totalValue"
+    | "value"
+    | "purchaseDate"
+    | "story"
+    | "attachments"
+  >
+): CreateDocumentoFiscalPayload {
+  const unitSource = warranty.unitValue ?? warranty.value;
+  return buildDocumentoFiscalPayload(produtoId, {
+    cnpj: warranty.storeCnpj,
+    nfNumber: warranty.nfNumber,
+    quantity: warranty.quantity,
+    value: unitSource,
+    purchaseDate: warranty.purchaseDate ?? "",
+    storeName: warranty.story,
+    attachmentUrl: warranty.attachments?.[0]?.url,
+  });
 }
 
 function documentoFiscalToWarrantyFields(
@@ -197,6 +225,7 @@ function documentoFiscalToWarrantyFields(
   | "unitValue"
   | "totalValue"
   | "purchaseDate"
+  | "story"
 > {
   const unitNum = parseDecimalValue(doc.valor_unitario);
   const totalNum = parseDecimalValue(doc.valor);
@@ -216,22 +245,11 @@ function documentoFiscalToWarrantyFields(
     nfNumber: doc.numero_nf || undefined,
     quantity: String(qty),
     purchaseDate: formatDateBRFromIso(doc.data_compra) || undefined,
+    story: doc.serie_nota?.trim() || undefined,
     unitValue,
     totalValue,
     value: totalValue ?? unitValue,
   };
-}
-
-function metaToJson(meta: WarrantyMeta): string {
-  const cleaned = Object.fromEntries(
-    Object.entries(meta).filter(([, v]) => {
-      if (v === undefined || v === null) return false;
-      if (Array.isArray(v)) return v.length > 0;
-      if (typeof v === "string") return v.trim() !== "";
-      return true;
-    })
-  );
-  return JSON.stringify(cleaned);
 }
 
 export function warrantyDateToIso(date?: string): string {
@@ -266,31 +284,9 @@ export function computePrazoDiasFromDates(
 }
 
 export function buildObservacaoFromWarranty(
-  warranty: Pick<
-    Warranty,
-    | "notes"
-    | "story"
-    | "expirationDate"
-    | "attachments"
-  >
+  warranty: Pick<Warranty, "notes">
 ): string {
-  const meta: WarrantyMeta = {
-    notes: warranty.notes?.trim() || undefined,
-    storeName: warranty.story?.trim() || undefined,
-    expirationDate: warranty.expirationDate?.trim() || undefined,
-    attachments: serializeAttachmentsForMeta(warranty.attachments),
-  };
-
-  const json = metaToJson(meta);
-  if (json === "{}") return "";
-
-  const userNotes = meta.notes ?? "";
-  const metaBlock = `${META_MARKER}\n${json}`;
-
-  if (userNotes) {
-    return `${userNotes}\n\n${metaBlock}`;
-  }
-  return metaBlock;
+  return warranty.notes?.trim() ?? "";
 }
 
 export function computePrazoDias(form: CreateWarrantyFormData): number {
@@ -307,17 +303,7 @@ export function computePrazoDias(form: CreateWarrantyFormData): number {
 }
 
 export function buildObservacao(form: CreateWarrantyFormData): string {
-  const meta = buildMetaObject(form);
-  const json = metaToJson(meta);
-  if (json === "{}") return "";
-
-  const userNotes = meta.notes ?? "";
-  const metaBlock = `${META_MARKER}\n${json}`;
-
-  if (userNotes) {
-    return `${userNotes}\n\n${metaBlock}`;
-  }
-  return metaBlock;
+  return form.notes?.trim() ?? "";
 }
 
 function parseObservacao(observacao?: string | null): {
@@ -403,6 +389,38 @@ function resolveValuesFromMeta(meta: WarrantyMeta): Pick<
   };
 }
 
+/** Mescla metadados de anexo (publicId, deleteToken) do cache local quando a URL coincide. */
+export function mergeAttachmentMetadataFromLocal(
+  warranty: Warranty,
+  local?: Warranty
+): Warranty {
+  if (!local?.attachments?.length || !warranty.attachments?.length) {
+    return warranty;
+  }
+
+  const localByUrl = new Map(
+    local.attachments
+      .filter((file) => file.url)
+      .map((file) => [file.url!, file] as const)
+  );
+
+  const attachments = warranty.attachments.map((file) => {
+    const cached = file.url ? localByUrl.get(file.url) : undefined;
+    if (!cached) return file;
+    return normalizeAttachment({
+      ...file,
+      publicId: file.publicId ?? cached.publicId,
+      resourceType: file.resourceType ?? cached.resourceType,
+      deleteToken: file.deleteToken ?? cached.deleteToken,
+      name: file.name || cached.name,
+      mimeType: file.mimeType || cached.mimeType,
+      size: file.size || cached.size,
+    });
+  });
+
+  return { ...warranty, attachments };
+}
+
 export function apiGarantiaToWarranty(
   garantia: ApiGarantia,
   attachments?: WarrantyAttachment[]
@@ -422,8 +440,10 @@ export function apiGarantiaToWarranty(
     storeCnpj: meta.storeCnpj,
     nfNumber: meta.nfNumber,
     quantity: meta.quantity,
+    story: meta.storeName,
     ...resolveValuesFromMeta(meta),
   };
+  const attachmentsFromDoc = attachmentsFromChaveAcesso(doc);
 
   const purchaseDate =
     fiscalFromDoc.purchaseDate ||
@@ -451,7 +471,7 @@ export function apiGarantiaToWarranty(
   return {
     id: String(garantia.id),
     title,
-    story: meta.storeName,
+    story: fiscalFromDoc.story ?? fiscalFromMeta.story,
     storeCnpj: fiscalFromDoc.storeCnpj ?? fiscalFromMeta.storeCnpj,
     nfNumber: fiscalFromDoc.nfNumber ?? fiscalFromMeta.nfNumber,
     quantity: fiscalFromDoc.quantity ?? fiscalFromMeta.quantity,
@@ -464,7 +484,11 @@ export function apiGarantiaToWarranty(
     unitValue: fiscalFromDoc.unitValue ?? fiscalFromMeta.unitValue,
     totalValue: fiscalFromDoc.totalValue ?? fiscalFromMeta.totalValue,
     notes: notes || undefined,
-    attachments: resolveWarrantyAttachments(meta, attachments),
+    attachments: resolveWarrantyAttachments(
+      meta,
+      attachments,
+      attachmentsFromDoc
+    ),
     status: mapApiStatusToUi(garantia.status) ?? statusInfo.status,
     daysToExpire: statusInfo.daysToExpire,
     deletedAt: garantia.deletado_em

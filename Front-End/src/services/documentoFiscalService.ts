@@ -27,7 +27,15 @@ export interface CreateDocumentoFiscalPayload {
   tipo: string;
 }
 
+export type UpdateDocumentoFiscalPayload = Omit<
+  CreateDocumentoFiscalPayload,
+  "produto_id"
+>;
+
 export const documentoFiscalService = {
   create: (data: CreateDocumentoFiscalPayload) =>
     api.post<ApiDocumentoFiscal>("/documento-fiscal", data),
+
+  update: (produtoId: number, data: UpdateDocumentoFiscalPayload) =>
+    api.put<ApiDocumentoFiscal>(`/documento-fiscal/${produtoId}`, data),
 };

@@ -29,6 +29,7 @@ import {
   updateWarrantyViaApi,
 } from "../services/warrantyApiService";
 import type { CreateWarrantyFormData } from "../utils/warrantyApiMapper";
+import { mergeAttachmentMetadataFromLocal } from "../utils/warrantyApiMapper";
 import { deleteWarrantyAttachmentsFromCloudinary } from "../utils/warrantyCloudinaryCleanup";
 import { GARANTIAS_SESSION_EVENT } from "./AuthContext";
 
@@ -57,30 +58,6 @@ const WarrantyContext = createContext<WarrantyContextData>(
   {} as WarrantyContextData
 );
 
-const FISCAL_CACHE_FIELDS = [
-  "storeCnpj",
-  "nfNumber",
-  "quantity",
-  "value",
-  "unitValue",
-  "totalValue",
-] as const satisfies readonly (keyof Warranty)[];
-
-function mergeFiscalFieldsFromLocal(
-  warranty: Warranty,
-  local?: Warranty
-): Warranty {
-  if (!local) return warranty;
-
-  const merged = { ...warranty };
-  for (const field of FISCAL_CACHE_FIELDS) {
-    if (!merged[field] && local[field]) {
-      merged[field] = local[field];
-    }
-  }
-  return merged;
-}
-
 export function WarrantyProvider({ children }: { children: ReactNode }) {
   const { pushNotification } = useNotifications();
   const [warranties, setWarranties] = useState<Warranty[]>(() => {
@@ -107,7 +84,7 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
       const localById = new Map(local.map((w) => [w.id, w] as const));
       const activeFromApi = fromApi.map((w) => {
         const cached = localById.get(w.id);
-        return mergeFiscalFieldsFromLocal(
+        return mergeAttachmentMetadataFromLocal(
           {
             ...w,
             attachments: w.attachments?.length
@@ -175,7 +152,9 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
 
   const updateWarranty = useCallback(
     async (id: string, updates: WarrantyUpdate) => {
-      const current = warranties.find((w) => w.id === id);
+      const current =
+        getWarranties().find((w) => w.id === id) ??
+        warranties.find((w) => w.id === id);
       if (!current) {
         return { success: false as const, error: "Garantia não encontrada." };
       }

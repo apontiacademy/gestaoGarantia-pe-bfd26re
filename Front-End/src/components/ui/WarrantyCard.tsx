@@ -1,5 +1,9 @@
 import React from "react";
-import { getWarrantyStatus } from "../../utils/warrantyStatus";
+import {
+  getWarrantyExpirationInfo,
+  resolveWarrantyFiscalDisplay,
+} from "../../utils/warrantyDisplay";
+import type { WarrantyUiStatus } from "../../utils/warrantyStatus";
 
 interface WarrantyCardProps {
   title: string;
@@ -9,8 +13,11 @@ interface WarrantyCardProps {
   purchaseDate?: string; // data de compra
   expirationDate?: string; //data de vencimento
   warrantyType?: string; //tipo de garantia (de fabrica ou extendida)
-  value?: string; //valor da garantia/aparelho
-  status?: string;
+  quantity?: string;
+  value?: string; //valor total (legado / compatibilidade)
+  unitValue?: string;
+  totalValue?: string;
+  status?: WarrantyUiStatus;
   daysToExpire?: number | null;
 
   variant: "home" | "trash"; // variação do card para lixeira ou home
@@ -29,7 +36,10 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
   purchaseDate,
   expirationDate,
   warrantyType,
+  quantity,
   value,
+  unitValue,
+  totalValue,
   status: statusProp,
   daysToExpire: daysToExpireProp,
   variant,
@@ -39,14 +49,19 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
   onSelect,
   warrantyId,
 }) => {
-  const warrantyInfo = getWarrantyStatus({
-    expirationDate,
-    status: statusProp,
-    daysToExpire: daysToExpireProp,
-  });
+  const { status: currentStatus, daysToExpire: currentDaysToExpire } =
+    getWarrantyExpirationInfo({
+      expirationDate,
+      status: statusProp,
+      daysToExpire: daysToExpireProp,
+    });
 
-  const currentStatus = warrantyInfo.status;
-  const currentDaysToExpire = warrantyInfo.daysToExpire;
+  const fiscal = resolveWarrantyFiscalDisplay({
+    quantity,
+    unitValue,
+    totalValue,
+    value,
+  });
 
   // Verifica se há algum campo de detalhe para renderizar o bloco do meio
   const hasDetails =
@@ -59,7 +74,10 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
   const hasHeaderRight = variant === "trash" || currentStatus;
 
   // Verifica se há valor para exibir no rodapé
-  const hasFooter = value || variant === "home" || variant === "trash";
+  const hasFooter =
+    fiscal.totalValue ||
+    variant === "home" ||
+    variant === "trash";
 
   const statusColor =
     currentStatus === "Ativo"
@@ -163,10 +181,10 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
         <>
           <div className="border-t border-gray/90 mb-3 transition-colors duration-200 group-hover:border-gray" />
           <div className="flex justify-between items-center gap-3 min-w-0">
-            {value ? (
+            {fiscal.totalValue ? (
               <p className="text-sm text-gray-dark font-medium min-w-0 wrap-break-word">
                 <span className="font-semibold">Valor </span>
-                {value}
+                {fiscal.totalValue}
               </p>
             ) : (
               <span className="min-w-0 flex-1" />

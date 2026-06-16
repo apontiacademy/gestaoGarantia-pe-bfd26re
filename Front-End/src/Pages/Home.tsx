@@ -119,7 +119,10 @@ export default function Home() {
               purchaseDate,
               expirationDate,
               warrantyType,
+              quantity,
               value,
+              unitValue,
+              totalValue,
               status,
               daysToExpire,
             }) => (
@@ -132,7 +135,10 @@ export default function Home() {
                 purchaseDate={purchaseDate}
                 expirationDate={expirationDate}
                 warrantyType={warrantyType}
+                quantity={quantity}
                 value={value}
+                unitValue={unitValue}
+                totalValue={totalValue}
                 status={status}
                 daysToExpire={daysToExpire}
                 onViewMore={() => {
