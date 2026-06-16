@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { userService } from '../services/userService';
 import { uploadImageToCloudinary } from '../services/cloudinaryService';
 import { Bolt } from 'lucide-react';
+import { getApiErrorMessage } from '../utils/apiError';
 
 type Section = 'profile' | 'password';
 
@@ -121,9 +122,7 @@ export default function Settings() {
       setPasswordForm({ senhaAtual: '', novaSenha: '', confirmar: '' });
       setPasswordSuccess('Senha alterada com sucesso!');
     } catch (err) {
-      setPasswordError(
-        err instanceof Error ? err.message : 'Erro ao alterar senha.'
-      );
+      setPasswordError(getApiErrorMessage(err, 'Erro ao alterar senha.'));
     } finally {
       setSavingPassword(false);
     }
