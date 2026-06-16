@@ -11,6 +11,7 @@ export interface ApiDocumentoFiscal {
   numero_nf: string;
   serie_nota?: string | null;
   chave_acesso?: string | null;
+  urlCloudinary?: string | null;
   tipo: string;
 }
 
@@ -24,6 +25,7 @@ export interface CreateDocumentoFiscalPayload {
   numero_nf: string;
   serie_nota?: string;
   chave_acesso?: string;
+  urlCloudinary?: string | null;
   tipo: string;
 }
 
