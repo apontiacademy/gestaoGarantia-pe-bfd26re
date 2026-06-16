@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 
-const controller = require('../controllers/notificacaoController');
+const controller = require('../controllers/Notificacao');
 
 function autenticarToken(req, res, next) {
 
