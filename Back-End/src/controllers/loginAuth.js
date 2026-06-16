@@ -4,41 +4,51 @@ const bcrypt = require('bcrypt');
 const { compararSenha } = require("../utils/hash");
 const SibApiV3Sdk = require('sib-api-v3-sdk');
 
+// Configuração do Brevo
 const sibClient = SibApiV3Sdk.ApiClient.instance;
 sibClient.authentications['api-key'].apiKey = process.env.BREVO_API_KEY;
 
 const transactionalApi = new SibApiV3Sdk.TransactionalEmailsApi();
 
-// ── Função interna de envio de email ─────────────────────
+// Função auxiliar para enviar email
 async function enviarEmail(destinatario, codigo) {
-  const email = new SibApiV3Sdk.SendSmtpEmail();
+  const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
-  email.subject = 'Código de Verificação - Aponti';
-  email.htmlContent = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <h2>Redefinição de senha</h2>
+  sendSmtpEmail.subject = "Código de Verificação - Aponti";
+  sendSmtpEmail.htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px;">
+      <h2>Redefinição de Senha</h2>
       <p>Utilize o código abaixo para redefinir sua senha:</p>
-      <h1 style="font-size: 32px; letter-spacing: 8px; color: #6d28d9; text-align: center; margin: 20px 0;">
+      
+      <h1 style="font-size: 36px; letter-spacing: 10px; color: #6d28d9; text-align: center; margin: 25px 0;">
         ${codigo}
       </h1>
+      
       <p style="color: #666; font-size: 14px;">
         Este código é válido por <strong>20 minutos</strong>.<br>
         Se você não solicitou esta redefinição, ignore este email.
       </p>
     </div>
   `;
-  email.sender = { name: 'Aponti', email: 'gabrifelipegf@gmail.com' };
-  email.to = [{ email: destinatario }];
 
-  await transactionalApi.sendTransacEmail(email);
+  sendSmtpEmail.sender = { name: "Aponti", email: "gabrifelipegf@gmail.com" }; // Troque depois por um email do domínio
+  sendSmtpEmail.to = [{ email: destinatario }];
+
+  try {
+    await transactionalApi.sendTransacEmail(sendSmtpEmail);
+    console.log(`✅ Email enviado para ${destinatario}`);
+  } catch (error) {
+    console.error("❌ Erro ao enviar email via Brevo:", error);
+    throw error;
+  }
 }
 
-// ── Login ─────────────────────────────────────────────────
+// ── LOGIN ─────────────────────────────────────────────────
 async function Login(req, res) {
-  const { email, senha } = req.body;
+  const { email, senha } = req.body || {};
 
   if (!email || !senha) {
-    return res.status(400).json({ error: "Todos os campos são obrigatórios" });
+    return res.status(400).json({ error: "Email e senha são obrigatórios" });
   }
 
   try {
@@ -76,6 +86,57 @@ async function Login(req, res) {
   }
 }
 
+// ── ESQUECI SENHA ─────────────────────────────────────────
+async function EsqueciSenha(req, res) {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "Email é obrigatório" });
+  }
+
+  try {
+    const usuario = await Usuario.findOne({ 
+      where: { email: email.toLowerCase() } 
+    });
+
+    if (!usuario) {
+      return res.status(200).json({ message: "Código de recuperação enviado" });
+    }
+
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const resetToken = jwt.sign(
+      {
+        id_usuario: usuario.id,
+        email: usuario.email,
+        codigo: resetCode,
+        tipo: "reset_password"
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '20m' }
+    );
+
+    await enviarEmail(usuario.email, resetCode);
+
+    return res.status(200).json({
+      message: "Código de recuperação enviado",
+      resetToken
+    });
+
+  } catch (err) {
+    console.error("Erro ao processar EsqueciSenha:", err);
+    return res.status(500).json({ error: "Erro ao enviar código de recuperação" });
+  }
+}
+
+module.exports = { 
+  Login, 
+  AlterarSenha, 
+  EsqueciSenha, 
+  VerificarCodigoReset, 
+  ResetarSenha 
+};
+
 // ── Alterar senha (usuário logado) ────────────────────────
 async function AlterarSenha(req, res) {
   const { senha, novaSenha } = req.body;
@@ -107,49 +168,6 @@ async function AlterarSenha(req, res) {
   } catch (error) {
     console.error("Erro ao alterar senha:", error);
     return res.status(500).json({ error: "Erro ao alterar senha" });
-  }
-}
-
-// ── Esqueci minha senha ───────────────────────────────────
-async function EsqueciSenha(req, res) {
-  const { email } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ error: "Email é obrigatório" });
-  }
-
-  try {
-    const usuario = await Usuario.findOne({
-      where: { email: email.toLowerCase() }
-    });
-
-    if (!usuario) {
-      return res.status(200).json({ message: "Código de recuperação enviado" });
-    }
-
-    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-    const resetToken = jwt.sign(
-      {
-        id_usuario: usuario.id,
-        email: usuario.email,
-        codigo: resetCode,
-        tipo: "reset_password"
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '20m' }
-    );
-
-    await enviarEmail(usuario.email, resetCode);
-
-    return res.status(200).json({
-      message: "Código de recuperação enviado",
-      resetToken
-    });
-
-  } catch (err) {
-    console.error("Erro ao processar EsqueciSenha:", err);
-    return res.status(500).json({ error: "Erro ao enviar código de recuperação" });
   }
 }
 
