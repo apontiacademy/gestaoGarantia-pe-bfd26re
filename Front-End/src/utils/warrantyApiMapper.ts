@@ -119,10 +119,23 @@ function resolveDocumentoFiscalChaveAcesso(value?: string): string | undefined {
   return trimmed;
 }
 
-function attachmentsFromChaveAcesso(
+/** URL pública do anexo no Cloudinary (campo `urlCloudinary` no back-end). */
+function resolveUrlCloudinary(
+  value?: string | null
+): string | null | undefined {
+  if (value === null) return null;
+  const trimmed = value?.trim();
+  if (!trimmed) return undefined;
+  if (!/^https?:\/\//i.test(trimmed)) return undefined;
+  return trimmed;
+}
+
+function attachmentsFromDocumento(
   doc?: ApiDocumentoFiscal
 ): WarrantyAttachment[] | undefined {
-  const url = doc?.chave_acesso?.trim();
+  const url =
+    doc?.urlCloudinary?.trim() ||
+    doc?.chave_acesso?.trim();
   if (!url || !/^https?:\/\//i.test(url)) return undefined;
 
   return [
@@ -159,9 +172,10 @@ export function buildDocumentoFiscalPayload(
     value?: string;
     purchaseDate: string;
     storeName?: string;
-    /** Chave NF-e (44 dígitos). URL de anexo não é enviada — coluna VARCHAR(44). */
+    /** Chave NF-e (44 dígitos). */
     chaveAcesso?: string;
-    attachmentUrl?: string;
+    /** URL do anexo no Cloudinary; `null` limpa o campo no update. */
+    attachmentUrl?: string | null;
   }
 ): CreateDocumentoFiscalPayload {
   const cnpjDigits = onlyCnpjDigits(input.cnpj ?? "");
@@ -169,9 +183,11 @@ export function buildDocumentoFiscalPayload(
   const unitNum = parseCurrencyToNumber(input.value);
   const dataCompra = warrantyDateToIso(input.purchaseDate) || input.purchaseDate;
   const storeName = input.storeName?.trim();
-  const chaveAcesso =
-    resolveDocumentoFiscalChaveAcesso(input.chaveAcesso) ??
-    resolveDocumentoFiscalChaveAcesso(input.attachmentUrl);
+  const chaveAcesso = resolveDocumentoFiscalChaveAcesso(input.chaveAcesso);
+  const urlCloudinary =
+    input.attachmentUrl === null
+      ? null
+      : resolveUrlCloudinary(input.attachmentUrl);
 
   return {
     produto_id: produtoId,
@@ -183,6 +199,7 @@ export function buildDocumentoFiscalPayload(
     numero_nf: input.nfNumber?.trim() || "S/N",
     serie_nota: storeName || undefined,
     chave_acesso: chaveAcesso,
+    urlCloudinary,
     tipo: "Nota Fiscal",
   };
 }
@@ -203,6 +220,13 @@ export function buildDocumentoFiscalPayloadFromWarranty(
   >
 ): CreateDocumentoFiscalPayload {
   const unitSource = warranty.unitValue ?? warranty.value;
+  const hasAttachments = Boolean(warranty.attachments?.length);
+  const attachmentUrl = hasAttachments
+    ? warranty.attachments?.[0]?.url
+    : warranty.attachments?.length === 0
+      ? null
+      : undefined;
+
   return buildDocumentoFiscalPayload(produtoId, {
     cnpj: warranty.storeCnpj,
     nfNumber: warranty.nfNumber,
@@ -210,7 +234,7 @@ export function buildDocumentoFiscalPayloadFromWarranty(
     value: unitSource,
     purchaseDate: warranty.purchaseDate ?? "",
     storeName: warranty.story,
-    attachmentUrl: warranty.attachments?.[0]?.url,
+    attachmentUrl,
   });
 }
 
@@ -389,24 +413,40 @@ function resolveValuesFromMeta(meta: WarrantyMeta): Pick<
   };
 }
 
-/** Mescla metadados de anexo (publicId, deleteToken) do cache local quando a URL coincide. */
+/** Mescla anexos da API com cache local (URL do servidor + metadados locais). */
 export function mergeAttachmentMetadataFromLocal(
   warranty: Warranty,
   local?: Warranty
 ): Warranty {
-  if (!local?.attachments?.length || !warranty.attachments?.length) {
+  const fromApi = warranty.attachments;
+  const fromLocal = local?.attachments;
+
+  const baseAttachments = fromApi?.length
+    ? fromApi
+    : fromLocal?.length
+      ? fromLocal
+      : undefined;
+
+  if (!baseAttachments?.length) {
     return warranty;
   }
 
+  if (!fromLocal?.length) {
+    return {
+      ...warranty,
+      attachments: baseAttachments.map((file) => normalizeAttachment(file)),
+    };
+  }
+
   const localByUrl = new Map(
-    local.attachments
+    fromLocal
       .filter((file) => file.url)
       .map((file) => [file.url!, file] as const)
   );
 
-  const attachments = warranty.attachments.map((file) => {
+  const attachments = baseAttachments.map((file) => {
     const cached = file.url ? localByUrl.get(file.url) : undefined;
-    if (!cached) return file;
+    if (!cached) return normalizeAttachment(file);
     return normalizeAttachment({
       ...file,
       publicId: file.publicId ?? cached.publicId,
@@ -443,7 +483,7 @@ export function apiGarantiaToWarranty(
     story: meta.storeName,
     ...resolveValuesFromMeta(meta),
   };
-  const attachmentsFromDoc = attachmentsFromChaveAcesso(doc);
+  const attachmentsFromDoc = attachmentsFromDocumento(doc);
 
   const purchaseDate =
     fiscalFromDoc.purchaseDate ||

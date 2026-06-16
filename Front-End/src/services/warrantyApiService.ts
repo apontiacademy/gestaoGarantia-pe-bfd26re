@@ -1,4 +1,8 @@
-import type { ApiDocumentoFiscal } from "./documentoFiscalService";
+import type {
+  ApiDocumentoFiscal,
+  CreateDocumentoFiscalPayload,
+  UpdateDocumentoFiscalPayload,
+} from "./documentoFiscalService";
 import { documentoFiscalService } from "./documentoFiscalService";
 import type { ApiGarantia } from "./garantiaService";
 import { garantiaService } from "./garantiaService";
@@ -25,6 +29,14 @@ import {
   type Warranty,
   type WarrantyUpdate,
 } from "./warrantyService";
+
+function toUpdateDocumentoFiscalPayload(
+  payload: CreateDocumentoFiscalPayload
+): UpdateDocumentoFiscalPayload {
+  const { produto_id, ...updateBody } = payload;
+  void produto_id;
+  return updateBody;
+}
 
 function isApiProduct(value: unknown): value is ApiProduct {
   if (typeof value !== "object" || value === null) return false;
@@ -75,17 +87,25 @@ export async function createWarrantyViaApi(
 
   const produtoId = await resolveProductId({ nome, marca, modelo });
 
-  const documentoFiscal = await documentoFiscalService.create(
-    buildDocumentoFiscalPayload(produtoId, {
-      cnpj: form.cnpj,
-      nfNumber: form.nfNumber,
-      quantity: form.quantity,
-      value: form.value,
-      purchaseDate: form.purchaseDate,
-      storeName: form.storeName,
-      attachmentUrl: form.attachments?.[0]?.url,
-    })
-  );
+  const documentoPayload = buildDocumentoFiscalPayload(produtoId, {
+    cnpj: form.cnpj,
+    nfNumber: form.nfNumber,
+    quantity: form.quantity,
+    value: form.value,
+    purchaseDate: form.purchaseDate,
+    storeName: form.storeName,
+    attachmentUrl: form.attachments?.[0]?.url,
+  });
+
+  let documentoFiscal = await documentoFiscalService.create(documentoPayload);
+
+  const attachmentUrl = form.attachments?.[0]?.url;
+  if (attachmentUrl && !documentoFiscal.urlCloudinary) {
+    documentoFiscal = await documentoFiscalService.update(
+      produtoId,
+      toUpdateDocumentoFiscalPayload(documentoPayload)
+    );
+  }
 
   const garantia = await garantiaService.create({
     produto_id: produtoId,
@@ -147,23 +167,17 @@ async function syncDocumentoFiscalForProduto(
   produtoId: number,
   warranty: Warranty,
   existing?: ApiDocumentoFiscal | null
-): Promise<ApiDocumentoFiscal | null | undefined> {
+): Promise<ApiDocumentoFiscal> {
   const payload = buildDocumentoFiscalPayloadFromWarranty(produtoId, warranty);
-  const { produto_id: _id, ...updateBody } = payload;
 
   if (existing) {
-    try {
-      return await documentoFiscalService.update(produtoId, updateBody);
-    } catch {
-      return existing;
-    }
+    return documentoFiscalService.update(
+      produtoId,
+      toUpdateDocumentoFiscalPayload(payload)
+    );
   }
 
-  try {
-    return await documentoFiscalService.create(payload);
-  } catch {
-    return existing ?? null;
-  }
+  return documentoFiscalService.create(payload);
 }
 
 function attachDocumentoToProduto<T extends { produto?: ApiProduct | null }>(
@@ -331,7 +345,17 @@ export async function fetchWarrantyByIdFromApi(
   }
 
   const mapped = apiGarantiaToWarranty(garantia);
-  return local ? mergeAttachmentMetadataFromLocal(mapped, local) : mapped;
+  if (!local) return mapped;
+
+  return mergeAttachmentMetadataFromLocal(
+    {
+      ...mapped,
+      attachments: mapped.attachments?.length
+        ? mapped.attachments
+        : local.attachments,
+    },
+    local
+  );
 }
 
 export async function fetchWarrantiesFromApi(): Promise<Warranty[]> {
