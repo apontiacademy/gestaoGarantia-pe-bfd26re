@@ -36,18 +36,21 @@ function App() {
           </Route>
           
           {/* Fluxo de Recuperação de Senha */}
-          <Route path="/forgot-password" element={
-            <PublicRoute><ForgotPassword /></PublicRoute>
-          } />
-          <Route path="/reset-password" element={
-            <PublicRoute><ResetPassword /></PublicRoute>
-          } />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           
-          <Route path="/lixeira" element={<LixeiraScreen />} />
+          {/* Deixando a lixeira protegida para visitantes se necessário, ou mantenha livre se preferir */}
+          <Route 
+            path="/lixeira" 
+            element={
+              <ProtectedRoute>
+                <LixeiraScreen />
+              </ProtectedRoute>
+            } 
+          />
           
-          <Route path="/home" element={
-              <ProtectedRoute><Home /></ProtectedRoute>
-          }/>
+          {/* ROTA DA HOME ALTERADA (OPÇÃO B): Removido o ProtectedRoute para o visitante acessar o Dashboard */}
+          <Route path="/home" element={<Home />} />
 
           <Route
             path="/create-warranty"

@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const notificacaoRoutes = require('./notificacao.routes');
 
 // Importação das rotas da aplicação
 const authRoutes = require('./auth.routes');
@@ -14,5 +15,6 @@ router.use(userRoutes);
 router.use(equipmentRoutes);
 router.use(garantiaRoutes);
 router.use(documentoFiscalRoutes);
+router.use(notificacaoRoutes);
 
 module.exports = router;

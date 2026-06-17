@@ -1,6 +1,8 @@
 import type { Warranty } from "../services/warrantyService";
 import { formatCnpj } from "./cnpj";
+import { formatCurrencyBRL, parseCurrencyInput } from "./currency";
 import { parseWarrantyDate } from "./warrantyDates";
+import { resolveWarrantyFiscalDisplay } from "./warrantyDisplay";
 
 export interface WarrantyFormValues {
   title: string;
@@ -21,6 +23,8 @@ export const WARRANTY_TYPE_OPTIONS = [
 ] as const;
 
 export function warrantyToFormValues(warranty: Warranty): WarrantyFormValues {
+  const fiscal = resolveWarrantyFiscalDisplay(warranty);
+
   return {
     title: warranty.title ?? "",
     story: warranty.story ?? "",
@@ -30,7 +34,7 @@ export function warrantyToFormValues(warranty: Warranty): WarrantyFormValues {
     purchaseDate: warranty.purchaseDate ?? "",
     expirationDate: warranty.expirationDate ?? "",
     warrantyType: warranty.warrantyType ?? WARRANTY_TYPE_OPTIONS[0],
-    value: warranty.value ?? "",
+    value: fiscal.unitValue ?? fiscal.totalValue ?? "",
     notes: warranty.notes ?? "",
   };
 }
@@ -49,6 +53,14 @@ export function validateWarrantyForm(
 
   if (!values.title.trim()) {
     errors.title = "Informe o nome do produto.";
+  }
+
+  if (!values.purchaseDate.trim()) {
+    errors.purchaseDate = "Informe a data de compra.";
+  }
+
+  if (!values.expirationDate.trim()) {
+    errors.expirationDate = "Informe a data de vencimento.";
   }
 
   if (!isValidDateBR(values.purchaseDate)) {
@@ -80,6 +92,13 @@ export function formValuesToWarrantyUpdate(
   values: WarrantyFormValues
 ): Omit<Warranty, "id" | "deletedAt"> {
   const trim = (s: string) => s.trim();
+  const qty = Math.max(1, Number(trim(values.quantity)) || 1);
+  const unitNum = parseCurrencyInput(trim(values.value));
+  const unitValue =
+    unitNum > 0 ? formatCurrencyBRL(unitNum) : undefined;
+  const totalValue =
+    unitNum > 0 ? formatCurrencyBRL(unitNum * qty) : undefined;
+
   return {
     title: trim(values.title),
     story: trim(values.story) || undefined,
@@ -91,7 +110,9 @@ export function formValuesToWarrantyUpdate(
     purchaseDate: trim(values.purchaseDate) || undefined,
     expirationDate: trim(values.expirationDate) || undefined,
     warrantyType: trim(values.warrantyType) || undefined,
-    value: trim(values.value) || undefined,
+    unitValue,
+    totalValue,
+    value: totalValue ?? unitValue,
     notes: trim(values.notes) || undefined,
   };
 }

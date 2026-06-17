@@ -1,6 +1,12 @@
 import Input from "../ui/Input";
 import { formatCnpj } from "../../utils/cnpj";
 import {
+  calculateTotalFromUnit,
+  formatCurrencyFromDigits,
+  handleCurrencyInputKeyDown,
+  handleCurrencyInputPaste,
+} from "../../utils/currency";
+import {
   WARRANTY_TYPE_OPTIONS,
   type WarrantyFormValues,
 } from "../../utils/warrantyForm";
@@ -21,6 +27,15 @@ export default function WarrantyFormFields({
   disabled = false,
   onChange,
 }: WarrantyFormFieldsProps) {
+  const qty = Number(values.quantity);
+  const showTotalValue = qty > 1;
+  const totalValueLabel = calculateTotalFromUnit(values.value, values.quantity);
+
+  function handleUnitValueChange(raw: string): void {
+    const digits = raw.replace(/\D/g, "");
+    onChange("value", formatCurrencyFromDigits(digits));
+  }
+
   return (
     <div className="space-y-4">
       <Input
@@ -66,6 +81,7 @@ export default function WarrantyFormFields({
           onChange={(e) => onChange("quantity", e.target.value)}
           disabled={disabled}
           error={errors.quantity}
+          inputMode="numeric"
         />
       </div>
 
@@ -109,13 +125,26 @@ export default function WarrantyFormFields({
       </div>
 
       <Input
-        label="Valor"
+        label="Valor unitário do produto"
+        type="text"
+        inputMode="numeric"
         value={values.value}
-        onChange={(e) => onChange("value", e.target.value)}
+        onChange={(e) => handleUnitValueChange(e.target.value)}
+        onKeyDown={handleCurrencyInputKeyDown}
+        onPaste={(e) =>
+          handleCurrencyInputPaste(e, (formatted) => onChange("value", formatted))
+        }
         disabled={disabled}
         error={errors.value}
-        placeholder="Ex.: R$ 1.000,00"
+        placeholder="R$ 0,00"
       />
+
+      {showTotalValue && values.quantity ? (
+        <div className="bg-purple-50 border border-primary-start rounded-xl p-4">
+          <p className="text-sm text-gray-600">Valor total</p>
+          <p className="text-xl font-bold text-primary-start">{totalValueLabel}</p>
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-1 w-full">
         <label htmlFor="warranty-notes" className="text-sm font-semibold text-gray-700 ml-1">

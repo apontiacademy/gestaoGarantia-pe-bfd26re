@@ -146,7 +146,10 @@ export default function LixeiraScreen() {
                 purchaseDate={item.purchaseDate}
                 expirationDate={item.expirationDate}
                 warrantyType={item.warrantyType}
+                quantity={item.quantity}
                 value={item.value}
+                unitValue={item.unitValue}
+                totalValue={item.totalValue}
                 status={item.status}
                 daysToExpire={item.daysToExpire}
                 variant="trash"

@@ -25,5 +25,8 @@ export const userService = {
     api.put<UserProfile>("/users/me", data),
 
   changePassword: (data: ChangePasswordPayload) =>
-    api.post<{ message: string }>("/auth/change-password", data),
+    api.post<{ message: string }>("/auth/change-password", {
+      senha: data.senhaAtual,
+      novaSenha: data.novaSenha,
+    }),
 };

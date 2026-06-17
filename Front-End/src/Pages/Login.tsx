@@ -42,6 +42,14 @@ export default function Login() {
     }
   };
 
+  // FUNÇÃO DO BOTÃO DE VISITANTE COM PREVENT DEFAULT
+  const handleGuestClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // Impede o formulário de tentar fazer login ou recarregar a página
+    
+    // Navega para a rota pública que aceita o parâmetro dinâmico :id enviado no App.tsx
+    navigate("/garantia/visitante"); 
+  };
+
   return (
     <div className="min-h-screen flex bg-fundo">
 
@@ -94,10 +102,20 @@ export default function Login() {
 
             {error && <p className="text-xs text-red text-center -mt-1">{error}</p>}
 
-            <div className="flex justify-center">
+            {/* SEÇÃO DE BOTÕES */}
+            <div className="flex flex-col gap-3 justify-center">
               <Button type="submit" variant="primary" disabled={loading} className="w-full">
                 {loading ? "Entrando..." : "Login"}
               </Button>
+
+              {/* BOTÃO DE VISITANTE INDEPENDENTE DO FORMULÁRIO */}
+              <button 
+                type="button" 
+                onClick={handleGuestClick} 
+                className="w-full py-2.5 rounded-xl border border-primary text-primary hover:bg-primary/5 font-medium text-sm transition-colors text-center cursor-pointer"
+              >
+                Acessar como Visitante
+              </button>
             </div>
           </form>
 
@@ -119,7 +137,6 @@ export default function Login() {
           </button>
 
         </div>
-
 
       </div>
     </div>

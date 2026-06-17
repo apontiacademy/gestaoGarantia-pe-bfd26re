@@ -11,6 +11,7 @@ export interface ApiDocumentoFiscal {
   numero_nf: string;
   serie_nota?: string | null;
   chave_acesso?: string | null;
+  urlCloudinary?: string | null;
   tipo: string;
 }
 
@@ -24,10 +25,19 @@ export interface CreateDocumentoFiscalPayload {
   numero_nf: string;
   serie_nota?: string;
   chave_acesso?: string;
+  urlCloudinary?: string | null;
   tipo: string;
 }
+
+export type UpdateDocumentoFiscalPayload = Omit<
+  CreateDocumentoFiscalPayload,
+  "produto_id"
+>;
 
 export const documentoFiscalService = {
   create: (data: CreateDocumentoFiscalPayload) =>
     api.post<ApiDocumentoFiscal>("/documento-fiscal", data),
+
+  update: (produtoId: number, data: UpdateDocumentoFiscalPayload) =>
+    api.put<ApiDocumentoFiscal>(`/documento-fiscal/${produtoId}`, data),
 };

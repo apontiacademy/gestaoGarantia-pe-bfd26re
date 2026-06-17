@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FileQuestion } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import LayoutHome from "../layout/LayoutHome";
@@ -10,7 +10,8 @@ import WarrantyAttachmentsList from "../components/warranty/WarrantyAttachmentsL
 import WarrantyDetailView from "../components/warranty/WarrantyDetailView";
 import WarrantyFormFields from "../components/warranty/WarrantyFormFields";
 import { useWarranty } from "../contexts/WarrantyContext";
-import { isWarrantyDeleted } from "../services/warrantyService";
+import { getWarranties, isWarrantyDeleted, persistWarranty } from "../services/warrantyService";
+import { fetchWarrantyByIdFromApi } from "../services/warrantyApiService";
 import { useToast } from "../hooks/useToast";
 import { deleteWarrantyAttachmentsFromCloudinary } from "../utils/warrantyCloudinaryCleanup";
 import {
@@ -32,6 +33,42 @@ export default function ViewWarranty() {
         [id, warranties]
     );
 
+    const [displayWarranty, setDisplayWarranty] = useState(warranty);
+    const [isLoadingDetail, setIsLoadingDetail] = useState(Boolean(id));
+
+    useEffect(() => {
+        if (!id) {
+            setDisplayWarranty(undefined);
+            setIsLoadingDetail(false);
+            return;
+        }
+
+        const cached = getWarranties().find((w) => w.id === id);
+        setDisplayWarranty(cached);
+        setIsLoadingDetail(true);
+
+        let cancelled = false;
+
+        void (async () => {
+            try {
+                const fresh = await fetchWarrantyByIdFromApi(id, cached);
+                if (cancelled || !fresh) return;
+                persistWarranty(fresh);
+                setDisplayWarranty(fresh);
+            } catch {
+                // Mantém os dados já carregados no contexto ou cache.
+            } finally {
+                if (!cancelled) setIsLoadingDetail(false);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [id]);
+
+    const resolvedWarranty = displayWarranty ?? warranty;
+
     const [isEditing, setIsEditing] = useState(false);
     const [draftValues, setDraftValues] = useState<WarrantyFormValues | null>(
         null
@@ -49,7 +86,8 @@ export default function ViewWarranty() {
         string | null
     >(null);
 
-    const isDeleted = warranty ? isWarrantyDeleted(warranty) : false;
+    const viewWarranty = displayWarranty ?? warranty;
+    const isDeleted = viewWarranty ? isWarrantyDeleted(viewWarranty) : false;
 
     const handleBack = () => navigate("/home");
 
@@ -70,8 +108,9 @@ export default function ViewWarranty() {
     );
 
     const handleStartEdit = () => {
-        if (!warranty || isDeleted) return;
-        setDraftValues(warrantyToFormValues(warranty));
+        const source = resolvedWarranty;
+        if (!source || isDeleted) return;
+        setDraftValues(warrantyToFormValues(source));
         setErrors({});
         setIsEditing(true);
     };
@@ -104,8 +143,8 @@ export default function ViewWarranty() {
             return;
         }
 
+        setDisplayWarranty(result.warranty);
         setDraftValues(null);
-
         setIsEditing(false);
         showToast("Salvo com sucesso!");
     };
@@ -190,7 +229,7 @@ export default function ViewWarranty() {
         }
     };
 
-    if (!id || !warranty) {
+    if (!id || (!displayWarranty && !isLoadingDetail)) {
         return (
             <LayoutHome
                 namePage="Garantia"
@@ -213,6 +252,24 @@ export default function ViewWarranty() {
         );
     }
 
+    if (isLoadingDetail && !viewWarranty) {
+        return (
+            <LayoutHome
+                namePage="Garantia"
+                showMenu={false}
+                showNotification={false}
+                showBack
+                onBack={handleBack}
+            >
+                <p className="text-center text-gray-dark/80 py-12">
+                    Carregando garantia…
+                </p>
+            </LayoutHome>
+        );
+    }
+
+    const resolvedView = viewWarranty!;
+
     return (
         <LayoutHome
             namePage="Garantia"
@@ -231,11 +288,11 @@ export default function ViewWarranty() {
                             disabled={isSaving}
                             onChange={handleFieldChange}
                         />
-                        {(warranty.attachments?.length ?? 0) > 0 ? (
+                        {(resolvedView.attachments?.length ?? 0) > 0 ? (
                             <div className="border rounded-lg p-3">
                                 <p className="font-medium mb-2">Arquivos anexados</p>
                                 <WarrantyAttachmentsList
-                                    attachments={warranty.attachments!}
+                                    attachments={resolvedView.attachments!}
                                     onRemove={handleRequestRemoveAttachment}
                                     removingId={removingAttachmentId}
                                 />
@@ -263,7 +320,7 @@ export default function ViewWarranty() {
                 ) : (
                     <>
                         <WarrantyDetailView
-                            warranty={warranty}
+                            warranty={resolvedView}
                             onRemoveAttachment={handleRequestRemoveAttachment}
                             removingAttachmentId={removingAttachmentId}
                         />
@@ -285,7 +342,7 @@ export default function ViewWarranty() {
             <ConfirmDialog
                 open={confirmTrashOpen}
                 title="Enviar para a lixeira?"
-                description={`A garantia "${warranty.title}" será movida para a lixeira. Você poderá restaurá-la depois.`}
+                description={`A garantia "${resolvedView.title}" será movida para a lixeira. Você poderá restaurá-la depois.`}
                 confirmLabel="Enviar para lixeira"
                 variant="danger"
                 loading={isDeleting}

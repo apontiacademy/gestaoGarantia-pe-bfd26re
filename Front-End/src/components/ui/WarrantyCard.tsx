@@ -1,5 +1,9 @@
 import React from "react";
-import { getWarrantyStatus } from "../../utils/warrantyStatus";
+import {
+  getWarrantyExpirationInfo,
+  resolveWarrantyFiscalDisplay,
+} from "../../utils/warrantyDisplay";
+import type { WarrantyUiStatus } from "../../utils/warrantyStatus";
 
 interface WarrantyCardProps {
   title: string;
@@ -9,17 +13,23 @@ interface WarrantyCardProps {
   purchaseDate?: string; // data de compra
   expirationDate?: string; //data de vencimento
   warrantyType?: string; //tipo de garantia (de fabrica ou extendida)
-  value?: string; //valor da garantia/aparelho
-  status?: string;
+  quantity?: string;
+  value?: string; //valor total (legado / compatibilidade)
+  unitValue?: string;
+  totalValue?: string;
+  status?: WarrantyUiStatus;
   daysToExpire?: number | null;
 
   variant: "home" | "trash"; // variação do card para lixeira ou home
   onViewMore?: () => void; //ver mais (home)
   onRestore?: () => void; //restaurar (lixiera)
 
-  selected?: boolean; //select para quadno estiver na lixeira
+  selected?: boolean; //select para quando estiver na lixeira
   onSelect?: (selected: boolean) => void;
   warrantyId?: string;
+  
+  // SOLUÇÃO DO ERRO TS: Propriedade que identifica se o usuário atual é visitante
+  isGuest?: boolean; 
 }
 
 const WarrantyCard: React.FC<WarrantyCardProps> = ({
@@ -29,7 +39,10 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
   purchaseDate,
   expirationDate,
   warrantyType,
+  quantity,
   value,
+  unitValue,
+  totalValue,
   status: statusProp,
   daysToExpire: daysToExpireProp,
   variant,
@@ -38,15 +51,21 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
   selected = false,
   onSelect,
   warrantyId,
+  isGuest = false, // Valor padrão como falso se não for enviado
 }) => {
-  const warrantyInfo = getWarrantyStatus({
-    expirationDate,
-    status: statusProp,
-    daysToExpire: daysToExpireProp,
-  });
+  const { status: currentStatus, daysToExpire: currentDaysToExpire } =
+    getWarrantyExpirationInfo({
+      expirationDate,
+      status: statusProp,
+      daysToExpire: daysToExpireProp,
+    });
 
-  const currentStatus = warrantyInfo.status;
-  const currentDaysToExpire = warrantyInfo.daysToExpire;
+  const fiscal = resolveWarrantyFiscalDisplay({
+    quantity,
+    unitValue,
+    totalValue,
+    value,
+  });
 
   // Verifica se há algum campo de detalhe para renderizar o bloco do meio
   const hasDetails =
@@ -56,10 +75,14 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
     warrantyType;
 
   // Verifica se há alguma info no lado direito do header (status / checkbox)
-  const hasHeaderRight = variant === "trash" || currentStatus;
+  // O checkbox só aparece na lixeira se NÃO for visitante
+  const hasHeaderRight = (variant === "trash" && !isGuest) || currentStatus;
 
   // Verifica se há valor para exibir no rodapé
-  const hasFooter = value || variant === "home" || variant === "trash";
+  const hasFooter =
+    fiscal.totalValue ||
+    variant === "home" ||
+    variant === "trash";
 
   const statusColor =
     currentStatus === "Ativo"
@@ -88,7 +111,8 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
 
           {hasHeaderRight && (
             <div className="flex flex-col items-end gap-1 shrink-0">
-              {variant === "trash" && (
+              {/* Checkbox oculto para visitantes para evitar ações de deleção/restauração */}
+              {variant === "trash" && !isGuest && (
                 <input
                   id={warrantyId ? `warranty-select-${warrantyId}` : undefined}
                   name={warrantyId ? `warranty-select-${warrantyId}` : undefined}
@@ -163,16 +187,16 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
         <>
           <div className="border-t border-gray/50 mb-3 transition-colors duration-200 group-hover:border-gray" />
           <div className="flex justify-between items-center gap-3 min-w-0">
-            {value ? (
+            {fiscal.totalValue ? (
               <p className="text-sm text-gray-dark font-medium min-w-0 wrap-break-word">
                 <span className="font-semibold">Valor </span>
-                {value}
+                {fiscal.totalValue}
               </p>
             ) : (
               <span className="min-w-0 flex-1" />
             )}
 
-            {/* Botão Ver Mais */}
+            {/* Botão Ver Mais - Fica liberado para todos lerem os dados */}
             {variant === "home" && (
               <button
                 type="button"
@@ -183,8 +207,8 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
               </button>
             )}
 
-            {/* Botão Restaurar */}
-            {variant === "trash" && (
+            {/* Botão Restaurar - Ocultado se for visitante para não alterar o banco de dados */}
+            {variant === "trash" && !isGuest && (
               <button
                 type="button"
                 onClick={onRestore}
