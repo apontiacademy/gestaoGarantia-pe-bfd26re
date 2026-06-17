@@ -71,7 +71,7 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
           : "";
 
   return (
-    <div className="group rounded-2xl p-4 shadow-sm border border-gray-dark/20 w-full min-w-0 max-w-full bg-white overflow-hidden transition-all duration-300 ease-in-out hover:shadow-lg hover:-translate-y-1 hover:border-gray-dark/35">
+    <div className="group rounded-3xl p-4 shadow-lg border border-gray/50 w-full min-w-0 max-w-full bg-white overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1 hover:border-primary/40">
       {/* Header do Card */}
       <div className="mb-3 min-w-0">
         <div className="flex justify-between items-start gap-2">
@@ -96,7 +96,7 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
                   checked={selected}
                   onChange={(e) => onSelect?.(e.target.checked)}
                   aria-label={`Selecionar garantia ${title}`}
-                  className="w-5 h-5 rounded border-gray-dark/60 accent-gray-dark cursor-pointer"
+                  className="w-5 h-5 rounded border-gray/50 accent-primary cursor-pointer"
                 />
               )}
               {currentStatus && (
@@ -121,7 +121,7 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
       {/* Detalhes */}
       {hasDetails && (
         <>
-          <div className="border-t border-gray/90 mb-3 transition-colors duration-200 group-hover:border-gray" />
+          <div className="border-t border-gray/50 mb-3 transition-colors duration-200 group-hover:border-gray" />
           <div className="space-y-1 mb-3 min-w-0">
             {purchaseDate && (
               <p className="text-sm text-gray-dark wrap-break-word">
@@ -161,7 +161,7 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
       {/* Rodapé */}
       {hasFooter && (
         <>
-          <div className="border-t border-gray/90 mb-3 transition-colors duration-200 group-hover:border-gray" />
+          <div className="border-t border-gray/50 mb-3 transition-colors duration-200 group-hover:border-gray" />
           <div className="flex justify-between items-center gap-3 min-w-0">
             {value ? (
               <p className="text-sm text-gray-dark font-medium min-w-0 wrap-break-word">
@@ -175,8 +175,9 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
             {/* Botão Ver Mais */}
             {variant === "home" && (
               <button
+                type="button"
                 onClick={onViewMore}
-                className="shrink-0 border border-black rounded-full px-4 sm:px-6 py-1 text-sm font-medium hover:bg-black hover:text-white transition-colors duration-200 whitespace-nowrap"
+                className="shrink-0 border border-primary text-primary rounded-full px-4 sm:px-6 py-1 text-sm font-medium hover:bg-primary hover:text-white transition-colors duration-200 whitespace-nowrap cursor-pointer"
               >
                 Ver Mais
               </button>
@@ -185,8 +186,9 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
             {/* Botão Restaurar */}
             {variant === "trash" && (
               <button
+                type="button"
                 onClick={onRestore}
-                className="shrink-0 border border-green/80 text-green rounded-full px-4 sm:px-6 py-1 text-sm font-medium hover:bg-green/80 hover:text-white transition-colors duration-200 whitespace-nowrap"
+                className="shrink-0 border border-green/80 text-green rounded-full px-4 sm:px-6 py-1 text-sm font-medium hover:bg-green/80 hover:text-white transition-colors duration-200 whitespace-nowrap cursor-pointer"
               >
                 Restaurar
               </button>

@@ -170,7 +170,7 @@ export default function Settings() {
         {section === 'profile' && (
           <form
             onSubmit={handleSaveProfile}
-            className="bg-white rounded-2xl p-6 shadow-sm flex flex-col gap-5"
+            className="bg-white rounded-3xl p-6 shadow-lg flex flex-col gap-5"
           >
 
             {/* Avatar */}

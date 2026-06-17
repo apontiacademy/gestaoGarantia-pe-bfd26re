@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
-import logoAponti from '../Assets/logos/logoAponti.svg';
+import simboloAponti from "../Assets/logos/simboloAponti.svg"
 import { authService } from '../services/authService';
 import { getApiErrorMessage } from '../utils/apiError';
 
@@ -74,67 +74,58 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-fundo px-8">
-      <img src={logoAponti} alt="Logo Aponti" className="w-40 drop-shadow-lg mb-6" />
+    <div className="min-h-screen flex bg-fundo">
+      <div className="w-full flex items-center justify-center px-2 bg-fundo">
+        <div className="w-full max-w-md bg-white rounded-3xl shadow-lg px-10 py-12 flex flex-col gap-5">
 
-      <div className="w-full max-w-sm bg-gray rounded-xl p-6 shadow-xl flex flex-col gap-4">
-        <h1 className="text-lg font-semibold text-center">Nova Senha</h1>
-        <p className="text-sm text-gray-dark text-center">
-          Escolha uma senha segura para sua conta.
-        </p>
+          <div className="flex flex-col items-center gap-2 mb-2">
+            <img src={simboloAponti} alt="Símbolo Aponti" className="w-16" />
+            <h1 className="text-xl font-bold">Nova Senha</h1>
+            <p className="text-sm text-gray-dark text-center">
+              Escolha uma senha segura para sua conta.
+            </p>
+          </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="relative">
-          <Input
-            label="Nova senha"
-            type={showPassword ? 'text' : 'password'}
-            name="novaSenha"
-            placeholder="Mínimo 6 caracteres"
-            value={form.novaSenha}
-            onChange={handleChange}
-            autoComplete="new-password"
-            className="bg-white border-none"
-          />
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <Input
+              label="Nova senha"
+              type={showPassword ? 'text' : 'password'}
+              name="novaSenha"
+              placeholder="Mínimo 6 caracteres"
+              value={form.novaSenha}
+              onChange={handleChange}
+              autoComplete="new-password"
+              className="bg-white border border-gray/50"
+              rightIcon={showPassword ? <Eye size={18} className="cursor-pointer" /> : <EyeOff size={18} className="cursor-pointer" />}
+              onRightIconClick={() => setShowPassword((v) => !v)}
+            />
+
+            <Input
+              label="Confirmar senha"
+              type={showPassword ? 'text' : 'password'}
+              name="confirmar"
+              placeholder="Repita a nova senha"
+              value={form.confirmar}
+              onChange={handleChange}
+              autoComplete="new-password"
+              className="bg-white border border-gray/50"
+            />
+
+            {error && <p className="text-xs text-red text-center">{error}</p>}
+
+            <Button type="submit" variant="primary" disabled={loading || !token} className="w-full">
+              {loading ? 'Salvando...' : 'Redefinir Senha'}
+            </Button>
+          </form>
+
           <button
             type="button"
-            className="absolute right-3 top-[37px] cursor-pointer hover:scale-110 transition"
-            onClick={() => setShowPassword((v) => !v)}
+            onClick={() => navigate('/forgot-password')}
+            className="text-sm font-medium text-gray-dark hover:text-primary transition-colors text-center"
           >
-            {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+            Solicitar novo código
           </button>
         </div>
-
-        <Input
-          label="Confirmar senha"
-          type={showPassword ? 'text' : 'password'}
-          name="confirmar"
-          placeholder="Repita a senha"
-          value={form.confirmar}
-          onChange={handleChange}
-          autoComplete="new-password"
-          className="bg-white border-none"
-        />
-
-        {error && (
-          <p className="text-xs text-red text-center">{error}</p>
-        )}
-
-        <Button
-          type="submit"
-          variant="primary"
-          disabled={loading || !token}
-        >
-          {loading ? 'Salvando...' : 'Redefinir Senha'}
-        </Button>
-        </form>
-
-        <button
-          type="button"
-          onClick={() => navigate('/forgot-password')}
-          className="text-sm font-semibold text-gray-medium hover:text-primary-start transition-colors"
-        >
-          Solicitar novo código
-        </button>
       </div>
     </div>
   );

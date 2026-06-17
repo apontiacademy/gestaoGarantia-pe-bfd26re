@@ -66,15 +66,16 @@ export default function Nav({
     };
 
     return (
-        <nav
+            <nav
             className="
         flex items-center justify-between fixed top-0 w-full z-50
-        bg-[#E9E0F9] border-b border-gray/25
+        bg-fundo border-b border-gray/50
         px-4 py-3"
         >
             {/* LEFT */}
             <div className="flex items-center gap-5">
                 <button
+                    type="button"
                     aria-label={leftLabel}
                     onClick={onLeftClick}
 
@@ -106,6 +107,7 @@ export default function Nav({
             {RightIcon ? (
                 <div className="relative" ref={showNotifications ? ref : undefined}>
                     <button
+                        type="button"
                         aria-label={rightLabel}
                         onClick={
                             showNotifications
@@ -136,12 +138,12 @@ export default function Nav({
                             className="
                         absolute right-0 top-14
                         w-75 md:w-120 max-h-[400px]
-                        bg-white rounded-xl shadow-2xl border border-gray-dark/50 
+                        bg-white rounded-2xl shadow-xl border border-gray/50
                         overflow-hidden z-50
                     "
                         >
-                            <div className="flex items-center justify-between gap-2 p-4 border-b border-gray-dark/50 font-semibold bg-linear-to-l to-primary/10 from-secondary/10">
-                                <div className="flex items-center gap-2">
+                            <div className="flex items-center justify-between gap-2 p-4 border-b border-gray/50 font-semibold bg-linear-to-l to-primary/10 from-secondary/10">
+                                <div className="flex items-center gap-2 text-gray-dark">
                                     <Bell size={18} />
                                     Notificações
                                 </div>

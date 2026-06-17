@@ -34,36 +34,50 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
                 >
                 {/* HEADER */}
-                <div className="flex items-center justify-between p-4 border-b">
-                    <h2 className="font-semibold">Menu</h2>
+                <div className="flex items-center justify-between p-4 border-b border-gray/50">
+                    <h2 className="font-semibold text-gray-dark">Menu</h2>
 
                     <button
+                        type="button"
                         onClick={onClose}
-                        className="cursor-pointer text-sm px-3 py-1 rounded hover:bg-gray-medium"
+                        className="cursor-pointer text-sm p-2 rounded-lg text-gray-dark hover:bg-gray transition-colors"
                     >
-                        <X/>
+                        <X size={18} />
                     </button>
                 </div>
 
                 {/* CONTEÚDO */}
                 <nav className="flex flex-1 flex-col p-4">
-                    <div className="space-y-3">
-                        <button onClick={() => { navigate("/home"); onClose();}} className="block w-full cursor-pointer text-left hover:bg-gray-medium p-2 rounded">
+                    <div className="space-y-2">
+                        <button
+                            type="button"
+                            onClick={() => { navigate("/home"); onClose(); }}
+                            className="block w-full cursor-pointer text-left text-gray-dark font-medium hover:bg-primary/10 hover:text-primary p-2 rounded-lg transition-colors"
+                        >
                             Minhas Garantias
                         </button>
 
-                        <button onClick={() => { navigate("/lixeira"); onClose();}} className="block w-full cursor-pointer text-left hover:bg-gray-medium p-2 rounded">
+                        <button
+                            type="button"
+                            onClick={() => { navigate("/lixeira"); onClose(); }}
+                            className="block w-full cursor-pointer text-left text-gray-dark font-medium hover:bg-primary/10 hover:text-primary p-2 rounded-lg transition-colors"
+                        >
                             Lixeira
                         </button>
 
-                        <button onClick={() => { navigate('/settings'); onClose(); }} className="block w-full cursor-pointer text-left hover:bg-gray-medium p-2 rounded">
+                        <button
+                            type="button"
+                            onClick={() => { navigate('/settings'); onClose(); }}
+                            className="block w-full cursor-pointer text-left text-gray-dark font-medium hover:bg-primary/10 hover:text-primary p-2 rounded-lg transition-colors"
+                        >
                             Configurações
                         </button>
                     </div>
 
                     <button
+                        type="button"
                         onClick={() => { logout(); onClose(); navigate('/login'); }}
-                        className="mt-auto flex w-full cursor-pointer items-center gap-2 rounded p-2 text-left text-red hover:bg-red/10 transition-colors"
+                        className="mt-auto flex w-full cursor-pointer items-center gap-2 rounded-lg p-2 text-left text-red font-medium hover:bg-red/10 transition-colors"
                     >
                         <Trash2 size={18} />
                         Sair

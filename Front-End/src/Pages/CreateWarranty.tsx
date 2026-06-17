@@ -231,14 +231,14 @@ const CreateWarranty: React.FC = () => {
     >
       <div className="min-h-screen bg-fundo">
         <main className="p-6">
-          <div className="bg-[#D9D9D9] rounded-3xl p-6 shadow-sm max-w-md mx-auto">
+          <div className="bg-white rounded-3xl p-6 shadow-lg max-w-md mx-auto">
 
             {/* Título */}
-            <h1 className="text-lg font-bold text-gray-800">
+            <h1 className="text-lg font-bold text-gray-dark">
               Cadastro de Garantia
             </h1>
 
-            <p className="text-sm text-gray-600 mb-6 font-medium">
+            <p className="text-sm text-gray-dark/80 mb-6 font-medium">
               Preencha os dados da garantia
             </p>
 
@@ -258,15 +258,15 @@ const CreateWarranty: React.FC = () => {
                           text-sm font-bold border-2 transition-all
                           ${
                             step >= currentStep
-                              ? 'bg-primary-start text-white border-primary-start'
-                              : 'bg-white text-gray-400 border-gray-300'
+                              ? 'bg-primary text-white border-primary'
+                              : 'bg-white text-gray-medium border-gray/50'
                           }
                         `}
                       >
                         {currentStep}
                       </div>
 
-                      <span className="text-xs mt-1 text-center">
+                      <span className="text-xs mt-1 text-center text-gray-dark">
                         {item}
                       </span>
                     </div>
@@ -277,8 +277,8 @@ const CreateWarranty: React.FC = () => {
                           h-1 flex-1 mx-2 rounded transition-all
                           ${
                             step > currentStep
-                              ? 'bg-primary-start'
-                              : 'bg-gray-300'
+                              ? 'bg-primary'
+                              : 'bg-gray/50'
                           }
                         `}
                       />
@@ -297,7 +297,7 @@ const CreateWarranty: React.FC = () => {
                   <Input
                     label="Nome do Produto *"
                     placeholder="Ex: Notebook"
-                    className="bg-white border-none"
+                    className="bg-white border border-gray/50"
                     value={productName}
                     onChange={(e) => setProductName(e.target.value)}
                   />
@@ -305,7 +305,7 @@ const CreateWarranty: React.FC = () => {
                   <Input
                     label="Marca *"
                     placeholder="Ex: Lenovo"
-                    className="bg-white border-none"
+                    className="bg-white border border-gray/50"
                     value={brand}
                     onChange={(e) => setBrand(e.target.value)}
                   />
@@ -313,7 +313,7 @@ const CreateWarranty: React.FC = () => {
                   <Input
                     label="Modelo *"
                     placeholder="Ex: IdeaPad"
-                    className="bg-white border-none"
+                    className="bg-white border border-gray/50"
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
                   />
@@ -327,10 +327,10 @@ const CreateWarranty: React.FC = () => {
                     onChange={(e) =>
                       setHasMultipleUnits(e.target.checked)
                     }
-                    className="accent-primary-start w-4 h-4"
+                    className="accent-primary w-4 h-4"
                     />
 
-                    <label htmlFor="has-multiple-units" className="text-sm font-medium text-gray-700">Produto possui mais de uma unidade?</label>
+                    <label htmlFor="has-multiple-units" className="text-sm font-medium text-gray-dark">Produto possui mais de uma unidade?</label>
                   </div>
                   {hasMultipleUnits && (
                   <Input
@@ -338,7 +338,7 @@ const CreateWarranty: React.FC = () => {
                     type="number"
                     min={0}
                     placeholder="Ex: 2"
-                    className="bg-white border-none"
+                    className="bg-white border border-gray/50"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
                   />)}
@@ -349,18 +349,18 @@ const CreateWarranty: React.FC = () => {
                       type="number"
                       min={0}
                       placeholder="Ex: 12"
-                      className="flex-1 bg-white border-none"
+                      className="flex-1 bg-white border border-gray/50"
                       value={warrantyPeriod}
                       onChange={(e) => setWarrantyPeriod(e.target.value)}
                     />
 
-                    <div className="flex gap-2 mb-3 text-xs font-bold text-gray-700">
+                    <div className="flex gap-2 mb-3 text-xs font-bold text-gray-dark">
 
                       <label className="flex items-center gap-1 cursor-pointer">
                         <input
                           type="radio"
                           name="unit"
-                          className="accent-primary-start"
+                          className="accent-primary"
                           checked={warrantyUnit === 'days'}
                           onChange={() => setWarrantyUnit('days')}
                         />
@@ -371,7 +371,7 @@ const CreateWarranty: React.FC = () => {
                         <input
                           type="radio"
                           name="unit"
-                          className="accent-primary-start"
+                          className="accent-primary"
                           checked={warrantyUnit === 'months'}
                           onChange={() => setWarrantyUnit('months')}
                         />
@@ -389,7 +389,7 @@ const CreateWarranty: React.FC = () => {
                   <Input
                     label="Nome da Loja"
                     placeholder="Ex: FastShop"
-                    className="bg-white border-none"
+                    className="bg-white border border-gray/50"
                     value={storeName}
                     onChange={(e) => setStoreName(e.target.value)}
                   />
@@ -398,7 +398,7 @@ const CreateWarranty: React.FC = () => {
                     label="CNPJ da Loja"
                     type="text"
                     placeholder="00.000.000/0000-00"
-                    className="bg-white border-none"
+                    className="bg-white border border-gray/50"
                     value={cnpj}
                     onChange={(e) => setCnpj(formatCnpj(e.target.value))}
                     inputMode="numeric"
@@ -408,7 +408,7 @@ const CreateWarranty: React.FC = () => {
                   <Input
                     label="Data da Compra *"
                     type="date"
-                    className="bg-white border-none text-gray-400"
+                    className="bg-white border border-gray/50 text-gray-medium"
                     max={new Date(new Date().setFullYear(new Date().getFullYear() + 3)).toISOString().split('T')[0]}
                     value={purchaseDate}
                     onChange={(e) => setPurchaseDate(e.target.value)}
@@ -423,17 +423,17 @@ const CreateWarranty: React.FC = () => {
                     onChange={(e) => handleValueChange(e.target.value)}
                     onKeyDown={handleValueKeyDown}
                     onPaste={handleValuePaste}
-                    className="bg-white border-none"
+                    className="bg-white border border-gray/50"
                   />
 
                   {hasMultipleUnits && quantity && (
-                  <div className="bg-purple-50 border border-primary-start rounded-xl p-4">
+                  <div className="bg-primary/5 border border-primary rounded-xl p-4">
 
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-dark/80">
                       Valor total
                     </p>
 
-                    <p className="text-xl font-bold text-primary-start">
+                    <p className="text-xl font-bold text-primary">
                       {calculateTotalValue()}
                     </p>
                   </div>
@@ -442,7 +442,7 @@ const CreateWarranty: React.FC = () => {
                   {/* Garantia Estendida */}
                   <div className="flex flex-col gap-1">
 
-                    <label htmlFor="extended-warranty" className="text-sm font-semibold text-gray-700 ml-1">
+                    <label htmlFor="extended-warranty" className="text-sm font-semibold text-gray-dark ml-1">
                       Garantia Estendida?
                     </label>
 
@@ -451,9 +451,9 @@ const CreateWarranty: React.FC = () => {
                       name="extendedWarranty"
                       className="
                         w-full px-4 py-2.5
-                        bg-white border-none rounded-lg shadow-sm
-                        focus:ring-2 focus:ring-primary-start
-                        outline-none text-gray-600
+                        bg-white border border-gray/50 rounded-lg shadow-sm
+                        focus:ring-2 focus:ring-primary focus:border-transparent
+                        outline-none text-gray-dark
                       "
                       value={hasExtendedWarranty ? 'sim' : 'nao'}
                       onChange={(e) =>
@@ -475,7 +475,7 @@ const CreateWarranty: React.FC = () => {
                         type="number"
                         min={0}
                         placeholder="Ex: 12"
-                        className="bg-white border-none"
+                        className="bg-white border border-gray/50"
                         value={extendedExtraMonths}
                         onChange={(e) => setExtendedExtraMonths(e.target.value)}
                       />
@@ -484,7 +484,7 @@ const CreateWarranty: React.FC = () => {
                         label="Número da Garantia Estendida"
                         type="text"
                         placeholder="Ex: 9928..."
-                        className="bg-white border-none"
+                        className="bg-white border border-gray/50"
                         value={extendedWarrantyNumber}
                         onChange={(e) => setExtendedWarrantyNumber(e.target.value)}
                       />
@@ -498,7 +498,7 @@ const CreateWarranty: React.FC = () => {
                 <>
                   <Input
                     label="Número da Nota Fiscal"
-                    className="bg-white border-none"
+                    className="bg-white border border-gray/50"
                     value={nfNumber}
                     onChange={(e) => setNfNumber(e.target.value)}
                   />
@@ -506,7 +506,7 @@ const CreateWarranty: React.FC = () => {
                   {/* Observações */}
                   <div className="flex flex-col gap-1">
 
-                    <label htmlFor="warranty-notes" className="text-sm font-semibold text-gray-700 ml-1">
+                    <label htmlFor="warranty-notes" className="text-sm font-semibold text-gray-dark ml-1">
                       Observações
                     </label>
 
@@ -515,9 +515,9 @@ const CreateWarranty: React.FC = () => {
                       name="notes"
                       className="
                         w-full px-4 py-2
-                        bg-white border-none rounded-lg
+                        bg-white border border-gray/50 rounded-lg
                         h-24
-                        focus:ring-2 focus:ring-primary-start
+                        focus:ring-2 focus:ring-primary focus:border-transparent
                         outline-none shadow-sm
                       "
                       placeholder="Informações adicionais..."
@@ -529,7 +529,7 @@ const CreateWarranty: React.FC = () => {
                   {/* Upload */}
                   <div className="flex flex-col gap-1">
 
-                    <label htmlFor="nf-file" className="text-sm font-semibold text-gray-700 ml-1">
+                    <label htmlFor="nf-file" className="text-sm font-semibold text-gray-dark ml-1">
                       Nota Fiscal (PDF ou Imagem)
                     </label>
 
@@ -541,8 +541,8 @@ const CreateWarranty: React.FC = () => {
                         cursor-pointer transition-all
                         ${
                           file
-                            ? 'border-green-500 bg-green-50'
-                            : 'border-gray-medium hover:border-primary hover:bg-gray-50'
+                            ? 'border-green bg-green/10'
+                            : 'border-gray-medium hover:border-primary hover:bg-gray'
                         }
                       `}
                     >
@@ -573,7 +573,7 @@ const CreateWarranty: React.FC = () => {
                           <div className="flex items-center gap-3">
 
                             <FileCheck
-                              className="text-green-600"
+                              className="text-green"
                               size={24}
                             />
 
@@ -596,8 +596,8 @@ const CreateWarranty: React.FC = () => {
                               removeFile();
                             }}
                             className="
-                              p-1 hover:bg-red-100 rounded-full
-                              text-red-500 transition-colors
+                              p-1 hover:bg-red/10 rounded-full
+                              text-red transition-colors cursor-pointer
                             "
                           >
                             <X size={20} />
@@ -611,77 +611,77 @@ const CreateWarranty: React.FC = () => {
 
               {/* ETAPA 4 */}
           {step === 4 && (
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 flex flex-col gap-4">
+            <div className="bg-white rounded-3xl p-5 shadow-lg border border-gray/50 flex flex-col gap-4">
 
               <div>
-                <h2 className="text-xl font-bold text-gray-800">
+                <h2 className="text-xl font-bold text-gray-dark">
                   {productName || 'Produto sem nome'}
                 </h2>
 
-                <p className="text-sm text-gray-500 italic">
+                <p className="text-sm text-gray-medium italic">
                   {storeName || 'Loja não informada'}
                 </p>
               </div>
 
-              <div className="border-t border-gray-200 pt-4 flex flex-col gap-2">
+              <div className="border-t border-gray/50 pt-4 flex flex-col gap-2">
 
-                <p className="text-sm">
+                <p className="text-sm text-gray-dark">
                   <span className="font-semibold">
                     Marca:
                   </span>{' '}
                   {brand || '—'}
                 </p>
 
-                <p className="text-sm">
+                <p className="text-sm text-gray-dark">
                   <span className="font-semibold">
                     Modelo:
                   </span>{' '}
                   {model || '—'}
                 </p>
 
-                <p className="text-sm">
+                <p className="text-sm text-gray-dark">
                   <span className="font-semibold">
                     Quantidade:
                   </span>{' '}
                   {quantity || '—'}
                 </p>
 
-                <p className="text-sm">
+                <p className="text-sm text-gray-dark">
                   <span className="font-semibold">
                     Nº da Nota Fiscal:
                   </span>{' '}
                   {nfNumber || '—'}
                 </p>
 
-                <p className="text-sm">
+                <p className="text-sm text-gray-dark">
                   <span className="font-semibold">
                     Data da Compra:
                   </span>{' '}
                   {purchaseDateDisplay || '—'}
                 </p>
 
-                <p className="text-sm">
+                <p className="text-sm text-gray-dark">
                   <span className="font-semibold">
                     Garantia:
                   </span>{' '}
                   {warrantyPeriod} {warrantyUnit === 'months' ? 'meses' : 'dias'}
                 </p>
 
-                <p className="text-sm">
+                <p className="text-sm text-gray-dark">
                   <span className="font-semibold">
                     Tipo:
                   </span>{' '}
                   {warrantyTypeLabel}
                 </p>
 
-                <p className="text-sm">
+                <p className="text-sm text-gray-dark">
                   <span className="font-semibold">
                     Vencimento:
                   </span>{' '}
                   {expirationDateDisplay || '—'}
                 </p>
 
-                <p className="text-sm">
+                <p className="text-sm text-gray-dark">
                   <span className="font-semibold">
                     Valor unitário:
                   </span>{' '}
@@ -689,7 +689,7 @@ const CreateWarranty: React.FC = () => {
                 </p>
 
                 {hasMultipleUnits && Number(quantity) > 0 ? (
-                  <p className="text-sm">
+                  <p className="text-sm text-gray-dark">
                     <span className="font-semibold">
                       Valor total:
                     </span>{' '}
@@ -699,29 +699,29 @@ const CreateWarranty: React.FC = () => {
 
                 {notes && (
                   <div className="mt-2">
-                    <p className="font-semibold text-sm">
+                    <p className="font-semibold text-sm text-gray-dark">
                       Observações:
                     </p>
 
-                    <p className="text-sm text-gray-600 wrap-break-word">
+                    <p className="text-sm text-gray-dark/80 wrap-break-word">
                       {notes}
                     </p>
                   </div>
                 )}
 
                 {file && (
-                  <div className="mt-2 flex items-center gap-2 bg-gray-100 rounded-lg p-3">
+                  <div className="mt-2 flex items-center gap-2 bg-gray rounded-lg p-3">
                     <FileCheck
                       size={20}
-                      className="text-green-600"
+                      className="text-green"
                     />
 
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium">
+                      <span className="text-sm font-medium text-gray-dark">
                         {file.name}
                       </span>
 
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-medium">
                         {(file.size / 1024).toFixed(2)} KB
                       </span>
                     </div>
