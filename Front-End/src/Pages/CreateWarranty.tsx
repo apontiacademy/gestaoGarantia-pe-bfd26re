@@ -230,8 +230,8 @@ const CreateWarranty: React.FC = () => {
       showBack
     >
       <div className="min-h-screen bg-fundo">
-        <main className="p-6">
-          <div className="bg-white rounded-3xl p-6 shadow-lg max-w-md mx-auto">
+        <main className="p-2.5">
+          <div className="bg-white rounded-3xl p-6 sm:p-10 shadow-lg max-w-md mx-auto">
 
             {/* Título */}
             <h1 className="text-lg font-bold text-gray-dark">

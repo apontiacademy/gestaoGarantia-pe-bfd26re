@@ -6,7 +6,6 @@ import WarrantyCard from "../components/ui/WarrantyCard";
 import EmptyState from "../components/ui/EmptyState";
 import { useNavigate } from "react-router-dom";
 import { useWarranty } from "../contexts/WarrantyContext";
-import { useAuth } from "../contexts/AuthContext";
 import { useMemo, useState, useEffect } from "react";
 import {
   applyStatusFilter,
@@ -16,7 +15,6 @@ import {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
   const { activeWarranties, loadWarrantiesFromApi, isLoadingWarranties } =
     useWarranty();
   const [search, setSearch] = useState("");
@@ -44,8 +42,8 @@ export default function Home() {
 
   return (
     <LayoutHome namePage="Minhas Garantias">
-          <div className="min-h-screen bg-fundo py-6">
-            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="min-h-screen bg-fundo py-2">
+            <div className="w-full max-w-8xl mx-auto  sm:px-5 ">
               {/* Container Branco - Mesmo estilo do Login */}
               <div className="bg-white rounded-3xl shadow-lg p-6 sm:p-8 lg:p-10 flex flex-col gap-8">
                 
