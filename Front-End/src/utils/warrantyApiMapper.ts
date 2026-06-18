@@ -16,6 +16,11 @@ import { formatCnpj, onlyCnpjDigits } from "./cnpj";
 import { formatCurrencyBRL, parseDecimalValue } from "./currency";
 import type { ApiDocumentoFiscal } from "../services/documentoFiscalService";
 import type { CreateDocumentoFiscalPayload } from "../services/documentoFiscalService";
+import {
+  isPlaceholderFiscalUnitAmount,
+  normalizeNfNumberForWarranty,
+  PLACEHOLDER_NF_NUMBER,
+} from "./warrantyDisplay";
 import { getWarrantyStatus, mapApiStatusToUi } from "./warrantyStatus";
 
 const META_MARKER = "---meta---";
@@ -181,6 +186,7 @@ export function buildDocumentoFiscalPayload(
   const cnpjDigits = onlyCnpjDigits(input.cnpj ?? "");
   const qty = Math.max(1, Number(input.quantity) || 1);
   const unitNum = parseCurrencyToNumber(input.value);
+  const hasValue = unitNum > 0;
   const dataCompra = warrantyDateToIso(input.purchaseDate) || input.purchaseDate;
   const storeName = input.storeName?.trim();
   const chaveAcesso = resolveDocumentoFiscalChaveAcesso(input.chaveAcesso);
@@ -192,11 +198,11 @@ export function buildDocumentoFiscalPayload(
   return {
     produto_id: produtoId,
     cnpj_emissor: cnpjDigits.length === 14 ? cnpjDigits : "00000000000000",
-    valor: unitNum > 0 ? unitNum : 0.01,
+    valor: hasValue ? unitNum : 0,
     quantidade: qty,
-    valorInformado: true,
+    valorInformado: hasValue,
     data_compra: dataCompra,
-    numero_nf: input.nfNumber?.trim() || "S/N",
+    numero_nf: input.nfNumber?.trim() || PLACEHOLDER_NF_NUMBER,
     serie_nota: storeName || undefined,
     chave_acesso: chaveAcesso,
     urlCloudinary,
@@ -254,19 +260,17 @@ function documentoFiscalToWarrantyFields(
   const unitNum = parseDecimalValue(doc.valor_unitario);
   const totalNum = parseDecimalValue(doc.valor);
   const qty = doc.quantidade ?? 1;
+  const unitInformed = !isPlaceholderFiscalUnitAmount(unitNum);
 
-  const unitValue =
-    Number.isFinite(unitNum) && unitNum > 0
-      ? formatCurrencyBRL(unitNum)
-      : undefined;
+  const unitValue = unitInformed ? formatCurrencyBRL(unitNum) : undefined;
   const totalValue =
-    Number.isFinite(totalNum) && totalNum > 0
+    unitInformed && Number.isFinite(totalNum) && totalNum > 0
       ? formatCurrencyBRL(totalNum)
       : undefined;
 
   return {
     storeCnpj: doc.cnpj_emissor ? formatCnpj(doc.cnpj_emissor) : undefined,
-    nfNumber: doc.numero_nf || undefined,
+    nfNumber: normalizeNfNumberForWarranty(doc.numero_nf),
     quantity: String(qty),
     purchaseDate: formatDateBRFromIso(doc.data_compra) || undefined,
     story: doc.serie_nota?.trim() || undefined,
@@ -478,7 +482,7 @@ export function apiGarantiaToWarranty(
   const fiscalFromDoc = doc ? documentoFiscalToWarrantyFields(doc) : {};
   const fiscalFromMeta = {
     storeCnpj: meta.storeCnpj,
-    nfNumber: meta.nfNumber,
+    nfNumber: normalizeNfNumberForWarranty(meta.nfNumber),
     quantity: meta.quantity,
     story: meta.storeName,
     ...resolveValuesFromMeta(meta),
@@ -513,7 +517,9 @@ export function apiGarantiaToWarranty(
     title,
     story: fiscalFromDoc.story ?? fiscalFromMeta.story,
     storeCnpj: fiscalFromDoc.storeCnpj ?? fiscalFromMeta.storeCnpj,
-    nfNumber: fiscalFromDoc.nfNumber ?? fiscalFromMeta.nfNumber,
+    nfNumber: normalizeNfNumberForWarranty(
+      fiscalFromDoc.nfNumber ?? fiscalFromMeta.nfNumber
+    ),
     quantity: fiscalFromDoc.quantity ?? fiscalFromMeta.quantity,
     purchaseDate: purchaseDate || undefined,
     expirationDate: expirationDate || undefined,

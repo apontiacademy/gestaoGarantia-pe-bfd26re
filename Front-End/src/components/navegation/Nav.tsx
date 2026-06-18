@@ -35,6 +35,7 @@ export default function Nav({
         markAsRead,
         markAllAsRead,
         clearAll,
+        refresh,
     } = useNotifications();
 
     const showNotifications = RightIcon === Bell;
@@ -55,7 +56,10 @@ export default function Nav({
     }, []);
 
     const handleToggleNotifications = () => {
-        setIsOpen((prev) => !prev);
+        setIsOpen((prev) => {
+            if (!prev) refresh();
+            return !prev;
+        });
         onRightClick?.();
     };
 

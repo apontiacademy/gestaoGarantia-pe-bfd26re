@@ -67,6 +67,18 @@ export default function ViewWarranty() {
         };
     }, [id]);
 
+    useEffect(() => {
+        if (!id || !warranty || warranty.id !== id) return;
+
+        setDisplayWarranty((prev) => {
+            if (!prev) return warranty;
+            const prevCount = prev.attachments?.length ?? 0;
+            const nextCount = warranty.attachments?.length ?? 0;
+            if (prevCount === nextCount) return prev;
+            return warranty;
+        });
+    }, [id, warranty]);
+
     const resolvedWarranty = displayWarranty ?? warranty;
 
     const [isEditing, setIsEditing] = useState(false);
@@ -190,9 +202,11 @@ export default function ViewWarranty() {
     };
 
     const handleConfirmRemoveAttachment = async () => {
-        if (!id || !warranty || !attachmentToRemove) return;
+        if (!id || !resolvedWarranty || !attachmentToRemove) return;
 
-        const file = warranty.attachments?.find((a) => a.id === attachmentToRemove);
+        const file = resolvedWarranty.attachments?.find(
+            (a) => a.id === attachmentToRemove
+        );
         if (!file) {
             setAttachmentToRemove(null);
             return;
@@ -203,8 +217,9 @@ export default function ViewWarranty() {
             await deleteWarrantyAttachmentsFromCloudinary([file]);
 
             const remaining =
-                warranty.attachments?.filter((a) => a.id !== attachmentToRemove) ??
-                [];
+                resolvedWarranty.attachments?.filter(
+                    (a) => a.id !== attachmentToRemove
+                ) ?? [];
 
             const result = await updateWarranty(id, {
                 attachments: remaining.length > 0 ? remaining : [],
@@ -215,6 +230,7 @@ export default function ViewWarranty() {
                 return;
             }
 
+            setDisplayWarranty(result.warranty);
             showToast("Anexo removido com sucesso.");
         } catch (err) {
             showToast(

@@ -59,7 +59,7 @@ const WarrantyContext = createContext<WarrantyContextData>(
 );
 
 export function WarrantyProvider({ children }: { children: ReactNode }) {
-  const { pushNotification } = useNotifications();
+  const { refresh: refreshNotifications } = useNotifications();
   const [warranties, setWarranties] = useState<Warranty[]>(() => {
     return getWarranties() || [];
   });
@@ -139,15 +139,10 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
       const created = await createWarrantyViaApi(form);
       const saved = persistWarranty(created);
       await loadWarrantiesFromApi();
-      pushNotification({
-        type: "created",
-        title: "Nova garantia criada",
-        description: `"${saved.title}" foi adicionada à sua lista.`,
-        warrantyId: saved.id,
-      });
+      refreshNotifications();
       return saved;
     },
-    [loadWarrantiesFromApi, pushNotification]
+    [loadWarrantiesFromApi, refreshNotifications]
   );
 
   const updateWarranty = useCallback(
@@ -163,12 +158,7 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
         const updated = await updateWarrantyViaApi(id, updates, current);
         persistWarranty(updated);
         await loadWarrantiesFromApi();
-        pushNotification({
-          type: "updated",
-          title: "Garantia atualizada",
-          description: `"${updated.title}" foi salva com sucesso.`,
-          warrantyId: updated.id,
-        });
+        refreshNotifications();
         return { success: true as const, warranty: updated };
       } catch (err) {
         return {
@@ -180,7 +170,7 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
         };
       }
     },
-    [warranties, loadWarrantiesFromApi, pushNotification]
+    [warranties, loadWarrantiesFromApi, refreshNotifications]
   );
 
   const moveToTrash = useCallback(
@@ -198,14 +188,7 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
             updateWarrantyInStorage(id, { attachments: [] });
           }
           refreshWarranties();
-          if (item) {
-            pushNotification({
-              type: "trashed",
-              title: "Enviada para a lixeira",
-              description: `"${item.title}" foi movida para a lixeira.`,
-              warrantyId: item.id,
-            });
-          }
+          refreshNotifications();
         }
         return result;
       } catch (err) {
@@ -218,7 +201,7 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
         };
       }
     },
-    [warranties, refreshWarranties, pushNotification]
+    [warranties, refreshWarranties, refreshNotifications]
   );
 
   const restoreFromTrash = useCallback(
@@ -228,12 +211,7 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
         const result = restoreWarranty(id);
         if (result.success) {
           await loadWarrantiesFromApi();
-          pushNotification({
-            type: "restored",
-            title: "Garantia restaurada",
-            description: `"${result.warranty.title}" voltou para a lista principal.`,
-            warrantyId: result.warranty.id,
-          });
+          refreshNotifications();
         }
         return result;
       } catch (err) {
@@ -246,7 +224,7 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
         };
       }
     },
-    [loadWarrantiesFromApi, pushNotification]
+    [loadWarrantiesFromApi, refreshNotifications]
   );
 
   const permanentlyDelete = useCallback(
@@ -260,18 +238,11 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
       const ok = permanentlyDeleteWarranty(id);
       if (ok) {
         refreshWarranties();
-        if (item) {
-          pushNotification({
-            type: "deleted_permanent",
-            title: "Excluída permanentemente",
-            description: `"${item.title}" foi removida da lixeira.`,
-            warrantyId: item.id,
-          });
-        }
+        refreshNotifications();
       }
       return ok;
     },
-    [warranties, refreshWarranties, pushNotification]
+    [warranties, refreshWarranties, refreshNotifications]
   );
 
   return (

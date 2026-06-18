@@ -1,51 +1,85 @@
-import { useCallback, useMemo, useState, type ReactNode } from "react";
 import {
-  NotificationContext,
-  type PushNotificationInput,
-} from "./notification-context";
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { NotificationContext } from "./notification-context";
+import type { AppNotification } from "../services/notificationService";
 import {
-  addNotification,
-  clearAllNotifications,
-  getNotifications,
-  markAllNotificationsAsRead,
-  markNotificationAsRead,
-  type AppNotification,
-} from "../services/notificationService";
+  clearAllNotificationsViaApi,
+  fetchNotificationsFromApi,
+  markAllNotificationsAsReadViaApi,
+  markNotificationAsReadViaApi,
+} from "../services/notificationApiService";
+import { GARANTIAS_SESSION_EVENT } from "./AuthContext";
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
-  const [notifications, setNotifications] = useState<AppNotification[]>(() =>
-    getNotifications()
-  );
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
-  const refresh = useCallback(() => {
-    setNotifications(getNotifications());
+  const loadNotificationsFromApi = useCallback(async () => {
+    const token = localStorage.getItem("@garantias:token");
+    if (!token) {
+      setNotifications([]);
+      return;
+    }
+
+    try {
+      const fromApi = await fetchNotificationsFromApi();
+      setNotifications(fromApi);
+    } catch {
+      setNotifications([]);
+    }
   }, []);
 
-  const pushNotification = useCallback(
-    (input: PushNotificationInput) => {
-      addNotification(input);
-      refresh();
-    },
-    [refresh]
-  );
+  useEffect(() => {
+    void loadNotificationsFromApi();
+
+    const onSessionUpdated = () => {
+      void loadNotificationsFromApi();
+    };
+
+    window.addEventListener(GARANTIAS_SESSION_EVENT, onSessionUpdated);
+    return () => {
+      window.removeEventListener(GARANTIAS_SESSION_EVENT, onSessionUpdated);
+    };
+  }, [loadNotificationsFromApi]);
+
+  const refresh = useCallback(() => {
+    void loadNotificationsFromApi();
+  }, [loadNotificationsFromApi]);
 
   const markAsRead = useCallback(
     (id: string) => {
-      markNotificationAsRead(id);
-      refresh();
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      );
+
+      void markNotificationAsReadViaApi(id).catch(() => {
+        void loadNotificationsFromApi();
+      });
     },
-    [refresh]
+    [loadNotificationsFromApi]
   );
 
   const markAllAsRead = useCallback(() => {
-    markAllNotificationsAsRead();
-    refresh();
-  }, [refresh]);
+    setNotifications((prev) =>
+      prev.map((n) => (n.read ? n : { ...n, read: true }))
+    );
+
+    void markAllNotificationsAsReadViaApi().catch(() => {
+      void loadNotificationsFromApi();
+    });
+  }, [loadNotificationsFromApi]);
 
   const clearAll = useCallback(() => {
-    clearAllNotifications();
-    refresh();
-  }, [refresh]);
+    setNotifications([]);
+
+    void clearAllNotificationsViaApi().catch(() => {
+      void loadNotificationsFromApi();
+    });
+  }, [loadNotificationsFromApi]);
 
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.read).length,
@@ -56,7 +90,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     () => ({
       notifications,
       unreadCount,
-      pushNotification,
       markAsRead,
       markAllAsRead,
       clearAll,
@@ -65,7 +98,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     [
       notifications,
       unreadCount,
-      pushNotification,
       markAsRead,
       markAllAsRead,
       clearAll,

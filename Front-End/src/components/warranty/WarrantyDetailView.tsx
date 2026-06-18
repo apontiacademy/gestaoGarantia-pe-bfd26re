@@ -3,6 +3,8 @@ import { formatCnpj } from "../../utils/cnpj";
 import {
   formatDaysToExpireLabel,
   getWarrantyExpirationInfo,
+  hasInformedFiscalValue,
+  isInformedNfNumber,
   resolveWarrantyFiscalDisplay,
 } from "../../utils/warrantyDisplay";
 import WarrantyAttachmentsList from "./WarrantyAttachmentsList";
@@ -82,6 +84,10 @@ export default function WarrantyDetailView({
   const inTrash = isWarrantyDeleted(warranty);
 
   const fiscal = resolveWarrantyFiscalDisplay(warranty);
+  const showFiscalValue = hasInformedFiscalValue(warranty);
+  const nfNumberLabel = isInformedNfNumber(warranty.nfNumber)
+    ? warranty.nfNumber
+    : "Número não informado";
   const warrantyPeriodLabel = formatWarrantyPeriodDays(
     warranty.warrantyPeriodDays
   );
@@ -100,12 +106,18 @@ export default function WarrantyDetailView({
       <header className="flex items-start justify-between border-b pb-4 gap-4 min-w-0">
         <div className="min-w-0 flex-1">
           <h1 className="text-xl font-bold wrap-break-word">{warranty.title}</h1>
-          {warranty.nfNumber ? (
-            <p className="text-sm text-gray-dark mt-1 break-all" title={warranty.nfNumber}>
-              Nº da nota:{" "}
-              <span className="font-medium">{warranty.nfNumber}</span>
-            </p>
-          ) : null}
+          <p className="text-sm text-gray-dark mt-1 break-all" title={nfNumberLabel}>
+            Nº da nota:{" "}
+            <span
+              className={
+                isInformedNfNumber(warranty.nfNumber)
+                  ? "font-medium"
+                  : "italic text-gray-dark/70"
+              }
+            >
+              {nfNumberLabel}
+            </span>
+          </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
@@ -150,7 +162,7 @@ export default function WarrantyDetailView({
             <DetailRow label="Quantidade" value={warranty.quantity} />
           </dl>
 
-          {(fiscal.unitValue || fiscal.totalValue) ? (
+          {showFiscalValue ? (
             <div className="mt-4 space-y-3">
               {fiscal.unitValue ? (
                 <div>
@@ -171,7 +183,12 @@ export default function WarrantyDetailView({
                 </div>
               ) : null}
             </div>
-          ) : null}
+          ) : (
+            <div className="mt-4">
+              <p className="text-sm text-gray-500">Valor</p>
+              <p className="text-base italic text-gray-dark/70">Valor não informado</p>
+            </div>
+          )}
         </section>
 
         <section className="space-y-4">

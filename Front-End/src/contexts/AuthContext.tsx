@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
 import type { User } from "../types/user";
+import { userService } from "../services/userService";
 
 export type { User };
 
@@ -57,6 +58,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return updated;
     });
   }, []);
+
+  // No boot (e após login), sincroniza o perfil com a API — o localStorage pode estar desatualizado
+  useEffect(() => {
+    if (!token) return;
+
+    const refreshProfile = async () => {
+      try {
+        const profile = await userService.getProfile();
+        setUser(profile);
+        localStorage.setItem("@garantias:user", JSON.stringify(profile));
+      } catch {
+        // Mantém o perfil em cache se a API estiver indisponível
+      }
+    };
+
+    void refreshProfile();
+  }, [token]);
 
   return (
     <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, login, logout, updateUser }}>

@@ -1,6 +1,8 @@
 import React from "react";
 import {
   getWarrantyExpirationInfo,
+  hasInformedFiscalValue,
+  isInformedNfNumber,
   resolveWarrantyFiscalDisplay,
 } from "../../utils/warrantyDisplay";
 import type { WarrantyUiStatus } from "../../utils/warrantyStatus";
@@ -66,6 +68,13 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
     totalValue,
     value,
   });
+  const showNfNumber = isInformedNfNumber(nfNumber);
+  const showFiscalValue = hasInformedFiscalValue({
+    quantity,
+    unitValue,
+    totalValue,
+    value,
+  });
 
   // Verifica se há algum campo de detalhe para renderizar o bloco do meio
   const hasDetails =
@@ -80,7 +89,7 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
 
   // Verifica se há valor para exibir no rodapé
   const hasFooter =
-    fiscal.totalValue ||
+    showFiscalValue ||
     variant === "home" ||
     variant === "trash";
 
@@ -132,7 +141,7 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
           )}
         </div>
 
-        {nfNumber ? (
+        {showNfNumber ? (
           <p
             className="text-xs font-medium text-gray-dark/90 mt-2 break-all leading-relaxed"
             title={`Nº da nota: ${nfNumber}`}
@@ -187,10 +196,10 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
         <>
           <div className="border-t border-gray/50 mb-3 transition-colors duration-200 group-hover:border-gray" />
           <div className="flex justify-between items-center gap-3 min-w-0">
-            {fiscal.totalValue ? (
+            {showFiscalValue && (fiscal.totalValue ?? fiscal.unitValue) ? (
               <p className="text-sm text-gray-dark font-medium min-w-0 wrap-break-word">
                 <span className="font-semibold">Valor </span>
-                {fiscal.totalValue}
+                {fiscal.totalValue ?? fiscal.unitValue}
               </p>
             ) : (
               <span className="min-w-0 flex-1" />
