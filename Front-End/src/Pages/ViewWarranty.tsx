@@ -7,6 +7,7 @@ import EmptyState from "../components/ui/EmptyState";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import WarrantyActions from "../components/warranty/WarrantyActions";
 import WarrantyAttachmentsList from "../components/warranty/WarrantyAttachmentsList";
+import WarrantyAttachmentUpload from "../components/warranty/WarrantyAttachmentUpload";
 import WarrantyDetailView from "../components/warranty/WarrantyDetailView";
 import WarrantyFormFields from "../components/warranty/WarrantyFormFields";
 import { useWarranty } from "../contexts/WarrantyContext";
@@ -14,6 +15,7 @@ import { getWarranties, isWarrantyDeleted, persistWarranty } from "../services/w
 import { fetchWarrantyByIdFromApi } from "../services/warrantyApiService";
 import { useToast } from "../hooks/useToast";
 import { deleteWarrantyAttachmentsFromCloudinary } from "../utils/warrantyCloudinaryCleanup";
+import { fileToAttachment } from "../utils/warrantyAttachments";
 import {
     formValuesToWarrantyUpdate,
     validateWarrantyForm,
@@ -97,6 +99,9 @@ export default function ViewWarranty() {
     const [removingAttachmentId, setRemovingAttachmentId] = useState<
         string | null
     >(null);
+    const [pendingAttachmentFiles, setPendingAttachmentFiles] = useState<File[]>(
+        []
+    );
 
     const viewWarranty = displayWarranty ?? warranty;
     const isDeleted = viewWarranty ? isWarrantyDeleted(viewWarranty) : false;
@@ -123,12 +128,14 @@ export default function ViewWarranty() {
         const source = resolvedWarranty;
         if (!source || isDeleted) return;
         setDraftValues(warrantyToFormValues(source));
+        setPendingAttachmentFiles([]);
         setErrors({});
         setIsEditing(true);
     };
 
     const handleCancelEdit = () => {
         setDraftValues(null);
+        setPendingAttachmentFiles([]);
         setErrors({});
         setIsEditing(false);
     };
@@ -144,9 +151,32 @@ export default function ViewWarranty() {
         }
 
         setIsSaving(true);
+
+        let attachments = resolvedWarranty?.attachments ?? [];
+        if (pendingAttachmentFiles.length > 0) {
+            try {
+                const uploaded = await Promise.all(
+                    pendingAttachmentFiles.map((file) => fileToAttachment(file))
+                );
+                attachments = [...attachments, ...uploaded];
+            } catch (err) {
+                setIsSaving(false);
+                showToast(
+                    err instanceof Error
+                        ? err.message
+                        : "Não foi possível enviar os arquivos.",
+                    "error"
+                );
+                return;
+            }
+        }
+
         const result = await updateWarranty(
             id,
-            formValuesToWarrantyUpdate(draftValues)
+            {
+                ...formValuesToWarrantyUpdate(draftValues),
+                attachments: attachments.length > 0 ? attachments : [],
+            }
         );
         setIsSaving(false);
 
@@ -156,6 +186,7 @@ export default function ViewWarranty() {
         }
 
         setDisplayWarranty(result.warranty);
+        setPendingAttachmentFiles([]);
         setDraftValues(null);
         setIsEditing(false);
         showToast("Salvo com sucesso!");
@@ -314,6 +345,12 @@ export default function ViewWarranty() {
                                 />
                             </div>
                         ) : null}
+                        <WarrantyAttachmentUpload
+                            files={pendingAttachmentFiles}
+                            onChange={setPendingAttachmentFiles}
+                            disabled={isSaving}
+                            label="Adicionar notas fiscais"
+                        />
                         <footer className="flex flex-wrap justify-end gap-3 pt-4 border-t">
                             <Button
                                 type="button"

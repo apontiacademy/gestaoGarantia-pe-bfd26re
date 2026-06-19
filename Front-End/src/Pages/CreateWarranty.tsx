@@ -1,9 +1,10 @@
-import { Upload, FileCheck, X } from 'lucide-react';
-import React, { useState, useRef, useMemo } from 'react';
+import { FileCheck } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Input from '../components/ui/Input';
 import ActionButton from '../components/ui/ActionButton';
 import LayoutHome from '../layout/LayoutHome';
+import WarrantyAttachmentUpload from '../components/warranty/WarrantyAttachmentUpload';
 import { useWarranty } from '../contexts/WarrantyContext';
 import {
   computeExpirationDateBR,
@@ -15,7 +16,6 @@ import { formatCnpj } from '../utils/cnpj';
 const CreateWarranty: React.FC = () => {
   const navigate = useNavigate();
   const { addWarranty } = useWarranty();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [hasExtendedWarranty, setHasExtendedWarranty] = useState(false);
   const [value, setValue] = useState('');
@@ -48,20 +48,6 @@ const CreateWarranty: React.FC = () => {
       currency: 'BRL',
       minimumFractionDigits: 2,
     }).format(numberValue);
-  }
-
-  function removeFile(indexToRemove: number) {
-    setFiles((prevFiles) => prevFiles.filter((_, index) => index !== indexToRemove));
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }
-
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    if (event.target.files) {
-      const selectedFiles = Array.from(event.target.files);
-      setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
-    }
   }
 
   const periodNum = Number(warrantyPeriod);
@@ -434,63 +420,11 @@ const CreateWarranty: React.FC = () => {
                     />
                   </div>
 
-                  {/* Upload */}
-                  <div className="flex flex-col gap-1">
-
-                    <label className="text-sm font-semibold text-gray-700 ml-1">
-                      Nota Fiscal (PDF ou Imagem)
-                    </label>
-
-                    <div
-                      onClick={() => fileInputRef.current?.click()}
-                      className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-all border-gray-medium hover:border-primary hover:bg-gray-50 mb-2"
-                    >
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        className="hidden"
-                        onChange={handleFileChange}
-                        accept="image/*,.pdf"
-                        multiple
-                      />
-
-                      <Upload className="text-gray-medium mb-2" size={32} />
-                      <span className="text-sm text-gray-medium text-center">
-                        Clique para anexar notas fiscais (vários arquivos aceitos)
-                      </span>
-                    </div>
-
-                    {files.length > 0 && (
-                      <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1">
-                        {files.map((file, index) => (
-                          <div key={index} className="flex items-center justify-between w-full border border-green-300 bg-green-50 rounded-lg p-3 animate-in fade-in-50 duration-200">
-                            <div className="flex items-center gap-3">
-                              <FileCheck className="text-green-600" size={24} />
-                              <div className="flex flex-col">
-                                <span className="text-sm font-bold text-gray-dark truncate max-w-45">
-                                  {file.name}
-                                </span>
-                                <span className="text-xs text-gray-medium">
-                                  {(file.size / 1024).toFixed(2)} KB
-                                </span>
-                              </div>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeFile(index);
-                              }}
-                              className="p-1 hover:bg-red-100 rounded-full text-red-500 transition-colors"
-                            >
-                              <X size={20} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <WarrantyAttachmentUpload
+                    files={files}
+                    onChange={setFiles}
+                    disabled={isSaving}
+                  />
                 </>
               )}
 

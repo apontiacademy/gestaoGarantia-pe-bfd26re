@@ -1,5 +1,6 @@
 import {
   buildWarrantyTitle,
+  getAttachmentUrl,
   normalizeAttachment,
   type Warranty,
   type WarrantyAttachment,
@@ -77,22 +78,90 @@ interface StoredAttachmentMeta {
   deleteToken?: string;
 }
 
+function attachmentToStoredMeta(
+  file: WarrantyAttachment
+): StoredAttachmentMeta {
+  return {
+    id: file.id,
+    name: file.name,
+    mimeType: file.mimeType,
+    size: file.size,
+    url: getAttachmentUrl(file),
+    publicId: file.publicId,
+    resourceType: file.resourceType,
+    deleteToken: file.deleteToken,
+  };
+}
+
 function attachmentsFromMeta(
   meta: WarrantyMeta
 ): WarrantyAttachment[] | undefined {
   if (!meta.attachments?.length) return undefined;
-  return meta.attachments.map((file) =>
-    normalizeAttachment({
-      id: file.id,
-      name: file.name,
-      mimeType: file.mimeType,
-      size: file.size,
-      url: file.url,
-      publicId: file.publicId,
-      resourceType: file.resourceType,
-      deleteToken: file.deleteToken,
-    })
-  );
+  return meta.attachments
+    .filter((file) => Boolean(file.url?.trim()))
+    .map((file) =>
+      normalizeAttachment({
+        id: file.id,
+        name: file.name,
+        mimeType: file.mimeType,
+        size: file.size,
+        url: file.url,
+        publicId: file.publicId,
+        resourceType: file.resourceType,
+        deleteToken: file.deleteToken,
+      })
+    );
+}
+
+function mergeAttachments(
+  ...sources: (WarrantyAttachment[] | undefined)[]
+): WarrantyAttachment[] | undefined {
+  const byUrl = new Map<string, WarrantyAttachment>();
+
+  for (const source of sources) {
+    for (const file of source ?? []) {
+      const normalized = normalizeAttachment(file);
+      const url = getAttachmentUrl(normalized);
+      if (!url) continue;
+
+      const existing = byUrl.get(url);
+      byUrl.set(
+        url,
+        existing
+          ? normalizeAttachment({
+              ...existing,
+              ...normalized,
+              id: existing.id || normalized.id,
+            })
+          : normalized
+      );
+    }
+  }
+
+  return byUrl.size > 0 ? Array.from(byUrl.values()) : undefined;
+}
+
+function buildObservacaoWithMeta(
+  notes: string,
+  meta: WarrantyMeta
+): string {
+  const hasMetaContent =
+    Boolean(meta.attachments?.length) ||
+    Boolean(meta.notes?.trim()) ||
+    Boolean(meta.storeName?.trim()) ||
+    Boolean(meta.storeCnpj?.trim()) ||
+    Boolean(meta.nfNumber?.trim()) ||
+    Boolean(meta.quantity?.trim()) ||
+    Boolean(meta.value?.trim()) ||
+    Boolean(meta.unitValue?.trim()) ||
+    Boolean(meta.totalValue?.trim()) ||
+    Boolean(meta.expirationDate?.trim()) ||
+    Boolean(meta.extendedWarrantyNumber?.trim()) ||
+    typeof meta.extendedExtraMonths === "number";
+
+  if (!hasMetaContent) return notes;
+
+  return `${notes}${META_MARKER}${JSON.stringify(meta)}`;
 }
 
 function fileNameFromUrl(url: string): string {
@@ -159,13 +228,11 @@ function resolveWarrantyAttachments(
   passed?: WarrantyAttachment[],
   fromDocumento?: WarrantyAttachment[]
 ): WarrantyAttachment[] | undefined {
-  if (fromDocumento?.length) return fromDocumento;
-  const fromMeta = attachmentsFromMeta(meta);
-  if (fromMeta?.length) return fromMeta;
-  if (passed?.length) {
-    return passed.map((file) => normalizeAttachment(file));
-  }
-  return undefined;
+  return mergeAttachments(
+    fromDocumento,
+    attachmentsFromMeta(meta),
+    passed?.map((file) => normalizeAttachment(file))
+  );
 }
 
 export function buildDocumentoFiscalPayload(
@@ -312,9 +379,19 @@ export function computePrazoDiasFromDates(
 }
 
 export function buildObservacaoFromWarranty(
-  warranty: Pick<Warranty, "notes">
+  warranty: Pick<Warranty, "notes" | "attachments">
 ): string {
-  return warranty.notes?.trim() ?? "";
+  const notes = warranty.notes?.trim() ?? "";
+  const attachments = warranty.attachments
+    ?.map((file) => normalizeAttachment(file))
+    .filter((file) => Boolean(getAttachmentUrl(file)));
+
+  if (!attachments?.length) return notes;
+
+  return buildObservacaoWithMeta(notes, {
+    notes: notes || undefined,
+    attachments: attachments.map(attachmentToStoredMeta),
+  });
 }
 
 export function computePrazoDias(form: CreateWarrantyFormData): number {
@@ -331,7 +408,17 @@ export function computePrazoDias(form: CreateWarrantyFormData): number {
 }
 
 export function buildObservacao(form: CreateWarrantyFormData): string {
-  return form.notes?.trim() ?? "";
+  const notes = form.notes?.trim() ?? "";
+  const attachments = form.attachments
+    ?.map((file) => normalizeAttachment(file))
+    .filter((file) => Boolean(getAttachmentUrl(file)));
+
+  if (!attachments?.length) return notes;
+
+  return buildObservacaoWithMeta(notes, {
+    notes: notes || undefined,
+    attachments: attachments.map(attachmentToStoredMeta),
+  });
 }
 
 function parseObservacao(observacao?: string | null): {
