@@ -13,6 +13,7 @@ export interface WarrantyFormValues {
   purchaseDate: string;
   expirationDate: string;
   warrantyType: string;
+  extendedWarrantyNumber: string;
   value: string;
   notes: string;
 }
@@ -34,6 +35,7 @@ export function warrantyToFormValues(warranty: Warranty): WarrantyFormValues {
     purchaseDate: warranty.purchaseDate ?? "",
     expirationDate: warranty.expirationDate ?? "",
     warrantyType: warranty.warrantyType ?? WARRANTY_TYPE_OPTIONS[0],
+    extendedWarrantyNumber: warranty.extendedWarrantyNumber ?? "",
     value: fiscal.unitValue ?? fiscal.totalValue ?? "",
     notes: warranty.notes ?? "",
   };
@@ -98,6 +100,7 @@ export function formValuesToWarrantyUpdate(
     unitNum > 0 ? formatCurrencyBRL(unitNum) : undefined;
   const totalValue =
     unitNum > 0 ? formatCurrencyBRL(unitNum * qty) : undefined;
+  const isExtended = trim(values.warrantyType).toLowerCase().includes("estendida");
 
   return {
     title: trim(values.title),
@@ -110,6 +113,9 @@ export function formValuesToWarrantyUpdate(
     purchaseDate: trim(values.purchaseDate) || undefined,
     expirationDate: trim(values.expirationDate) || undefined,
     warrantyType: trim(values.warrantyType) || undefined,
+    extendedWarrantyNumber: isExtended
+      ? trim(values.extendedWarrantyNumber) || undefined
+      : undefined,
     unitValue,
     totalValue,
     value: totalValue ?? unitValue,

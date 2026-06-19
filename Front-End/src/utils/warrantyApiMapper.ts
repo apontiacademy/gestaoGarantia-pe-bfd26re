@@ -379,19 +379,30 @@ export function computePrazoDiasFromDates(
 }
 
 export function buildObservacaoFromWarranty(
-  warranty: Pick<Warranty, "notes" | "attachments">
+  warranty: Pick<
+    Warranty,
+    "notes" | "attachments" | "extendedWarrantyNumber" | "warrantyType"
+  >
 ): string {
   const notes = warranty.notes?.trim() ?? "";
   const attachments = warranty.attachments
     ?.map((file) => normalizeAttachment(file))
     .filter((file) => Boolean(getAttachmentUrl(file)));
+  const isExtended =
+    warranty.warrantyType?.toLowerCase().includes("estendida") ?? false;
+  const extendedWarrantyNumber = isExtended
+    ? warranty.extendedWarrantyNumber?.trim()
+    : undefined;
 
-  if (!attachments?.length) return notes;
-
-  return buildObservacaoWithMeta(notes, {
+  const meta: WarrantyMeta = {
     notes: notes || undefined,
-    attachments: attachments.map(attachmentToStoredMeta),
-  });
+    extendedWarrantyNumber: extendedWarrantyNumber || undefined,
+    attachments: attachments?.length
+      ? attachments.map(attachmentToStoredMeta)
+      : undefined,
+  };
+
+  return buildObservacaoWithMeta(notes, meta);
 }
 
 export function computePrazoDias(form: CreateWarrantyFormData): number {
@@ -413,12 +424,21 @@ export function buildObservacao(form: CreateWarrantyFormData): string {
     ?.map((file) => normalizeAttachment(file))
     .filter((file) => Boolean(getAttachmentUrl(file)));
 
-  if (!attachments?.length) return notes;
-
-  return buildObservacaoWithMeta(notes, {
+  const meta: WarrantyMeta = {
     notes: notes || undefined,
-    attachments: attachments.map(attachmentToStoredMeta),
-  });
+    extendedWarrantyNumber: form.hasExtendedWarranty
+      ? form.extendedWarrantyNumber?.trim() || undefined
+      : undefined,
+    extendedExtraMonths:
+      form.hasExtendedWarranty && form.extendedExtraMonths > 0
+        ? form.extendedExtraMonths
+        : undefined,
+    attachments: attachments?.length
+      ? attachments.map(attachmentToStoredMeta)
+      : undefined,
+  };
+
+  return buildObservacaoWithMeta(notes, meta);
 }
 
 function parseObservacao(observacao?: string | null): {
@@ -552,6 +572,15 @@ export function mergeAttachmentMetadataFromLocal(
   return { ...warranty, attachments };
 }
 
+export function applyExtendedWarrantyNumber(
+  warranty: Warranty,
+  numeroApolice?: string | null
+): Warranty {
+  const fromApi = numeroApolice?.trim();
+  if (!fromApi) return warranty;
+  return { ...warranty, extendedWarrantyNumber: fromApi };
+}
+
 export function apiGarantiaToWarranty(
   garantia: ApiGarantia,
   attachments?: WarrantyAttachment[]
@@ -617,6 +646,7 @@ export function apiGarantiaToWarranty(
     unitValue: fiscalFromDoc.unitValue ?? fiscalFromMeta.unitValue,
     totalValue: fiscalFromDoc.totalValue ?? fiscalFromMeta.totalValue,
     notes: notes || undefined,
+    extendedWarrantyNumber: meta.extendedWarrantyNumber?.trim() || undefined,
     attachments: resolveWarrantyAttachments(
       meta,
       attachments,

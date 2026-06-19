@@ -4,7 +4,7 @@ import type {
   UpdateDocumentoFiscalPayload,
 } from "./documentoFiscalService";
 import { documentoFiscalService } from "./documentoFiscalService";
-import type { ApiGarantia } from "./garantiaService";
+import type { ApiGarantia, ApiGarantiaEstendida } from "./garantiaService";
 import { garantiaService } from "./garantiaService";
 import {
   productService,
@@ -13,6 +13,7 @@ import {
 } from "./productService";
 import {
   apiGarantiaToWarranty,
+  applyExtendedWarrantyNumber,
   mergeAttachmentMetadataFromLocal,
   buildDocumentoFiscalPayload,
   buildDocumentoFiscalPayloadFromWarranty,
@@ -36,6 +37,74 @@ function toUpdateDocumentoFiscalPayload(
   const { produto_id, ...updateBody } = payload;
   void produto_id;
   return updateBody;
+}
+
+let extendedWarrantyCache: ApiGarantiaEstendida[] | null = null;
+
+async function loadExtendedWarranties(): Promise<ApiGarantiaEstendida[]> {
+  if (extendedWarrantyCache) return extendedWarrantyCache;
+  try {
+    extendedWarrantyCache = await garantiaService.listExtended();
+    return extendedWarrantyCache;
+  } catch {
+    return [];
+  }
+}
+
+function invalidateExtendedWarrantyCache(): void {
+  extendedWarrantyCache = null;
+}
+
+async function findExtendedWarrantyByGarantiaId(
+  garantiaId: number
+): Promise<ApiGarantiaEstendida | undefined> {
+  const list = await loadExtendedWarranties();
+  return list.find((item) => item.garantia_id === garantiaId);
+}
+
+async function enrichWarrantyWithExtendedData(
+  warranty: Warranty
+): Promise<Warranty> {
+  if (!isApiWarrantyId(warranty.id)) return warranty;
+
+  const extended = await findExtendedWarrantyByGarantiaId(Number(warranty.id));
+  return applyExtendedWarrantyNumber(warranty, extended?.numero_apolice);
+}
+
+async function syncExtendedWarrantyRecord(
+  garantiaId: number,
+  warranty: Warranty
+): Promise<void> {
+  const isExtended =
+    warranty.warrantyType === "Garantia Estendida" ||
+    warranty.warrantyType?.toLowerCase().includes("estendida");
+  const numero = warranty.extendedWarrantyNumber?.trim();
+
+  if (!isExtended || !numero) return;
+
+  const existing = await findExtendedWarrantyByGarantiaId(garantiaId);
+  const seguradora = warranty.story?.trim() || "Não informada";
+  const valor = parseCurrencyToNumber(warranty.unitValue ?? warranty.value);
+
+  try {
+    if (existing) {
+      await garantiaService.updateExtended(garantiaId, {
+        numero_apolice: numero,
+        nome_seguradora: seguradora,
+        valor,
+      });
+    } else {
+      await garantiaService.createExtended({
+        garantia_id: garantiaId,
+        numero_apolice: numero,
+        nome_seguradora: seguradora,
+        valor,
+      });
+    }
+    invalidateExtendedWarrantyCache();
+  } catch {
+    // Dados da estendida permanecem em observacao como fallback.
+  }
 }
 
 function isApiProduct(value: unknown): value is ApiProduct {
@@ -127,6 +196,7 @@ export async function createWarrantyViaApi(
           nome_seguradora: seguradora,
           valor: parseCurrencyToNumber(form.value),
         });
+        invalidateExtendedWarrantyCache();
       } catch {
         // Garantia principal já criada; dados da estendida permanecem em observacao
       }
@@ -145,7 +215,12 @@ export async function createWarrantyViaApi(
     produto: { ...produtoBase, documento_fiscal: documentoFiscal },
   };
 
-  return apiGarantiaToWarranty(garantiaComProduto, form.attachments);
+  const mapped = apiGarantiaToWarranty(garantiaComProduto, form.attachments);
+  return {
+    ...applyExtendedWarrantyNumber(mapped, form.extendedWarrantyNumber),
+    extendedWarrantyNumber:
+      form.extendedWarrantyNumber?.trim() || mapped.extendedWarrantyNumber,
+  };
 }
 
 function getLoggedUserId(): number | null {
@@ -312,6 +387,8 @@ export async function updateWarrantyViaApi(
     observacao,
   });
 
+  await syncExtendedWarrantyRecord(garantiaId, merged);
+
   const enrichedGarantia = await garantiaService.getById(garantiaId);
   const produtoAfterGarantia = enrichedGarantia.produto ?? produtoAtualizado;
   const existingDoc = produtoAfterGarantia.documento_fiscal ?? null;
@@ -328,7 +405,9 @@ export async function updateWarrantyViaApi(
     documentoFiscal ?? refreshed.produto?.documento_fiscal ?? existingDoc
   );
 
-  return apiGarantiaToWarranty(produtoComDocumento, merged.attachments);
+  return enrichWarrantyWithExtendedData(
+    apiGarantiaToWarranty(produtoComDocumento, merged.attachments)
+  );
 }
 
 export async function fetchWarrantyByIdFromApi(
@@ -345,13 +424,14 @@ export async function fetchWarrantyByIdFromApi(
   }
 
   const mapped = apiGarantiaToWarranty(garantia);
-  if (!local) return mapped;
+  const enriched = await enrichWarrantyWithExtendedData(mapped);
+  if (!local) return enriched;
 
   return mergeAttachmentMetadataFromLocal(
     {
-      ...mapped,
-      attachments: mapped.attachments?.length
-        ? mapped.attachments
+      ...enriched,
+      attachments: enriched.attachments?.length
+        ? enriched.attachments
         : local.attachments,
     },
     local

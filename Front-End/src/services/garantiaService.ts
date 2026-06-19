@@ -39,6 +39,20 @@ export interface CreateGarantiaEstendidaPayload {
   valor: number;
 }
 
+export interface UpdateGarantiaEstendidaPayload {
+  numero_apolice: string;
+  nome_seguradora?: string;
+  valor?: number;
+}
+
+export interface ApiGarantiaEstendida {
+  id: number;
+  garantia_id: number;
+  numero_apolice: string;
+  nome_seguradora: string;
+  valor: number | string;
+}
+
 export const garantiaService = {
   create: (data: CreateGarantiaPayload) =>
     api.post<ApiGarantia>("/garantias", data),
@@ -59,5 +73,11 @@ export const garantiaService = {
     api.patch<ApiGarantia>(`/garantias/${id}`, { deletado_em: null }),
 
   createExtended: (data: CreateGarantiaEstendidaPayload) =>
-    api.post<unknown>("/garantias-estendidas", data),
+    api.post<ApiGarantiaEstendida>("/garantias-estendidas", data),
+
+  listExtended: () =>
+    api.get<ApiGarantiaEstendida[]>("/garantias-estendidas"),
+
+  updateExtended: (garantiaId: number, data: UpdateGarantiaEstendidaPayload) =>
+    api.put<ApiGarantiaEstendida>(`/garantias-estendidas/${garantiaId}`, data),
 };

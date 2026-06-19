@@ -159,6 +159,15 @@ export default function WarrantyDetailView({
               <dt className="font-medium inline">Garantia estendida: </dt>
               <dd className="inline">{hasExtendedWarranty ? "Sim" : "Não"}</dd>
             </div>
+            {hasExtendedWarranty ? (
+              <DetailRow
+                label="Número da garantia estendida"
+                value={
+                  warranty.extendedWarrantyNumber?.trim() ||
+                  "Número não informado"
+                }
+              />
+            ) : null}
             <DetailRow label="Quantidade" value={warranty.quantity} />
           </dl>
 

@@ -20,6 +20,7 @@ export default function Settings() {
   const [nomeCompleto, setNomeCompleto] = useState(user?.nomeCompleto ?? '');
   const [fotoPreview, setFotoPreview] = useState<string>(user?.fotoPerfil ?? '');
   const [fotoFile, setFotoFile] = useState<File | null>(null);
+  const [fotoRemoved, setFotoRemoved] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState('');
   const [profileError, setProfileError] = useState('');
@@ -47,8 +48,24 @@ export default function Settings() {
     }
 
     setFotoFile(file);
+    setFotoRemoved(false);
     setFotoPreview(URL.createObjectURL(file)); // preview local imediato
     setProfileError('');
+  };
+
+  const handleRemoveFoto = () => {
+    if (fotoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(fotoPreview);
+    }
+
+    setFotoPreview('');
+    setFotoFile(null);
+    setFotoRemoved(true);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    setProfileError('');
+    setProfileSuccess('');
   };
 
   // ── Salvar perfil ────────────────────────────────────────
@@ -66,9 +83,10 @@ export default function Settings() {
     try {
       let fotoUrl = user?.fotoPerfil ?? '';
 
-      // Se selecionou foto nova, faz upload pro Cloudinary primeiro
       if (fotoFile) {
         fotoUrl = await uploadImageToCloudinary(fotoFile);
+      } else if (fotoRemoved) {
+        fotoUrl = '';
       }
 
       const updated = await userService.updateProfile({
@@ -76,13 +94,14 @@ export default function Settings() {
         fotoPerfil: fotoUrl,
       });
 
-      // Atualiza o contexto sem precisar relogar
       updateUser({
         nomeCompleto: updated.nomeCompleto,
-        fotoPerfil: updated.fotoPerfil,
+        fotoPerfil: updated.fotoPerfil || undefined,
       });
 
+      setFotoPreview(updated.fotoPerfil ?? '');
       setFotoFile(null);
+      setFotoRemoved(false);
       setProfileSuccess('Perfil atualizado com sucesso!');
     } catch (err) {
       setProfileError(
@@ -194,6 +213,15 @@ export default function Settings() {
                   <Camera size={16} />
                 </button>
               </div>
+              {fotoPreview ? (
+                <button
+                  type="button"
+                  onClick={handleRemoveFoto}
+                  className="text-xs text-red hover:underline transition cursor-pointer"
+                >
+                  Retirar foto de perfil
+                </button>
+              ) : null}
               <p className="text-xs text-gray-medium">JPG ou PNG • máx. 5MB</p>
               <input
                 id="profile-photo"
