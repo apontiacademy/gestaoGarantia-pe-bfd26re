@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '../../contexts/AuthContext';
-import { Trash2, X } from "lucide-react";
+import { Trash2, X, FileText } from "lucide-react";
 
 type SidebarProps = {
     isOpen: boolean;

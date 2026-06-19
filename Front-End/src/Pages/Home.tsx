@@ -1,4 +1,4 @@
-import { Plus, Search, Package, SearchX } from "lucide-react";
+import { Plus, Search, Package, SearchX,FileText } from "lucide-react";
 import LayoutHome from "../layout/LayoutHome";
 import Dashboard from "../components/Dashboard";
 import Button from "../components/ui/Button";
@@ -41,11 +41,11 @@ export default function Home() {
   }, [activeWarranties, search, statusFilter]);
 
   return (
-    <LayoutHome namePage="Minhas Garantias">
+    <LayoutHome namePage="Minhas Garantias" namePageIcon={FileText}>
           <div className="min-h-screen bg-fundo py-2">
             <div className="w-full max-w-8xl mx-auto  sm:px-5 ">
               {/* Container Branco - Mesmo estilo do Login */}
-              <div className="bg-white rounded-3xl shadow-lg p-6 sm:p-8 lg:p-10 flex flex-col gap-8">
+              <div className="flex flex-col gap-8">
                 
                 {/* Cabeçalho */}
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -69,7 +69,7 @@ export default function Home() {
             </div>
 
             {/* Barra de Pesquisa */}
-            <div className="relative max-w-xl">
+            <div className="relative max-w-xxl">
               <Search
                 size={20}
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
@@ -79,7 +79,7 @@ export default function Home() {
                 placeholder="Pesquisar garantias por título..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-base transition-all"
+                className="w-full pl-12 pr-4 py-3.5 bg-white border-grey-500 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-base transition-all"
               />
             </div>
 
