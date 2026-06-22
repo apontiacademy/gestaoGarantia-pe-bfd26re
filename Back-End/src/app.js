@@ -1,42 +1,53 @@
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+require('dotenv').config({ 
+  path: path.resolve(__dirname, '../.env') 
+});
 
 // Logs para debug
-console.log(".env carregado. DB_NAME =", process.env.DB_NAME ? "OK" : "FALTANDO");
-console.log("JWT_SECRET =", process.env.JWT_SECRET ? "OK" : "FALTANDO");
+console.log("✅ .env carregado. DB_NAME =", process.env.DB_NAME ? "OK" : "FALTANDO");
+console.log("✅ JWT_SECRET =", process.env.JWT_SECRET ? "OK" : "FALTANDO");
 
 if (!process.env.DB_NAME || !process.env.JWT_SECRET) {
-  console.error("ERRO: Variáveis de ambiente obrigatórias não encontradas!");
-  console.error("Verifique se o arquivo .env existe em:", path.resolve(__dirname, '../.env'));
-  // Não usar process.exit(1) em ambiente de desenvolvimento com nodemon
-  // process.exit(1); 
+  console.error("❌ ERRO: Variáveis de ambiente obrigatórias não encontradas!");
+  console.error("Verifique o arquivo .env");
+  // Não usar process.exit(1) em produção no Render
 }
 
-const jwt = require('jsonwebtoken');
+// ==================== IMPORTS ====================
 const express = require('express');
-const app = express();
 const cors = require('cors');
 
+const app = express();
+
+// ==================== MIDDLEWARES ====================
 app.use(express.json());
+
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://gerenciador-de-garantia-aponti.netlify.app', 
+    'https://gerenciador-de-garantia-aponti.netlify.app',
     'https://gestaogarantia-pe-bfd26re-pebw.onrender.com'
   ],
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Rota de teste
+// ==================== ROTA DE TESTE ====================
 app.get('/', (req, res) => {
-  res.status(200).send({ message: 'API funcionando!' });
+  res.status(200).json({ 
+    message: 'API funcionando!',
+    environment: process.env.NODE_ENV || 'production'
+  });
 });
 
-// Rotas
+// ==================== ROTAS ====================
 const routes = require('./routes');
 app.use(routes);
 
+// ==================== START SERVER ====================
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
