@@ -20,7 +20,7 @@ const cors = require('cors');
 app.use(express.json());
 app.use(cors({
   origin: [
-    'http://localhost:5173',          // desenvolvimento local
+    'http://localhost:5173',
     'https://gerenciador-de-garantia-aponti.netlify.app', 
   ],
   credentials: true,
