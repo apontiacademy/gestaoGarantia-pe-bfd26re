@@ -10,7 +10,9 @@ import { Eye, EyeOff } from "lucide-react";
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  
+  // 1. Buscando a função loginAsVisitor do useAuth
+  const { login, loginAsVisitor } = useAuth();
 
   const [form, setForm] = useState({ email: "", senha: "" });
   const [error, setError] = useState("");
@@ -39,6 +41,12 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 2. Função que dispara o modo visitante e redireciona para /home
+  const handleVisitorLogin = () => {
+    loginAsVisitor();
+    navigate("/home");
   };
 
   return (
@@ -92,7 +100,6 @@ export default function Login() {
 
           <div className="flex justify-center">
             <Button variant="primary" onClick={handleSubmit} disabled={loading} className="w-full">
-
               {loading ? "Entrando..." : "Login"}
             </Button>
           </div>
@@ -113,11 +120,11 @@ export default function Login() {
             Não tem uma conta? <span className="text-primary hover:text-gray-dark/70">Criar Conta</span>
           </button>
 
-          <Button variant="primary" onClick={() => navigate("/home-demo")}>
+          {/* 3. Botão alterado para chamar handleVisitorLogin ao invés de ir para a rota demo anterior */}
+          <Button variant="primary" onClick={handleVisitorLogin}>
             Entrar como visitante
           </Button>
         </div>
-
 
       </div>
     </div>

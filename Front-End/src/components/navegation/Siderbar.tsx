@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { X } from "lucide-react"
+import { X, LogOut } from "lucide-react"; 
+import { useAuth } from "../../contexts/AuthContext"; // Corrigido para ../../
 
 type SidebarProps = {
     isOpen: boolean;
@@ -8,6 +9,14 @@ type SidebarProps = {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const navigate = useNavigate();
+    const { logout } = useAuth(); 
+
+    const handleLogoutClick = () => {
+        logout(); // Limpa a sessão (seja funcionário ou visitante)
+        onClose(); // Fecha a sidebar
+        navigate("/"); // Redireciona para a tela de login externa
+    };
+
     return (
         <>
             {/* OVERLAY (BLUR NO FUNDO) */}
@@ -43,19 +52,30 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </div>
 
                 {/* CONTEÚDO */}
-                <nav className="p-4 space-y-3">
-                    <button onClick={() => { navigate("/home-demo"); onClose();}} className="block w-full text-left hover:bg-gray-medium p-2 rounded">
-                        Minhas Garantias
-                    </button>
+                <div className="flex flex-col h-[calc(100%-65px)] justify-between p-4">
+                    <nav className="space-y-3">
+                        <button onClick={() => { navigate("/home"); onClose();}} className="block w-full text-left hover:bg-gray-medium p-2 rounded font-medium">
+                            Minhas Garantias
+                        </button>
 
-                    <button onClick={() => { navigate("/lixeira"); onClose();}} className="block w-full text-left hover:bg-gray-medium p-2 rounded">
-                        Lixeira
-                    </button>
+                        <button onClick={() => { navigate("/lixeira"); onClose();}} className="block w-full text-left hover:bg-gray-medium p-2 rounded font-medium">
+                            Lixeira
+                        </button>
 
-                    <button className="block w-full text-left hover:bg-gray-medium p-2 rounded">
-                        Configurações
+                        <button className="block w-full text-left hover:bg-gray-medium p-2 rounded font-medium">
+                            Configurações
+                        </button>
+                    </nav>
+
+                    {/* BOTÃO DE SAIR NO RODAPÉ */}
+                    <button 
+                        onClick={handleLogoutClick} 
+                        className="flex items-center gap-2 w-full text-left text-red hover:bg-red/10 p-2.5 rounded font-semibold border-t border-gray/20 pt-4"
+                    >
+                        <LogOut size={18} />
+                        <span>Sair</span>
                     </button>
-                </nav>
+                </div>
             </aside>
         </>
     );

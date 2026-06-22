@@ -7,6 +7,7 @@ import {
   useMemo,
   type ReactNode,
 } from "react";
+import { useAuth } from "./AuthContext"; 
 import {
   getWarranties,
   isWarrantyDeleted,
@@ -40,13 +41,22 @@ const WarrantyContext = createContext<WarrantyContextData>(
 );
 
 export function WarrantyProvider({ children }: { children: ReactNode }) {
-  const [warranties, setWarranties] = useState<Warranty[]>(() => {
-    return getWarranties() || [];
-  });
+  // Pegamos as informações de autenticação
+  const { isAuthenticated, isVisitor } = useAuth();
+  
+  // Criamos um estado de controle para forçar a atualização da lista quando necessário
+  const [tick, setTick] = useState(0);
 
   const refreshWarranties = useCallback(() => {
-    setWarranties(getWarranties());
+    setTick((t) => t + 1);
   }, []);
+
+  // O useMemo lê as garantias do serviço automaticamente sempre que o tick mudar,
+  // ou quando o usuário mudar (isAuthenticated / isVisitor), sem precisar de useEffect!
+  const warranties = useMemo(() => {
+    return getWarranties() || [];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tick, isAuthenticated, isVisitor]);
 
   const activeWarranties = useMemo(
     () => warranties.filter((w) => !isWarrantyDeleted(w)),

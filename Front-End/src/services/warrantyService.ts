@@ -23,10 +23,28 @@ export interface Warranty {
   deletedAt?: string;
 }
 
-const STORAGE_KEY = '@garantias:warranties';
+// 1. Chaves separadas para manter os dados organizados e isolados
+const STORAGE_KEY_EMPLOYEE = '@garantias:warranties';
+const STORAGE_KEY_VISITOR = '@garantias:visitor_warranties';
 
 /** Separador interno de `title` (nome + marca + modelo). */
 export const WARRANTY_TITLE_JOIN_SEP = ' ';
+
+// 2. Função auxiliar dinâmica para descobrir qual chave usar baseada no usuário atual
+function getActiveStorageKey(): string {
+  try {
+    const savedUser = localStorage.getItem("@garantias:user");
+    if (savedUser) {
+      const user = JSON.parse(savedUser);
+      if (user.role === 'visitor') {
+        return STORAGE_KEY_VISITOR;
+      }
+    }
+  } catch {
+    // Se der erro no parse, por segurança mantém a chave padrão
+  }
+  return STORAGE_KEY_EMPLOYEE;
+}
 
 export function buildWarrantyTitle(
   productName: string,
@@ -46,7 +64,8 @@ function isStoredWarrantyItem(value: unknown): value is Warranty {
 
 function persistWarranties(list: Warranty[]): boolean {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    // Usa a chave dinâmica definida pelo tipo de sessão ativo
+    localStorage.setItem(getActiveStorageKey(), JSON.stringify(list));
     return true;
   } catch {
     return false;
@@ -59,7 +78,8 @@ export function isWarrantyDeleted(warranty: Warranty): boolean {
 
 export function getWarranties(): Warranty[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    // Busca da chave dinâmica (Employee ou Visitor)
+    const raw = localStorage.getItem(getActiveStorageKey());
     if (!raw || raw.trim() === '') return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
@@ -164,7 +184,7 @@ export function updateWarranty(
 
   if (!persistWarranties(nextList)) {
     return { success: false, error: 'Não foi possível salvar. Tente novamente.' };
-  }
+   }
 
   return { success: true, warranty: nextItem };
 }
