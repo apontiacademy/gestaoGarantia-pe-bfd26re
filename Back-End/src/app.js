@@ -22,6 +22,7 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'https://gerenciador-de-garantia-aponti.netlify.app', 
+    'https://gestaogarantia-pe-bfd26re-pebw.onrender.com'
   ],
   credentials: true,
 }));
