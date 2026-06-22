@@ -30,7 +30,7 @@
 
   - Criar Front-End/.env com VITE_API_URL=http://localhost:3000
   - authService.ts: corrigir tipo de retorno do register() de RegisterPayload para AuthResponse
-  - App.tsx: remover rota /reset-password duplicada + proteger /garantia/:id com <ProtectedRoute>
+  - App.tsx: remover rota /reset-password duplicada + proteger /garantia/:id com ProtectedRoute
 
   ---
   Tarefa 4 — Frontend: tornar o WarrantyContext auth-aware (tarefa principal)
@@ -43,10 +43,7 @@
 
   Ponto de atenção: o shape do objeto Warranty no frontend é diferente do que o backend espera (o title é composto de nome + marca + modelo que ficam em tabelas separadas). Isso
   precisará de um endpoint "achatado" no backend ou mapeamento no frontend.
-
-  Ponto de decisão de produto: quando o visitante faz login, o que acontece com as garantias que ele criou no localStorage? Recomendado: modal de confirmação para importar os dados para
-   o backend.
-                                                                                                                                                                                         
+                                                                                                                                                                 
   ---                                                                                                                                                                                  
   Tarefa 5 — Limpeza de segurança mínima antes do deploy
                                                         
