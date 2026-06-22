@@ -7,6 +7,7 @@ import {
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/routes/ProtectedRoute";
 import { PublicRoute } from "./components/routes/PublicRoute";
+import { SessionExpiredRedirect } from "./components/routes/SessionExpiredRedirect";
 import Splash from "./Pages/Splash";
 import Login from "./Pages/Login";
 import UserRegister from "./Pages/UserRegister";
@@ -23,6 +24,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <SessionExpiredRedirect />
         <Routes>
           <Route path="/" element={<Splash />} />
           
@@ -70,7 +72,16 @@ function App() {
             }
           />
           
-          <Route path="/garantia/:id" element={<ViewWarranty />} />
+          <Route path="/garantia/visitante" element={<ViewWarranty />} />
+
+          <Route
+            path="/garantia/:id"
+            element={
+              <ProtectedRoute>
+                <ViewWarranty />
+              </ProtectedRoute>
+            }
+          />
           
           {/* Rota curinga para redirecionamento */}
           <Route path="*" element={<Navigate to="/login" replace />} />
