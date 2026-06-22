@@ -30,6 +30,9 @@ export default function WarrantyFormFields({
   const qty = Number(values.quantity);
   const showTotalValue = qty > 1;
   const totalValueLabel = calculateTotalFromUnit(values.value, values.quantity);
+  const isExtendedWarranty = values.warrantyType
+    .toLowerCase()
+    .includes("estendida");
 
   function handleUnitValueChange(raw: string): void {
     const digits = raw.replace(/\D/g, "");
@@ -123,6 +126,18 @@ export default function WarrantyFormFields({
           ))}
         </select>
       </div>
+
+      {isExtendedWarranty ? (
+        <Input
+          label="Número da garantia estendida"
+          value={values.extendedWarrantyNumber}
+          onChange={(e) => onChange("extendedWarrantyNumber", e.target.value)}
+          disabled={disabled}
+          error={errors.extendedWarrantyNumber}
+          placeholder="Ex.: 9928..."
+          inputMode="numeric"
+        />
+      ) : null}
 
       <Input
         label="Valor unitário do produto"

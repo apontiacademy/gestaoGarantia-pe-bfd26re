@@ -1,9 +1,10 @@
-import { Upload, FileCheck, X } from 'lucide-react';
-import React, { useState, useRef, useMemo } from 'react';
+import { FileCheck } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Input from '../components/ui/Input';
 import ActionButton from '../components/ui/ActionButton';
 import LayoutHome from '../layout/LayoutHome';
+import WarrantyAttachmentUpload from '../components/warranty/WarrantyAttachmentUpload';
 import { useWarranty } from '../contexts/WarrantyContext';
 import {
   computeExpirationDateBR,
@@ -15,8 +16,7 @@ import { formatCnpj } from '../utils/cnpj';
 const CreateWarranty: React.FC = () => {
   const navigate = useNavigate();
   const { addWarranty } = useWarranty();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [hasExtendedWarranty, setHasExtendedWarranty] = useState(false);
   const [value, setValue] = useState('');
   const [step, setStep] = useState(1);
@@ -27,8 +27,6 @@ const CreateWarranty: React.FC = () => {
   const [quantity, setQuantity] = useState('');
   const [warrantyPeriod, setWarrantyPeriod] = useState('');
   const [warrantyUnit, setWarrantyUnit] = useState<'days' | 'months'>('months');
-
-  const [hasMultipleUnits, setHasMultipleUnits] = useState(false);
 
   const [storeName, setStoreName] = useState('');
   const [cnpj, setCnpj] = useState('');
@@ -42,78 +40,14 @@ const CreateWarranty: React.FC = () => {
 
   const steps = ['Produto', 'Compra', 'Nota Fiscal', 'Revisão'];
 
-  function formatCurrencyFromDigits(digits: string): string {
-    if (!digits) return '';
-    const numberValue = Number(digits) / 100;
+  function formatCurrency(input: string) {
+    const onlyNumbers = input.replace(/\D/g, '');
+    const numberValue = Number(onlyNumbers) / 100;
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
       minimumFractionDigits: 2,
     }).format(numberValue);
-  }
-
-  function handleValueChange(raw: string): void {
-    const digits = raw.replace(/\D/g, '');
-    setValue(formatCurrencyFromDigits(digits));
-  }
-
-  function handleValueKeyDown(
-    event: React.KeyboardEvent<HTMLInputElement>
-  ): void {
-    const allowedKeys = [
-      'Backspace',
-      'Delete',
-      'Tab',
-      'ArrowLeft',
-      'ArrowRight',
-      'Home',
-      'End',
-    ];
-    if (allowedKeys.includes(event.key)) return;
-    if (event.ctrlKey || event.metaKey) return;
-    if (!/^\d$/.test(event.key)) {
-      event.preventDefault();
-    }
-  }
-
-  function handleValuePaste(
-    event: React.ClipboardEvent<HTMLInputElement>
-  ): void {
-    event.preventDefault();
-    const digits = event.clipboardData.getData('text').replace(/\D/g, '');
-    setValue(formatCurrencyFromDigits(digits));
-  }
-
-  function parseUnitPrice(): number {
-    return Number(value.replace(/\D/g, '')) / 100;
-  }
-
-  function calculateTotalValue(): string {
-    const unitPrice = parseUnitPrice();
-    const qty = Number(quantity);
-
-    if (!unitPrice || !hasMultipleUnits || !qty || qty <= 0) {
-      return 'R$ 0,00';
-    }
-
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(unitPrice * qty);
-  }
-
-  function removeFile() {
-    setFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }
-
-  function handleFileChange(
-    event: React.ChangeEvent<HTMLInputElement>
-  ): void {
-    const selectedFile = event.target.files?.[0] ?? null;
-    setFile(selectedFile);
   }
 
   const periodNum = Number(warrantyPeriod);
@@ -166,27 +100,30 @@ const CreateWarranty: React.FC = () => {
       return;
     }
 
+    const nf = nfNumber.trim();
+    const b = brand.trim();
+    const m = model.trim();
+
     let attachments;
-    if (file) {
+    if (files.length > 0) {
       setIsSaving(true);
       try {
-        attachments = [await fileToAttachment(file)];
+        attachments = await Promise.all(files.map((file) => fileToAttachment(file)));
       } catch (err) {
         setIsSaving(false);
         window.alert(
-          err instanceof Error ? err.message : 'Não foi possível processar o arquivo.'
+          err instanceof Error ? err.message : 'Não foi possível processar os arquivos.'
         );
         return;
       }
-    } else {
-      setIsSaving(true);
     }
 
     try {
+      setIsSaving(true);
       await addWarranty({
         productName: name,
-        brand: brand.trim(),
-        model: model.trim(),
+        brand: b,
+        model: m,
         purchaseDate,
         warrantyPeriod: periodNum,
         warrantyUnit,
@@ -194,32 +131,21 @@ const CreateWarranty: React.FC = () => {
         extendedExtraMonths: extraMonths,
         extendedWarrantyNumber: extendedWarrantyNumber.trim() || undefined,
         storeName: storeName.trim() || undefined,
-        cnpj: cnpj.trim() || undefined,
-        nfNumber: nfNumber.trim() || undefined,
+        cnpj: cnpj.trim() ? formatCnpj(cnpj) : undefined,
+        nfNumber: nf || undefined,
         quantity: quantity.trim() || undefined,
         value: value || undefined,
-        notes,
+        notes: notes.trim() || undefined,
         attachments,
       });
+      
       navigate('/home');
     } catch (error) {
-      window.alert(
-        error instanceof Error
-          ? error.message
-          : 'Não foi possível salvar a garantia.'
-      );
+      console.log(error);
+      window.alert('Não foi possível salvar a garantia.');
     } finally {
       setIsSaving(false);
     }
-  }
-
-  function handleFormSubmit(e: React.FormEvent): void {
-    e.preventDefault();
-    if (step < 4) {
-      setStep(step + 1);
-      return;
-    }
-    void handleSaveWarranty();
   }
 
   return (
@@ -230,15 +156,15 @@ const CreateWarranty: React.FC = () => {
       showBack
     >
       <div className="min-h-screen bg-fundo">
-        <main className="p-2.5">
-          <div className="bg-white rounded-3xl p-6 sm:p-10 shadow-lg max-w-md mx-auto">
+        <main className="p-6">
+          <div className="bg-[#D9D9D9] rounded-3xl p-6 shadow-sm max-w-md mx-auto">
 
             {/* Título */}
-            <h1 className="text-lg font-bold text-gray-dark">
+            <h1 className="text-lg font-bold text-gray-800">
               Cadastro de Garantia
             </h1>
 
-            <p className="text-sm text-gray-dark/80 mb-6 font-medium">
+            <p className="text-sm text-gray-600 mb-6 font-medium">
               Preencha os dados da garantia
             </p>
 
@@ -258,15 +184,15 @@ const CreateWarranty: React.FC = () => {
                           text-sm font-bold border-2 transition-all
                           ${
                             step >= currentStep
-                              ? 'bg-primary text-white border-primary'
-                              : 'bg-white text-gray-medium border-gray/50'
+                              ? 'bg-primary-start text-white border-primary-start'
+                              : 'bg-white text-gray-400 border-gray-300'
                           }
                         `}
                       >
                         {currentStep}
                       </div>
 
-                      <span className="text-xs mt-1 text-center text-gray-dark">
+                      <span className="text-xs mt-1 text-center">
                         {item}
                       </span>
                     </div>
@@ -277,8 +203,8 @@ const CreateWarranty: React.FC = () => {
                           h-1 flex-1 mx-2 rounded transition-all
                           ${
                             step > currentStep
-                              ? 'bg-primary'
-                              : 'bg-gray/50'
+                              ? 'bg-primary-start'
+                              : 'bg-gray-300'
                           }
                         `}
                       />
@@ -289,7 +215,7 @@ const CreateWarranty: React.FC = () => {
             </div>
 
             {/* Form */}
-            <form className="flex flex-col gap-4" onSubmit={handleFormSubmit}>
+            <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
 
               {/* ETAPA 1 */}
               {step === 1 && (
@@ -297,7 +223,7 @@ const CreateWarranty: React.FC = () => {
                   <Input
                     label="Nome do Produto *"
                     placeholder="Ex: Notebook"
-                    className="bg-white border border-gray/50"
+                    className="bg-white border-none"
                     value={productName}
                     onChange={(e) => setProductName(e.target.value)}
                   />
@@ -305,7 +231,7 @@ const CreateWarranty: React.FC = () => {
                   <Input
                     label="Marca *"
                     placeholder="Ex: Lenovo"
-                    className="bg-white border border-gray/50"
+                    className="bg-white border-none"
                     value={brand}
                     onChange={(e) => setBrand(e.target.value)}
                   />
@@ -313,35 +239,21 @@ const CreateWarranty: React.FC = () => {
                   <Input
                     label="Modelo *"
                     placeholder="Ex: IdeaPad"
-                    className="bg-white border border-gray/50"
+                    className="bg-white border-none"
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
                   />
 
-                  <div className="flex items-center gap-2">
-                  <input
-                    id="has-multiple-units"
-                    name="hasMultipleUnits"
-                    type="checkbox"
-                    checked={hasMultipleUnits}
-                    onChange={(e) =>
-                      setHasMultipleUnits(e.target.checked)
-                    }
-                    className="accent-primary w-4 h-4"
-                    />
-
-                    <label htmlFor="has-multiple-units" className="text-sm font-medium text-gray-dark">Produto possui mais de uma unidade?</label>
-                  </div>
-                  {hasMultipleUnits && (
                   <Input
                     label="Quantidade de Produto"
                     type="number"
                     min={0}
-                    placeholder="Ex: 2"
-                    className="bg-white border border-gray/50"
+                    placeholder="Ex: 1"
+                    className="bg-white border-none"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
-                  />)}
+                  />
+
                   <div className="flex gap-4 items-end">
 
                     <Input
@@ -349,18 +261,18 @@ const CreateWarranty: React.FC = () => {
                       type="number"
                       min={0}
                       placeholder="Ex: 12"
-                      className="flex-1 bg-white border border-gray/50"
+                      className="flex-1 bg-white border-none"
                       value={warrantyPeriod}
                       onChange={(e) => setWarrantyPeriod(e.target.value)}
                     />
 
-                    <div className="flex gap-2 mb-3 text-xs font-bold text-gray-dark">
+                    <div className="flex gap-2 mb-3 text-xs font-bold text-gray-700">
 
                       <label className="flex items-center gap-1 cursor-pointer">
                         <input
                           type="radio"
                           name="unit"
-                          className="accent-primary"
+                          className="accent-primary-start"
                           checked={warrantyUnit === 'days'}
                           onChange={() => setWarrantyUnit('days')}
                         />
@@ -371,7 +283,7 @@ const CreateWarranty: React.FC = () => {
                         <input
                           type="radio"
                           name="unit"
-                          className="accent-primary"
+                          className="accent-primary-start"
                           checked={warrantyUnit === 'months'}
                           onChange={() => setWarrantyUnit('months')}
                         />
@@ -389,7 +301,7 @@ const CreateWarranty: React.FC = () => {
                   <Input
                     label="Nome da Loja"
                     placeholder="Ex: FastShop"
-                    className="bg-white border border-gray/50"
+                    className="bg-white border-none"
                     value={storeName}
                     onChange={(e) => setStoreName(e.target.value)}
                   />
@@ -398,7 +310,7 @@ const CreateWarranty: React.FC = () => {
                     label="CNPJ da Loja"
                     type="text"
                     placeholder="00.000.000/0000-00"
-                    className="bg-white border border-gray/50"
+                    className="bg-white border-none"
                     value={cnpj}
                     onChange={(e) => setCnpj(formatCnpj(e.target.value))}
                     inputMode="numeric"
@@ -408,52 +320,36 @@ const CreateWarranty: React.FC = () => {
                   <Input
                     label="Data da Compra *"
                     type="date"
-                    className="bg-white border border-gray/50 text-gray-medium"
+                    className="bg-white border-none text-gray-400"
                     max={new Date(new Date().setFullYear(new Date().getFullYear() + 3)).toISOString().split('T')[0]}
                     value={purchaseDate}
                     onChange={(e) => setPurchaseDate(e.target.value)}
                   />
 
                   <Input
-                    label="Valor unitário do produto"
+                    label="Valor unitario do produto"
                     type="text"
-                    inputMode="numeric"
                     value={value}
                     placeholder="R$ 0,00"
-                    onChange={(e) => handleValueChange(e.target.value)}
-                    onKeyDown={handleValueKeyDown}
-                    onPaste={handleValuePaste}
-                    className="bg-white border border-gray/50"
+                    onChange={(e) => {
+                      setValue(formatCurrency(e.target.value));
+                    }}
+                    className="bg-white border-none"
                   />
-
-                  {hasMultipleUnits && quantity && (
-                  <div className="bg-primary/5 border border-primary rounded-xl p-4">
-
-                    <p className="text-sm text-gray-dark/80">
-                      Valor total
-                    </p>
-
-                    <p className="text-xl font-bold text-primary">
-                      {calculateTotalValue()}
-                    </p>
-                  </div>
-                )}
 
                   {/* Garantia Estendida */}
                   <div className="flex flex-col gap-1">
 
-                    <label htmlFor="extended-warranty" className="text-sm font-semibold text-gray-dark ml-1">
+                    <label className="text-sm font-semibold text-gray-700 ml-1">
                       Garantia Estendida?
                     </label>
 
                     <select
-                      id="extended-warranty"
-                      name="extendedWarranty"
                       className="
                         w-full px-4 py-2.5
-                        bg-white border border-gray/50 rounded-lg shadow-sm
-                        focus:ring-2 focus:ring-primary focus:border-transparent
-                        outline-none text-gray-dark
+                        bg-white border-none rounded-lg shadow-sm
+                        focus:ring-2 focus:ring-primary-start
+                        outline-none text-gray-600
                       "
                       value={hasExtendedWarranty ? 'sim' : 'nao'}
                       onChange={(e) =>
@@ -475,16 +371,16 @@ const CreateWarranty: React.FC = () => {
                         type="number"
                         min={0}
                         placeholder="Ex: 12"
-                        className="bg-white border border-gray/50"
+                        className="bg-white border-none"
                         value={extendedExtraMonths}
                         onChange={(e) => setExtendedExtraMonths(e.target.value)}
                       />
 
                       <Input
                         label="Número da Garantia Estendida"
-                        type="text"
+                        type="number"
                         placeholder="Ex: 9928..."
-                        className="bg-white border border-gray/50"
+                        className="bg-white border-none"
                         value={extendedWarrantyNumber}
                         onChange={(e) => setExtendedWarrantyNumber(e.target.value)}
                       />
@@ -498,7 +394,7 @@ const CreateWarranty: React.FC = () => {
                 <>
                   <Input
                     label="Número da Nota Fiscal"
-                    className="bg-white border border-gray/50"
+                    className="bg-white border-none"
                     value={nfNumber}
                     onChange={(e) => setNfNumber(e.target.value)}
                   />
@@ -506,18 +402,16 @@ const CreateWarranty: React.FC = () => {
                   {/* Observações */}
                   <div className="flex flex-col gap-1">
 
-                    <label htmlFor="warranty-notes" className="text-sm font-semibold text-gray-dark ml-1">
+                    <label className="text-sm font-semibold text-gray-700 ml-1">
                       Observações
                     </label>
 
                     <textarea
-                      id="warranty-notes"
-                      name="notes"
                       className="
                         w-full px-4 py-2
-                        bg-white border border-gray/50 rounded-lg
+                        bg-white border-none rounded-lg
                         h-24
-                        focus:ring-2 focus:ring-primary focus:border-transparent
+                        focus:ring-2 focus:ring-primary-start
                         outline-none shadow-sm
                       "
                       placeholder="Informações adicionais..."
@@ -526,210 +420,94 @@ const CreateWarranty: React.FC = () => {
                     />
                   </div>
 
-                  {/* Upload */}
-                  <div className="flex flex-col gap-1">
+                  <WarrantyAttachmentUpload
+                    files={files}
+                    onChange={setFiles}
+                    disabled={isSaving}
+                  />
+                </>
+              )}
 
-                    <label htmlFor="nf-file" className="text-sm font-semibold text-gray-dark ml-1">
-                      Nota Fiscal (PDF ou Imagem)
-                    </label>
+              {/* ETAPA 4 - REVISÃO */}
+              {step === 4 && (
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 flex flex-col gap-4">
 
-                    <div
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`
-                        border-2 border-dashed rounded-lg p-6
-                        flex flex-col items-center justify-center
-                        cursor-pointer transition-all
-                        ${
-                          file
-                            ? 'border-green bg-green/10'
-                            : 'border-gray-medium hover:border-primary hover:bg-gray'
-                        }
-                      `}
-                    >
-                      <input
-                        id="nf-file"
-                        name="nfFile"
-                        type="file"
-                        ref={fileInputRef}
-                        className="hidden"
-                        onChange={handleFileChange}
-                        accept="image/*,.pdf"
-                      />
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-800">
+                      {productName || 'Produto sem nome'}
+                    </h2>
 
-                      {!file ? (
-                        <>
-                          <Upload
-                            className="text-gray-medium mb-2"
-                            size={32}
-                          />
+                    <p className="text-sm text-gray-500 italic">
+                      {storeName || 'Loja não informada'}
+                    </p>
+                  </div>
 
-                          <span className="text-sm text-gray-medium text-center">
-                            Clique para fazer upload da nota fiscal
-                          </span>
-                        </>
-                      ) : (
-                        <div className="flex items-center justify-between w-full">
+                  <div className="border-t border-gray-200 pt-4 flex flex-col gap-2">
 
-                          <div className="flex items-center gap-3">
+                    <p className="text-sm">
+                      <span className="font-semibold">Marca:</span> {brand || '—'}
+                    </p>
 
-                            <FileCheck
-                              className="text-green"
-                              size={24}
-                            />
+                    <p className="text-sm">
+                      <span className="font-semibold">Modelo:</span> {model || '—'}
+                    </p>
 
-                            <div className="flex flex-col">
+                    <p className="text-sm">
+                      <span className="font-semibold">Quantidade:</span> {quantity || '—'}
+                    </p>
 
-                              <span className="text-sm font-bold text-gray-dark truncate max-w-50">
+                    <p className="text-sm">
+                      <span className="font-semibold">Nº da Nota Fiscal:</span> {nfNumber || '—'}
+                    </p>
+
+                    <p className="text-sm">
+                      <span className="font-semibold">Data da Compra:</span> {purchaseDateDisplay || '—'}
+                    </p>
+
+                    <p className="text-sm">
+                      <span className="font-semibold">Garantia:</span> {warrantyPeriod} {warrantyUnit === 'months' ? 'meses' : 'dias'}
+                    </p>
+
+                    <p className="text-sm">
+                      <span className="font-semibold">Tipo:</span> {warrantyTypeLabel}
+                    </p>
+
+                    <p className="text-sm">
+                      <span className="font-semibold">Vencimento:</span> {expirationDateDisplay || '—'}
+                    </p>
+
+                    <p className="text-sm">
+                      <span className="font-semibold">Valor:</span> {value || 'R$ 0,00'}
+                    </p>
+
+                    {notes && (
+                      <div className="mt-2">
+                        <p className="font-semibold text-sm">Observações:</p>
+                        <p className="text-sm text-gray-600 wrap-break-word">{notes}</p>
+                      </div>
+                    )}
+
+                    {files.length > 0 && (
+                      <div className="mt-3 flex flex-col gap-2 border-t border-gray-100 pt-3">
+                        <p className="font-semibold text-sm mb-1 text-gray-700">Notas Fiscais Anexadas:</p>
+                        {files.map((file, index) => (
+                          <div key={index} className="flex items-center gap-2 bg-gray-100 rounded-lg p-3 border border-gray-200">
+                            <FileCheck size={20} className="text-green-600 shrink-0" />
+                            <div className="flex flex-col min-w-0 flex-1">
+                              <span className="text-sm font-medium truncate">
                                 {file.name}
                               </span>
-
-                              <span className="text-xs text-gray-medium">
+                              <span className="text-xs text-gray-500">
                                 {(file.size / 1024).toFixed(2)} KB
                               </span>
                             </div>
                           </div>
-
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeFile();
-                            }}
-                            className="
-                              p-1 hover:bg-red/10 rounded-full
-                              text-red transition-colors cursor-pointer
-                            "
-                          >
-                            <X size={20} />
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </>
+                </div>
               )}
-
-              {/* ETAPA 4 */}
-          {step === 4 && (
-            <div className="bg-white rounded-3xl p-5 shadow-lg border border-gray/50 flex flex-col gap-4">
-
-              <div>
-                <h2 className="text-xl font-bold text-gray-dark">
-                  {productName || 'Produto sem nome'}
-                </h2>
-
-                <p className="text-sm text-gray-medium italic">
-                  {storeName || 'Loja não informada'}
-                </p>
-              </div>
-
-              <div className="border-t border-gray/50 pt-4 flex flex-col gap-2">
-
-                <p className="text-sm text-gray-dark">
-                  <span className="font-semibold">
-                    Marca:
-                  </span>{' '}
-                  {brand || '—'}
-                </p>
-
-                <p className="text-sm text-gray-dark">
-                  <span className="font-semibold">
-                    Modelo:
-                  </span>{' '}
-                  {model || '—'}
-                </p>
-
-                <p className="text-sm text-gray-dark">
-                  <span className="font-semibold">
-                    Quantidade:
-                  </span>{' '}
-                  {quantity || '—'}
-                </p>
-
-                <p className="text-sm text-gray-dark">
-                  <span className="font-semibold">
-                    Nº da Nota Fiscal:
-                  </span>{' '}
-                  {nfNumber || '—'}
-                </p>
-
-                <p className="text-sm text-gray-dark">
-                  <span className="font-semibold">
-                    Data da Compra:
-                  </span>{' '}
-                  {purchaseDateDisplay || '—'}
-                </p>
-
-                <p className="text-sm text-gray-dark">
-                  <span className="font-semibold">
-                    Garantia:
-                  </span>{' '}
-                  {warrantyPeriod} {warrantyUnit === 'months' ? 'meses' : 'dias'}
-                </p>
-
-                <p className="text-sm text-gray-dark">
-                  <span className="font-semibold">
-                    Tipo:
-                  </span>{' '}
-                  {warrantyTypeLabel}
-                </p>
-
-                <p className="text-sm text-gray-dark">
-                  <span className="font-semibold">
-                    Vencimento:
-                  </span>{' '}
-                  {expirationDateDisplay || '—'}
-                </p>
-
-                <p className="text-sm text-gray-dark">
-                  <span className="font-semibold">
-                    Valor unitário:
-                  </span>{' '}
-                  {value || 'R$ 0,00'}
-                </p>
-
-                {hasMultipleUnits && Number(quantity) > 0 ? (
-                  <p className="text-sm text-gray-dark">
-                    <span className="font-semibold">
-                      Valor total:
-                    </span>{' '}
-                    {calculateTotalValue()}
-                  </p>
-                ) : null}
-
-                {notes && (
-                  <div className="mt-2">
-                    <p className="font-semibold text-sm text-gray-dark">
-                      Observações:
-                    </p>
-
-                    <p className="text-sm text-gray-dark/80 wrap-break-word">
-                      {notes}
-                    </p>
-                  </div>
-                )}
-
-                {file && (
-                  <div className="mt-2 flex items-center gap-2 bg-gray rounded-lg p-3">
-                    <FileCheck
-                      size={20}
-                      className="text-green"
-                    />
-
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-dark">
-                        {file.name}
-                      </span>
-
-                      <span className="text-xs text-gray-medium">
-                        {(file.size / 1024).toFixed(2)} KB
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
               {/* BOTÕES */}
               <div className="flex flex-col gap-3 mt-6">
@@ -738,27 +516,26 @@ const CreateWarranty: React.FC = () => {
                   <ActionButton
                     action="create"
                     variant="primary"
-                    type="submit"
                     label="Continuar"
+                    onClick={() => {
+                      setStep(step + 1);
+                    }}
                   />
                 ) : (
                   <ActionButton
                     action="create"
                     variant="primary"
-                    type="submit"
                     label={isSaving ? 'Salvando...' : 'Salvar Garantia'}
+                    onClick={() => {
+                      void handleSaveWarranty();
+                    }}
                   />
                 )}
 
                 <ActionButton
                   action="edit"
                   variant="ghost"
-                  type="button"
-                  label={
-                    step === 1
-                      ? 'Cancelar'
-                      : 'Voltar'
-                  }
+                  label={step === 1 ? 'Cancelar' : 'Voltar'}
                   onClick={() => {
                     if (step === 1) {
                       navigate(-1);

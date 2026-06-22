@@ -68,6 +68,8 @@ export interface Warranty {
   totalValue?: string;
   /** Prazo da garantia em dias (campo `prazo_dias` da API) */
   warrantyPeriodDays?: number;
+  /** Número da apólice / garantia estendida (`numero_apolice` na API) */
+  extendedWarrantyNumber?: string;
   notes?: string;
   attachments?: WarrantyAttachment[];
   /** Status da UI — vindo do back (`Ativa` → `Ativo`, etc.) ou calculado localmente */
@@ -179,6 +181,7 @@ const WARRANTY_SCALAR_FIELDS = [
   'purchaseDate',
   'expirationDate',
   'warrantyType',
+  'extendedWarrantyNumber',
   'value',
   'unitValue',
   'totalValue',
