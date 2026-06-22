@@ -28,9 +28,9 @@
 
   Frontend
 
-  - Criar Front-End/.env com VITE_API_URL=http://localhost:3000
+  - Criar Front-End/.env com VITE_API_URL=http://localhost:3000 ✅
   - authService.ts: corrigir tipo de retorno do register() de RegisterPayload para AuthResponse
-  - App.tsx: remover rota /reset-password duplicada + proteger /garantia/:id com ProtectedRoute
+  - App.tsx: remover rota /reset-password duplicada + proteger /garantia/:id com ProtectedRoute ✅
 
   ---
   Tarefa 4 — Frontend: tornar o WarrantyContext auth-aware (tarefa principal)
