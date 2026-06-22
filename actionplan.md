@@ -4,7 +4,7 @@
   ---
   Tarefa 1 — Backend: corrigir erros que impedem o servidor de subir
 
-  1 dia | Dev Backend
+  Backend
 
   Quatro bugs que causam crash imediato:
   - authToken.js: SECRET_KEY → process.env.JWT_SECRET
@@ -17,7 +17,7 @@
   ---
   Tarefa 2 — Backend: corrigir migrations para o banco subir limpo
 
-  4 horas | Dev Backend
+ Backend
 
   - create-notificacoes.js: renomear coluna id_usuario → usuario_id
   - create-documento-fiscal.js: corrigir sintaxe da constraint CHECK (trocar where: por expression:)
@@ -26,7 +26,7 @@
   ---
   Tarefa 3 — Frontend: criar .env e corrigir bugs de auth
 
-  4 horas | Dev Frontend
+  Frontend
 
   - Criar Front-End/.env com VITE_API_URL=http://localhost:3000
   - authService.ts: corrigir tipo de retorno do register() de RegisterPayload para AuthResponse
@@ -35,7 +35,7 @@
   ---
   Tarefa 4 — Frontend: tornar o WarrantyContext auth-aware (tarefa principal)
 
-  2-3 dias | Dev Frontend Senior
+  Frontend 
 
   Hoje o WarrantyContext nunca lê o AuthContext — usa localStorage para todos. A correção:
   - Visitante (isAuthenticated === false): continua usando localStorage (comportamento atual)
@@ -50,7 +50,7 @@
   ---                                                                                                                                                                                  
   Tarefa 5 — Limpeza de segurança mínima antes do deploy
                                                         
-  2 horas | Qualquer dev
+  Dev
                                                                                                                                                                                          
   - Remover console.log que expõe JWT decodificado (authToken.js)
   - Remover console.log de debug do fluxo de reset de senha (ForgotPassword.tsx)                                                                                                         
