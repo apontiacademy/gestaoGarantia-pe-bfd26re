@@ -26,7 +26,6 @@ import {
   type CreateWarrantyFormData,
 } from "../utils/warrantyApiMapper";
 import {
-  buildWarrantyTitle,
   type Warranty,
   type WarrantyUpdate,
 } from "./warrantyService";
@@ -357,25 +356,27 @@ export async function updateWarrantyViaApi(
 
   const observacao = buildObservacaoFromWarranty(merged);
 
-  const newTitle = merged.title.trim();
-  const currentTitle = buildWarrantyTitle(
-    produto.nome,
-    produto.marca,
-    produto.modelo
-  );
+  const newProductName = merged.productName?.trim() || merged.title.trim();
+  const newBrand = merged.brand?.trim() || produto.marca?.trim() || "—";
+  const newModel = merged.model?.trim() || produto.modelo?.trim() || "—";
 
   let produtoAtualizado = produto;
-  if (newTitle && newTitle !== currentTitle) {
+  const productChanged =
+    newProductName !== (produto.nome ?? "") ||
+    newBrand !== (produto.marca?.trim() ?? "") ||
+    newModel !== (produto.modelo?.trim() ?? "");
+
+  if (newProductName && productChanged) {
     await productService.update(produto.id, {
-      nome: newTitle,
-      marca: produto.marca?.trim() || "—",
-      modelo: produto.modelo?.trim() || "—",
+      nome: newProductName,
+      marca: newBrand,
+      modelo: newModel,
     });
     produtoAtualizado = {
       ...produto,
-      nome: newTitle,
-      marca: produto.marca?.trim() || "—",
-      modelo: produto.modelo?.trim() || "—",
+      nome: newProductName,
+      marca: newBrand,
+      modelo: newModel,
     };
   }
 

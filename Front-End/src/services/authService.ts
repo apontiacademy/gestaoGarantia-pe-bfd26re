@@ -14,7 +14,7 @@ export const authService = {
     api.post<AuthResponse>("/auth/login", data),
 
   register: (data: RegisterPayload) =>
-    api.post<RegisterPayload>("/auth/register", data),
+    api.post<AuthResponse>("/auth/register", data),
 
   forgotPassword: (email: string) =>
     api.post<{

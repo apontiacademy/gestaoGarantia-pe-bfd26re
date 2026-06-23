@@ -55,6 +55,10 @@ import type { WarrantyUiStatus } from "../utils/warrantyStatus";
 export interface Warranty {
   id: string;
   title: string;
+  /** Nome do produto sem marca/modelo (campo `produto.nome` da API). */
+  productName?: string;
+  brand?: string;
+  model?: string;
   story?: string;
   storeCnpj?: string;
   nfNumber?: string;
@@ -80,7 +84,27 @@ export interface Warranty {
   deletedAt?: string;
 }
 
-const STORAGE_KEY = '@garantias:warranties';
+const GUEST_STORAGE_KEY = '@garantias:warranties:guest';
+const USER_STORAGE_PREFIX = '@garantias:warranties:user:';
+
+function resolveInitialStorageKey(): string {
+  try {
+    const raw = localStorage.getItem('@garantias:user');
+    if (!raw) return GUEST_STORAGE_KEY;
+    const parsed = JSON.parse(raw) as { id?: number };
+    return parsed.id ? `${USER_STORAGE_PREFIX}${parsed.id}` : GUEST_STORAGE_KEY;
+  } catch {
+    return GUEST_STORAGE_KEY;
+  }
+}
+
+let _storageKey = resolveInitialStorageKey();
+
+export function setWarrantyStorageKey(userId?: string | number | null): void {
+  _storageKey = userId
+    ? `${USER_STORAGE_PREFIX}${userId}`
+    : GUEST_STORAGE_KEY;
+}
 
 /** Separador interno de `title` (nome + marca + modelo). */
 export const WARRANTY_TITLE_JOIN_SEP = ' ';
@@ -107,7 +131,7 @@ export function persistWarranties(list: Warranty[]): boolean {
       ...w,
       attachments: slimAttachments(w.attachments),
     }));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
+    localStorage.setItem(_storageKey, JSON.stringify(slim));
     return true;
   } catch {
     return false;
@@ -120,7 +144,7 @@ export function isWarrantyDeleted(warranty: Warranty): boolean {
 
 export function getWarranties(): Warranty[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(_storageKey);
     if (!raw || raw.trim() === '') return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
@@ -174,6 +198,9 @@ export function persistWarranty(warranty: Warranty): Warranty {
 
 const WARRANTY_SCALAR_FIELDS = [
   'title',
+  'productName',
+  'brand',
+  'model',
   'story',
   'storeCnpj',
   'nfNumber',

@@ -140,7 +140,7 @@ export default function LixeiraScreen() {
               <div key={item.id} className="min-w-0">
               <WarrantyCard
                 warrantyId={item.id}
-                title={item.title}
+                title={item.productName ?? item.title}
                 story={item.story}
                 nfNumber={item.nfNumber}
                 purchaseDate={item.purchaseDate}

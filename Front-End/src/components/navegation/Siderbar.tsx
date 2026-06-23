@@ -9,7 +9,7 @@ type SidebarProps = {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const navigate = useNavigate();
-    const { logout } = useAuth();
+    const { logout, isAuthenticated } = useAuth();
 
     return (
         <>
@@ -65,6 +65,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             Lixeira
                         </button>
 
+                        {isAuthenticated && (
                         <button
                             type="button"
                             onClick={() => { navigate('/settings'); onClose(); }}
@@ -72,6 +73,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         >
                             Configurações
                         </button>
+                        )}
                     </div>
 
                     <button

@@ -80,22 +80,9 @@ export default function ForgotPassword() {
     setError('');
 
     try {
-      console.log("🔍 Enviando verificação:", { 
-        token: resetToken ? "presente" : "faltando", 
-        codigo: fullCode 
-      });
-
       await authService.verifyResetCode(resetToken, fullCode);
-      
-      console.log("✅ Código validado com sucesso!");
       navigate('/reset-password', { state: { token: resetToken } });
-
     } catch (err: unknown) {
-      console.error("❌ ERRO COMPLETO:", err);
-      if (err && typeof err === "object" && "response" in err) {
-        console.error("Response:", (err as { response?: { data?: unknown } }).response?.data);
-      }
-
       setError(getApiErrorMessage(err, 'Código inválido ou expirado.'));
     } finally {
       setLoading(false);

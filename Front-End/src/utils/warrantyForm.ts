@@ -1,4 +1,4 @@
-import type { Warranty } from "../services/warrantyService";
+import { buildWarrantyTitle, type Warranty } from "../services/warrantyService";
 import { formatCnpj } from "./cnpj";
 import { formatCurrencyBRL, parseCurrencyInput } from "./currency";
 import { parseWarrantyDate } from "./warrantyDates";
@@ -6,11 +6,15 @@ import { resolveWarrantyFiscalDisplay } from "./warrantyDisplay";
 
 export interface WarrantyFormValues {
   title: string;
+  brand: string;
+  model: string;
   story: string;
   storeCnpj: string;
   nfNumber: string;
   quantity: string;
   purchaseDate: string;
+  warrantyPeriod: string;
+  warrantyUnit: "days" | "months";
   expirationDate: string;
   warrantyType: string;
   extendedWarrantyNumber: string;
@@ -26,13 +30,30 @@ export const WARRANTY_TYPE_OPTIONS = [
 export function warrantyToFormValues(warranty: Warranty): WarrantyFormValues {
   const fiscal = resolveWarrantyFiscalDisplay(warranty);
 
+  let warrantyPeriod = "";
+  let warrantyUnit: "days" | "months" = "months";
+  if (warranty.warrantyPeriodDays && warranty.warrantyPeriodDays > 0) {
+    const days = warranty.warrantyPeriodDays;
+    if (days >= 30 && days % 30 === 0) {
+      warrantyPeriod = String(Math.round(days / 30));
+      warrantyUnit = "months";
+    } else {
+      warrantyPeriod = String(days);
+      warrantyUnit = "days";
+    }
+  }
+
   return {
-    title: warranty.title ?? "",
+    title: warranty.productName ?? warranty.title ?? "",
+    brand: warranty.brand ?? "",
+    model: warranty.model ?? "",
     story: warranty.story ?? "",
     storeCnpj: warranty.storeCnpj ? formatCnpj(warranty.storeCnpj) : "",
     nfNumber: warranty.nfNumber ?? "",
     quantity: warranty.quantity ?? "",
     purchaseDate: warranty.purchaseDate ?? "",
+    warrantyPeriod,
+    warrantyUnit,
     expirationDate: warranty.expirationDate ?? "",
     warrantyType: warranty.warrantyType ?? WARRANTY_TYPE_OPTIONS[0],
     extendedWarrantyNumber: warranty.extendedWarrantyNumber ?? "",
@@ -102,8 +123,20 @@ export function formValuesToWarrantyUpdate(
     unitNum > 0 ? formatCurrencyBRL(unitNum * qty) : undefined;
   const isExtended = trim(values.warrantyType).toLowerCase().includes("estendida");
 
+  const productName = trim(values.title);
+  const brand = trim(values.brand);
+  const model = trim(values.model);
+  const builtTitle = buildWarrantyTitle(
+    productName,
+    brand || undefined,
+    model || undefined
+  );
+
   return {
-    title: trim(values.title),
+    title: builtTitle,
+    productName: productName || undefined,
+    brand: brand || undefined,
+    model: model || undefined,
     story: trim(values.story) || undefined,
     storeCnpj: trim(values.storeCnpj)
       ? formatCnpj(trim(values.storeCnpj))

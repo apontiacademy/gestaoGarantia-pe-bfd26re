@@ -631,6 +631,9 @@ export function apiGarantiaToWarranty(
   return {
     id: String(garantia.id),
     title,
+    productName: nome !== "Produto" ? nome : undefined,
+    brand: produto?.marca || undefined,
+    model: produto?.modelo || undefined,
     story: fiscalFromDoc.story ?? fiscalFromMeta.story,
     storeCnpj: fiscalFromDoc.storeCnpj ?? fiscalFromMeta.storeCnpj,
     nfNumber: normalizeNfNumberForWarranty(

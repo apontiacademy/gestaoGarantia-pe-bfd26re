@@ -119,7 +119,7 @@ export default function Home() {
                   <WarrantyCard
                     key={warranty.id}
                     variant="home"
-                    title={warranty.title}
+                    title={warranty.productName ?? warranty.title}
                     story={warranty.story}
                     nfNumber={warranty.nfNumber}
                     purchaseDate={warranty.purchaseDate}

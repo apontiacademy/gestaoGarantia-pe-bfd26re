@@ -5,6 +5,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { WarrantyProvider } from "./contexts/WarrantyContext";
 import { ProtectedRoute } from "./components/routes/ProtectedRoute";
 import { PublicRoute } from "./components/routes/PublicRoute";
 import { SessionExpiredRedirect } from "./components/routes/SessionExpiredRedirect";
@@ -23,6 +24,7 @@ import Settings from './Pages/Settings';
 function App() {
   return (
     <AuthProvider>
+      <WarrantyProvider>
       <Router>
         <SessionExpiredRedirect />
         <Routes>
@@ -42,25 +44,14 @@ function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           
           {/* Deixando a lixeira protegida para visitantes se necessário, ou mantenha livre se preferir */}
-          <Route 
-            path="/lixeira" 
-            element={
-              <ProtectedRoute>
-                <LixeiraScreen />
-              </ProtectedRoute>
-            } 
-          />
+          <Route path="/lixeira" element={<LixeiraScreen />} />
           
           {/* ROTA DA HOME ALTERADA (OPÇÃO B): Removido o ProtectedRoute para o visitante acessar o Dashboard */}
           <Route path="/home" element={<Home />} />
 
           <Route
             path="/create-warranty"
-            element = {
-              <ProtectedRoute>
-                <CreateWarranty />
-              </ProtectedRoute> 
-            }
+            element={<CreateWarranty />}
           />
 
           <Route
@@ -72,21 +63,13 @@ function App() {
             }
           />
           
-          <Route path="/garantia/visitante" element={<ViewWarranty />} />
-
-          <Route
-            path="/garantia/:id"
-            element={
-              <ProtectedRoute>
-                <ViewWarranty />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/garantia/:id" element={<ViewWarranty />} />
           
           {/* Rota curinga para redirecionamento */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
+      </WarrantyProvider>
     </AuthProvider>
   );
 }

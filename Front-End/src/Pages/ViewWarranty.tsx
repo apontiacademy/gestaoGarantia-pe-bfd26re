@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FileQuestion } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import LayoutHome from "../layout/LayoutHome";
 import Button from "../components/ui/Button";
-import EmptyState from "../components/ui/EmptyState";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import WarrantyActions from "../components/warranty/WarrantyActions";
 import WarrantyAttachmentsList from "../components/warranty/WarrantyAttachmentsList";
@@ -277,26 +275,7 @@ export default function ViewWarranty() {
     };
 
     if (!id || (!displayWarranty && !isLoadingDetail)) {
-        return (
-            <LayoutHome
-                namePage="Garantia"
-                showMenu={false}
-                showNotification={false}
-                showBack
-                onBack={handleBack}
-            >
-                <EmptyState
-                    icon={FileQuestion}
-                    title="Garantia não encontrada"
-                    description="Ela pode ter sido removida permanentemente ou o link está incorreto."
-                />
-                <div className="flex justify-center mt-6">
-                    <Button variant="primary" type="button" onClick={handleBack}>
-                        Voltar para Home
-                    </Button>
-                </div>
-            </LayoutHome>
-        );
+        return <Navigate to="/home" replace />;
     }
 
     if (isLoadingDetail && !viewWarranty) {

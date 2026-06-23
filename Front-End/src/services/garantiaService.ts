@@ -68,9 +68,9 @@ export const garantiaService = {
   moveToTrash: (id: number) =>
     api.delete<{ mensagem: string }>(`/garantias/${id}`),
 
-  /** Restaura garantia da lixeira (PATCH com deletado_em nulo) */
+  /** Restaura garantia da lixeira */
   restore: (id: number) =>
-    api.patch<ApiGarantia>(`/garantias/${id}`, { deletado_em: null }),
+    api.patch<ApiGarantia>(`/garantias/${id}/restaurar`, {}),
 
   createExtended: (data: CreateGarantiaEstendidaPayload) =>
     api.post<ApiGarantiaEstendida>("/garantias-estendidas", data),

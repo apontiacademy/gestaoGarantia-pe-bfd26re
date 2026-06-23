@@ -4,10 +4,12 @@ import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import { Eye, EyeOff, } from "lucide-react";
 import { authService } from "../services/authService";
+import { useAuth } from "../contexts/AuthContext";
 import simboloAponti from "../Assets/logos/simboloAponti.svg";
 
 export default function UserRegister() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -36,10 +38,9 @@ export default function UserRegister() {
 
     setLoading(true);
     try {
-      await authService.register(form);
-      navigate("/login", {
-        state: { message: "Conta criada com sucesso! Faça login para continuar." },
-      });
+      const response = await authService.register(form);
+      login(response.token, response.user);
+      navigate("/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao criar conta.");
     } finally {

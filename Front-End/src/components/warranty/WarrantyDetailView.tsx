@@ -105,7 +105,7 @@ export default function WarrantyDetailView({
 
       <header className="flex items-start justify-between border-b pb-4 gap-4 min-w-0">
         <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-bold wrap-break-word">{warranty.title}</h1>
+          <h1 className="text-xl font-bold wrap-break-word">{warranty.productName ?? warranty.title}</h1>
           <p className="text-sm text-gray-dark mt-1 break-all" title={nfNumberLabel}>
             Nº da nota:{" "}
             <span

@@ -1,9 +1,10 @@
-import { Bell, type LucideIcon } from "lucide-react";
+import { Bell, User, type LucideIcon } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import NotificationCard from "../ui/NotificationCard";
 import { useNotifications } from "../../hooks/useNotifications";
 import { formatRelativeTime } from "../../utils/formatRelativeTime";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface NavProps {
     leftIcon: LucideIcon;
@@ -29,6 +30,7 @@ export default function Nav({
     onRightClick,
 }: NavProps) {
     const navigate = useNavigate();
+    const { user, isAuthenticated } = useAuth();
     const {
         notifications,
         unreadCount,
@@ -37,6 +39,10 @@ export default function Nav({
         clearAll,
         refresh,
     } = useNotifications();
+
+    const displayName = isAuthenticated && user
+        ? user.nomeCompleto.split(' ')[0]
+        : 'Visitante';
 
     const showNotifications = RightIcon === Bell;
     const [isOpen, setIsOpen] = useState(false);
@@ -108,6 +114,17 @@ export default function Nav({
             </div>
 
             {/* RIGHT */}
+            <div className="flex items-center gap-1">
+                {/* Badge de identidade */}
+                <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                    isAuthenticated
+                        ? 'bg-primary/10 text-primary'
+                        : 'bg-gray/20 text-gray-dark'
+                }`}>
+                    <User size={12} />
+                    <span>{displayName}</span>
+                </div>
+
             {RightIcon ? (
                 <div className="relative" ref={showNotifications ? ref : undefined}>
                     <button
@@ -210,6 +227,7 @@ export default function Nav({
             ) : (
                 <div className="w-12 h-12" />
             )}
+            </div>
         </nav>
     );
 }

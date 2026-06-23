@@ -1,16 +1,22 @@
 services:
   db:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     container_name: garantias_db
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_PASSWORD: ${DB_PASS:-postgres}
       POSTGRES_DB: ${DB_NAME}
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   backend:
     build:
@@ -18,21 +24,24 @@ services:
     container_name: garantias_backend
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
+      NODE_ENV: development
+      PORT: 3000
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
       DB_NAME: ${DB_NAME}
-      DB_HOST: db     
+      DB_HOST: db
       DB_PORT: 5432
       JWT_SECRET: ${JWT_SECRET}
-      EMAIL_USER: ${EMAIL_USER}
-      EMAIL_PASS: ${EMAIL_PASS}
-      FRONTEND_URL: ${FRONTEND_URL}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      BREVO_API_KEY: ${BREVO_API_KEY}
     ports:
       - "3000:3000"
     volumes:
-      - ./Back-End/src:/app/src 
+      - ./Back-End/src:/app/src
+    command: sh -c "npx sequelize-cli db:migrate && npm run dev"
 
   frontend:
     build:
@@ -46,7 +55,7 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - ./Front-End/src:/app/src 
+      - ./Front-End/src:/app/src
 
 volumes:
   postgres_data:

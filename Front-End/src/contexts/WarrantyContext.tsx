@@ -14,10 +14,12 @@ import {
   isWarrantyDeleted,
   persistWarranty,
   persistWarranties,
+  setWarrantyStorageKey,
   updateWarranty as updateWarrantyInStorage,
   softDeleteWarranty,
   restoreWarranty,
   permanentlyDeleteWarranty,
+  buildWarrantyTitle,
   type Warranty,
   type WarrantyUpdate,
 } from "../services/warrantyService";
@@ -29,9 +31,9 @@ import {
   updateWarrantyViaApi,
 } from "../services/warrantyApiService";
 import type { CreateWarrantyFormData } from "../utils/warrantyApiMapper";
-import { mergeAttachmentMetadataFromLocal } from "../utils/warrantyApiMapper";
+import { computePrazoDias, mergeAttachmentMetadataFromLocal } from "../utils/warrantyApiMapper";
 import { deleteWarrantyAttachmentsFromCloudinary } from "../utils/warrantyCloudinaryCleanup";
-import { GARANTIAS_SESSION_EVENT } from "./AuthContext";
+import { GARANTIAS_SESSION_EVENT, useAuth } from "./AuthContext";
 
 interface WarrantyContextData {
   warranties: Warranty[];
@@ -58,8 +60,44 @@ const WarrantyContext = createContext<WarrantyContextData>(
   {} as WarrantyContextData
 );
 
+function formToLocalWarranty(form: CreateWarrantyFormData): Warranty {
+  const title = buildWarrantyTitle(form.productName, form.brand, form.model);
+  const prazoDias = computePrazoDias(form);
+
+  let expirationDate: string | undefined;
+  if (form.purchaseDate && prazoDias > 0) {
+    const [year, month, day] = form.purchaseDate.split('-').map(Number);
+    const start = new Date(year, month - 1, day);
+    start.setDate(start.getDate() + prazoDias);
+    const d = String(start.getDate()).padStart(2, '0');
+    const m = String(start.getMonth() + 1).padStart(2, '0');
+    expirationDate = `${d}/${m}/${start.getFullYear()}`;
+  }
+
+  return {
+    id: crypto.randomUUID(),
+    title,
+    productName: form.productName?.trim() || undefined,
+    brand: form.brand?.trim() || undefined,
+    model: form.model?.trim() || undefined,
+    purchaseDate: form.purchaseDate,
+    expirationDate,
+    warrantyType: form.hasExtendedWarranty ? 'Garantia Estendida' : 'Garantia de Fábrica',
+    warrantyPeriodDays: prazoDias,
+    extendedWarrantyNumber: form.extendedWarrantyNumber,
+    storeCnpj: form.cnpj,
+    nfNumber: form.nfNumber,
+    quantity: form.quantity,
+    value: form.value,
+    notes: form.notes,
+    story: form.storeName,
+    attachments: form.attachments,
+  };
+}
+
 export function WarrantyProvider({ children }: { children: ReactNode }) {
   const { refresh: refreshNotifications } = useNotifications();
+  const { isAuthenticated, user } = useAuth();
   const [warranties, setWarranties] = useState<Warranty[]>(() => {
     return getWarranties() || [];
   });
@@ -70,10 +108,8 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadWarrantiesFromApi = useCallback(async () => {
-    const token = localStorage.getItem("@garantias:token");
-    if (!token) {
-      persistWarranties([]);
-      setWarranties([]);
+    if (!isAuthenticated) {
+      setWarranties(getWarranties() || []);
       return;
     }
 
@@ -110,7 +146,16 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoadingWarranties(false);
     }
-  }, [refreshWarranties]);
+  }, [isAuthenticated, refreshWarranties]);
+
+  // Troca a namespace de armazenamento quando o usuário faz login ou logout.
+  // Deve rodar ANTES do effect de sincronização da API.
+  useEffect(() => {
+    const userId = user?.id != null ? String(user.id) : null;
+    setWarrantyStorageKey(userId);
+    setWarranties(getWarranties());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   useEffect(() => {
     void loadWarrantiesFromApi();
@@ -136,13 +181,21 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
 
   const addWarranty = useCallback(
     async (form: CreateWarrantyFormData) => {
+      if (!isAuthenticated) {
+        const warranty = formToLocalWarranty(form);
+        const saved = persistWarranty(warranty);
+        refreshWarranties();
+        refreshNotifications();
+        return saved;
+      }
+
       const created = await createWarrantyViaApi(form);
       const saved = persistWarranty(created);
       await loadWarrantiesFromApi();
       refreshNotifications();
       return saved;
     },
-    [loadWarrantiesFromApi, refreshNotifications]
+    [isAuthenticated, loadWarrantiesFromApi, refreshNotifications, refreshWarranties]
   );
 
   const updateWarranty = useCallback(
@@ -152,6 +205,15 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
         warranties.find((w) => w.id === id);
       if (!current) {
         return { success: false as const, error: "Garantia não encontrada." };
+      }
+
+      if (!isAuthenticated) {
+        const result = updateWarrantyInStorage(id, updates);
+        if (result.success) {
+          refreshWarranties();
+          refreshNotifications();
+        }
+        return result;
       }
 
       try {
@@ -170,12 +232,38 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
         };
       }
     },
-    [warranties, loadWarrantiesFromApi, refreshNotifications]
+    [isAuthenticated, warranties, loadWarrantiesFromApi, refreshNotifications, refreshWarranties]
   );
 
   const moveToTrash = useCallback(
     async (id: string) => {
       const item = warranties.find((w) => w.id === id);
+
+      if (!isAuthenticated) {
+        try {
+          if (item?.attachments?.length) {
+            await deleteWarrantyAttachmentsFromCloudinary(item.attachments);
+          }
+          const result = softDeleteWarranty(id);
+          if (result.success) {
+            if (item?.attachments?.length) {
+              updateWarrantyInStorage(id, { attachments: [] });
+            }
+            refreshWarranties();
+            refreshNotifications();
+          }
+          return result;
+        } catch (err) {
+          return {
+            success: false as const,
+            error:
+              err instanceof Error
+                ? err.message
+                : "Não foi possível enviar para a lixeira.",
+          };
+        }
+      }
+
       try {
         if (item?.attachments?.length) {
           await deleteWarrantyAttachmentsFromCloudinary(item.attachments);
@@ -201,11 +289,30 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
         };
       }
     },
-    [warranties, refreshWarranties, refreshNotifications]
+    [isAuthenticated, warranties, refreshWarranties, refreshNotifications]
   );
 
   const restoreFromTrash = useCallback(
     async (id: string) => {
+      if (!isAuthenticated) {
+        try {
+          const result = restoreWarranty(id);
+          if (result.success) {
+            refreshWarranties();
+            refreshNotifications();
+          }
+          return result;
+        } catch (err) {
+          return {
+            success: false as const,
+            error:
+              err instanceof Error
+                ? err.message
+                : "Não foi possível restaurar a garantia.",
+          };
+        }
+      }
+
       try {
         await restoreWarrantyViaApi(id);
         const result = restoreWarranty(id);
@@ -224,7 +331,7 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
         };
       }
     },
-    [loadWarrantiesFromApi, refreshNotifications]
+    [isAuthenticated, loadWarrantiesFromApi, refreshNotifications, refreshWarranties]
   );
 
   const permanentlyDelete = useCallback(
