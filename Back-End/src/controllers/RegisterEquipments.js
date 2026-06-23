@@ -24,11 +24,12 @@ async function RegistrarProduto(req, res) {
             modelo,
             data_cadastro: new Date()
         });
+
+        return res.status(201).json(novoProduto);
     } catch (error) {
         console.error("Erro ao registrar produto:", error);
         return res.status(500).json({ error: "Erro ao registrar produto" });
-    } 
-    return res.status(201).json({ message: "Produto registrado com sucesso" });
+    }
 }
 
 // Função para listar produtos (protegida por autenticação)

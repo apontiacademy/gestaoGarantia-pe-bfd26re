@@ -17,7 +17,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     produto_id: {
       type: DataTypes.INTEGER,
-      primaryKey: true // Define como chave primária aqui também
+      allowNull: false,
+      references: { model: 'Produtos', key: 'id' }
     },
     cnpj_emissor: DataTypes.STRING,
     valor: DataTypes.DECIMAL(10, 2),

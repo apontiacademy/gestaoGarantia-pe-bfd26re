@@ -1,5 +1,6 @@
-const{Usuario} = require('../models');
+const { Usuario } = require('../models');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 // Função para registrar um novo usuário
 async function registerUser(req, res) {
@@ -7,6 +8,10 @@ async function registerUser(req, res) {
 
   if (!nomeCompleto || !email || !senha) {
     return res.status(400).json({ error: "Todos os campos são obrigatórios" });
+  }
+
+  if (senha.length < 6) {
+    return res.status(400).json({ error: "A senha deve ter no mínimo 6 caracteres" });
   }
 
   const emailNormalizado = email.toLowerCase();
@@ -25,9 +30,20 @@ async function registerUser(req, res) {
       senha: hash
     });
 
-    res.status(201).json({
-      nomeCompleto: novoUsuario.nomeCompleto,
-      email: novoUsuario.email,
+    const token = jwt.sign(
+      { id_usuario: novoUsuario.id },
+      process.env.JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    return res.status(201).json({
+      token,
+      user: {
+        id: novoUsuario.id,
+        nomeCompleto: novoUsuario.nomeCompleto,
+        email: novoUsuario.email,
+        fotoPerfil: null,
+      }
     });
   } catch (error) {
     console.error("Erro ao registrar usuário:", error);
@@ -35,7 +51,7 @@ async function registerUser(req, res) {
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).json({ error: "Email já registrado" });
     }
-    res.status(500).json({ error: "Erro ao registrar usuário" });
+    return res.status(500).json({ error: "Erro ao registrar usuário" });
   }
 }
 

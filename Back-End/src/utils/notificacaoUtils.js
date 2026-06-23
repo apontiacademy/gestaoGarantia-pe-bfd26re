@@ -6,16 +6,18 @@ async function criarNotificacao(
   mensagem,
   garantia_id = null
 ) {
-
-  return await Notificacao.create({
-    id_usuario,
-    garantia_id,
-    tipo,
-    mensagem,
-    lida: false,
-    data_envio: new Date()
-  });
-
+  try {
+    return await Notificacao.create({
+      id_usuario,
+      garantia_id,
+      tipo,
+      mensagem,
+      lida: false,
+      data_envio: new Date()
+    });
+  } catch {
+    // Notificação é secundária; falha não bloqueia a operação principal
+  }
 }
 
 module.exports = {

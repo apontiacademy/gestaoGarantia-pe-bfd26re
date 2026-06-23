@@ -23,7 +23,8 @@ module.exports = (sequelize, DataTypes) => {
     nome: DataTypes.STRING,
     marca: DataTypes.STRING,
     modelo: DataTypes.STRING,
-    data_cadastro: DataTypes.DATE
+    data_cadastro: DataTypes.DATE,
+    status: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Produto',

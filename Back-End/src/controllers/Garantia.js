@@ -264,6 +264,41 @@ async function atualizarStatusGarantia(req, res) {
   }
 }
 
+async function restaurarGarantia(req, res) {
+  try {
+    const { id } = req.params;
+
+    const garantia = await Garantia.findByPk(id);
+    if (!garantia) {
+      return res.status(404).json({ mensagem: 'Garantia não encontrada' });
+    }
+
+    await Garantia.update(
+      { deletado_em: null, deletado_por: null },
+      { where: { id } }
+    );
+
+    await criarNotificacao(
+      req.user.id_usuario,
+      'restored',
+      'Garantia restaurada com sucesso',
+      id
+    );
+
+    const restaurada = await Garantia.findOne({
+      where: { id },
+      include: [produtoInclude]
+    });
+
+    const infoGarantia = calcularStatusGarantia(restaurada.data_fim);
+
+    return res.json({ ...restaurada.toJSON(), ...infoGarantia });
+  } catch (error) {
+    console.error('Erro ao restaurar garantia:', error);
+    return res.status(500).json({ erro: error.message });
+  }
+}
+
 async function excluirGarantia(req, res) {
   try {
 
@@ -271,7 +306,7 @@ async function excluirGarantia(req, res) {
 
     await Garantia.update({
       deletado_em: new Date(),
-      deletado_por: 'sistema'
+      deletado_por: String(req.user?.id_usuario ?? req.usuario?.id_usuario ?? 'sistema')
     }, {
       where: { id }
     });
@@ -301,5 +336,6 @@ module.exports = {
   listarGarantiaPorId,
   atualizarGarantia,
   atualizarStatusGarantia,
+  restaurarGarantia,
   excluirGarantia
 };

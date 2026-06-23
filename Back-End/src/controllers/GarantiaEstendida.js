@@ -87,7 +87,7 @@ async function atualizarGarantiaEstendida(req, res) {
       return res.status(400).json({ erro: 'O valor não pode ser negativo' });
     }
 
-    const registro = await GarantiaEstendida.findByPk(id);
+    const registro = await GarantiaEstendida.findOne({ where: { garantia_id: id } });
     if (!registro) {
       return res.status(404).json({ mensagem: 'Registro não encontrado' });
     }
@@ -100,7 +100,7 @@ async function atualizarGarantiaEstendida(req, res) {
       where: { garantia_id: id }
     });
 
-    const atualizada = await GarantiaEstendida.findByPk(id);
+    const atualizada = await GarantiaEstendida.findOne({ where: { garantia_id: id } });
     return res.json(atualizada);
   } catch (error) {
     return res.status(500).json({ erro: error.message });

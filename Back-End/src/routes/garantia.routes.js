@@ -30,6 +30,7 @@ router.get('/garantias', autenticarToken, controllerGarantia.listarGarantias);
 router.get('/garantias/:id', autenticarToken, controllerGarantia.listarGarantiaPorId);
 router.post('/garantias', autenticarToken, controllerGarantia.RegistrarGarantia);
 router.put('/garantias/:id', autenticarToken, controllerGarantia.atualizarGarantia);
+router.patch('/garantias/:id/restaurar', autenticarToken, controllerGarantia.restaurarGarantia);
 router.patch('/garantias/:id', autenticarToken, controllerGarantia.atualizarStatusGarantia);
 router.delete('/garantias/:id', autenticarToken, controllerGarantia.excluirGarantia);
 

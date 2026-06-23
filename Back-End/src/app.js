@@ -10,7 +10,7 @@ console.log("✅ JWT_SECRET =", process.env.JWT_SECRET ? "OK" : "FALTANDO");
 if (!process.env.DB_NAME || !process.env.JWT_SECRET) {
   console.error("❌ ERRO: Variáveis de ambiente obrigatórias não encontradas!");
   console.error("Verifique o arquivo .env");
-  // Não usar process.exit(1) em produção no Render
+  process.exit(1);
 }
 
 // ==================== IMPORTS ====================
@@ -22,14 +22,14 @@ const app = express();
 // ==================== MIDDLEWARES ====================
 app.use(express.json());
 
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+  : ['http://localhost:5173'];
+
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'https://gerenciador-de-garantia-aponti.netlify.app',
-    'https://gestaogarantia-pe-bfd26re-pebw.onrender.com'
-  ],
+  origin: corsOrigins,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
