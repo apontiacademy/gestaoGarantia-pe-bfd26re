@@ -150,5 +150,4 @@ module.exports = {
   atualizarGarantiaEstendida,
   atualizarStatusGarantiaEstendida,
   excluirGarantiaEstendida,
-  listarGarantiasEstendidaApagadas
 };

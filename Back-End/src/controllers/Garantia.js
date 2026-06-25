@@ -338,5 +338,4 @@ module.exports = {
   atualizarStatusGarantia,
   restaurarGarantia,
   excluirGarantia,
-  listarGarantiasApagadas
 };
