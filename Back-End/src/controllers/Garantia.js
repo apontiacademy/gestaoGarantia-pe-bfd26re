@@ -334,9 +334,9 @@ module.exports = {
   RegistrarGarantia,
   listarGarantias,
   listarGarantiaPorId,
-   listarGarantiasApagadas,
   atualizarGarantia,
   atualizarStatusGarantia,
   restaurarGarantia,
-  excluirGarantia
+  excluirGarantia,
+  listarGarantiasApagadas
 };
