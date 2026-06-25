@@ -78,26 +78,6 @@ async function listarGarantiaEstendidaPorId(req, res) {
   }
 }
 
-async function listarGarantiasEstendidaApagadas(req, res) {
-  try {
-
-    const garantias = await GarantiaEstendida.findAll({
-      where: {
-        deletado_em: {
-          [Op.ne]: null
-        }
-      }
-    });
-
-    return res.json(garantias);
-
-  } catch (error) {
-    return res.status(500).json({
-      erro: error.message
-    });
-  }
-}
-
 async function atualizarGarantiaEstendida(req, res) {
   try {
     const { id } = req.params;
