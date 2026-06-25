@@ -167,8 +167,8 @@ module.exports = {
   registrarGarantiaEstendida,
   listarGarantiasEstendidas,
   listarGarantiaEstendidaPorId,
+  listarGarantiasEstendidaApagadas,
   atualizarGarantiaEstendida,
   atualizarStatusGarantiaEstendida,
-  excluirGarantiaEstendida,
-  listarGarantiasEstendidaApagadas
+  excluirGarantiaEstendida
 };
