@@ -59,6 +59,8 @@ export const garantiaService = {
 
   list: () => api.get<ApiGarantia[]>("/garantias"),
 
+  listTrashed: () => api.get<ApiGarantia[]>("/garantias/lixeira"),
+
   getById: (id: number) => api.get<ApiGarantia>(`/garantias/${id}`),
 
   update: (id: number, data: UpdateGarantiaPayload) =>

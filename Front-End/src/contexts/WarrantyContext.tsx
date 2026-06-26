@@ -26,6 +26,7 @@ import {
 import {
   createWarrantyViaApi,
   fetchWarrantiesFromApi,
+  fetchTrashedWarrantiesFromApi,
   restoreWarrantyViaApi,
   trashWarrantyViaApi,
   updateWarrantyViaApi,
@@ -115,30 +116,47 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
 
     setIsLoadingWarranties(true);
     try {
-      const fromApi = await fetchWarrantiesFromApi();
+      const [fromApi, trashedFromApi] = await Promise.all([
+        fetchWarrantiesFromApi(),
+        fetchTrashedWarrantiesFromApi().catch(() => [] as Warranty[]),
+      ]);
       const local = getWarranties();
       const localById = new Map(local.map((w) => [w.id, w] as const));
+
       const activeFromApi = fromApi.map((w) => {
         const cached = localById.get(w.id);
         return mergeAttachmentMetadataFromLocal(
           {
             ...w,
-            attachments: w.attachments?.length
-              ? w.attachments
-              : cached?.attachments,
+            attachments: w.attachments?.length ? w.attachments : cached?.attachments,
           },
           cached
         );
       });
+
+      const trashedFromApiMerged = trashedFromApi.map((w) => {
+        const cached = localById.get(w.id);
+        return mergeAttachmentMetadataFromLocal(
+          {
+            ...w,
+            attachments: w.attachments?.length ? w.attachments : cached?.attachments,
+          },
+          cached
+        );
+      });
+
       const activeIds = new Set(activeFromApi.map((w) => w.id));
+      const apiTrashedIds = new Set(trashedFromApiMerged.map((w) => w.id));
+
       const trashedLocal = local
         .filter(isWarrantyDeleted)
-        .filter((w) => !activeIds.has(w.id))
+        .filter((w) => !activeIds.has(w.id) && !apiTrashedIds.has(w.id))
         .map((w) => ({
           ...w,
           attachments: w.attachments ?? localById.get(w.id)?.attachments,
         }));
-      const merged = [...activeFromApi, ...trashedLocal];
+
+      const merged = [...activeFromApi, ...trashedFromApiMerged, ...trashedLocal];
       persistWarranties(merged);
       setWarranties(merged);
     } catch {

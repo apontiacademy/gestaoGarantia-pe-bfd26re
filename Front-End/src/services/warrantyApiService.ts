@@ -439,6 +439,18 @@ export async function fetchWarrantyByIdFromApi(
   );
 }
 
+export async function fetchTrashedWarrantiesFromApi(): Promise<Warranty[]> {
+  const garantias = await garantiaService.listTrashed();
+  const userId = getLoggedUserId();
+
+  const filtered =
+    userId != null
+      ? garantias.filter((g) => g.produto?.id_usuario === userId)
+      : garantias;
+
+  return filtered.map((g) => apiGarantiaToWarranty(g));
+}
+
 export async function fetchWarrantiesFromApi(): Promise<Warranty[]> {
   const garantias = await garantiaService.list();
   const userId = getLoggedUserId();

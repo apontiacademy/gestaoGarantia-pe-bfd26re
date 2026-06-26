@@ -1,4 +1,5 @@
 const { Garantia, Produto, Documento_Fiscal } = require('../models');
+const { Op } = require('sequelize');
 const { calcularStatusGarantia } = require('../utils/garantiaUtils');
 const { criarNotificacao } = require('../utils/notificacaoUtils');
 
@@ -264,6 +265,24 @@ async function atualizarStatusGarantia(req, res) {
   }
 }
 
+async function listarLixeira(req, res) {
+  try {
+    const garantias = await Garantia.findAll({
+      where: { deletado_em: { [Op.ne]: null } },
+      include: [produtoInclude]
+    });
+
+    const garantiasComStatus = garantias.map((garantia) => {
+      const infoGarantia = calcularStatusGarantia(garantia.data_fim);
+      return { ...garantia.toJSON(), ...infoGarantia };
+    });
+
+    return res.json(garantiasComStatus);
+  } catch (error) {
+    return res.status(500).json({ erro: error.message });
+  }
+}
+
 async function restaurarGarantia(req, res) {
   try {
     const { id } = req.params;
@@ -334,6 +353,7 @@ module.exports = {
   RegistrarGarantia,
   listarGarantias,
   listarGarantiaPorId,
+  listarLixeira,
   atualizarGarantia,
   atualizarStatusGarantia,
   restaurarGarantia,

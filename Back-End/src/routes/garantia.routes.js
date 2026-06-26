@@ -27,6 +27,7 @@ function autenticarToken(req, res, next) {
 
 // Rotas de garantias (protegidas por autenticação)
 router.get('/garantias', autenticarToken, controllerGarantia.listarGarantias);
+router.get('/garantias/lixeira', autenticarToken, controllerGarantia.listarLixeira);
 router.get('/garantias/:id', autenticarToken, controllerGarantia.listarGarantiaPorId);
 router.post('/garantias', autenticarToken, controllerGarantia.RegistrarGarantia);
 router.put('/garantias/:id', autenticarToken, controllerGarantia.atualizarGarantia);
