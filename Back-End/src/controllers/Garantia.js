@@ -318,6 +318,23 @@ async function restaurarGarantia(req, res) {
   }
 }
 
+async function excluirPermanentemente(req, res) {
+  try {
+    const { id } = req.params;
+
+    const garantia = await Garantia.findByPk(id);
+    if (!garantia) {
+      return res.status(404).json({ mensagem: 'Garantia não encontrada' });
+    }
+
+    await Garantia.destroy({ where: { id } });
+
+    return res.json({ mensagem: 'Garantia excluída permanentemente' });
+  } catch (error) {
+    return res.status(500).json({ erro: error.message });
+  }
+}
+
 async function excluirGarantia(req, res) {
   try {
 
@@ -358,4 +375,5 @@ module.exports = {
   atualizarStatusGarantia,
   restaurarGarantia,
   excluirGarantia,
+  excluirPermanentemente,
 };

@@ -70,6 +70,10 @@ export const garantiaService = {
   moveToTrash: (id: number) =>
     api.delete<{ mensagem: string }>(`/garantias/${id}`),
 
+  /** Hard delete — remove permanentemente do banco */
+  permanentDelete: (id: number) =>
+    api.delete<{ mensagem: string }>(`/garantias/${id}/permanente`),
+
   /** Restaura garantia da lixeira */
   restore: (id: number) =>
     api.patch<ApiGarantia>(`/garantias/${id}/restaurar`, {}),

@@ -313,6 +313,11 @@ export async function trashWarrantyViaApi(id: string): Promise<void> {
   await garantiaService.moveToTrash(Number(id));
 }
 
+export async function permanentlyDeleteWarrantyViaApi(id: string): Promise<void> {
+  if (!isApiWarrantyId(id)) return;
+  await garantiaService.permanentDelete(Number(id));
+}
+
 export async function restoreWarrantyViaApi(id: string): Promise<void> {
   if (!isApiWarrantyId(id)) return;
   await garantiaService.restore(Number(id));

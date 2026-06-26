@@ -27,9 +27,11 @@ import {
   createWarrantyViaApi,
   fetchWarrantiesFromApi,
   fetchTrashedWarrantiesFromApi,
+  permanentlyDeleteWarrantyViaApi,
   restoreWarrantyViaApi,
   trashWarrantyViaApi,
   updateWarrantyViaApi,
+  isApiWarrantyId,
 } from "../services/warrantyApiService";
 import type { CreateWarrantyFormData } from "../utils/warrantyApiMapper";
 import { computePrazoDias, mergeAttachmentMetadataFromLocal } from "../utils/warrantyApiMapper";
@@ -360,6 +362,10 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
         await deleteWarrantyAttachmentsFromCloudinary(item.attachments);
       }
 
+      if (isAuthenticated && isApiWarrantyId(id)) {
+        await permanentlyDeleteWarrantyViaApi(id);
+      }
+
       const ok = permanentlyDeleteWarranty(id);
       if (ok) {
         refreshWarranties();
@@ -367,7 +373,7 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
       }
       return ok;
     },
-    [warranties, refreshWarranties, refreshNotifications]
+    [isAuthenticated, warranties, refreshWarranties, refreshNotifications]
   );
 
   return (

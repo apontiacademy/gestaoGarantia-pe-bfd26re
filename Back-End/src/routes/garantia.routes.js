@@ -33,6 +33,7 @@ router.post('/garantias', autenticarToken, controllerGarantia.RegistrarGarantia)
 router.put('/garantias/:id', autenticarToken, controllerGarantia.atualizarGarantia);
 router.patch('/garantias/:id/restaurar', autenticarToken, controllerGarantia.restaurarGarantia);
 router.patch('/garantias/:id', autenticarToken, controllerGarantia.atualizarStatusGarantia);
+router.delete('/garantias/:id/permanente', autenticarToken, controllerGarantia.excluirPermanentemente);
 router.delete('/garantias/:id', autenticarToken, controllerGarantia.excluirGarantia);
 
 // Rotas de garantias estendidas (protegidas por autenticação)
