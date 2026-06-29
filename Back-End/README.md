@@ -1,87 +1,149 @@
-# Backend
+# Backend — Gestão de Garantia
 
-Este diretório contém o backend da aplicação de gestão de garantia, construído com Node.js, Express e Sequelize para PostgreSQL.
+API REST em **Node.js + Express + Sequelize** com PostgreSQL.
 
-## Requisitos
+Documentação do front-end: [Front-End/README.md](../Front-End/README.md)
 
-- Node.js (recomendado >= 18)
-- npm (vem com o Node.js)
+---
+
+## Baixar o repositório
+
+Pré-requisitos: [Git](https://git-scm.com/downloads) instalado.
+
+```bash
+git clone https://github.com/apontiacademy/gestaoGarantia-pe-bfd26re.git
+cd gestaoGarantia-pe-bfd26re
+```
+
+Sem Git, baixe o ZIP em [github.com/apontiacademy/gestaoGarantia-pe-bfd26re](https://github.com/apontiacademy/gestaoGarantia-pe-bfd26re) e extraia a pasta.
+
+---
+
+## Rodar com Docker (recomendado)
+
+Sobe backend, front-end e PostgreSQL juntos. Execute os comandos **na raiz do repositório** (não dentro de `Back-End`).
+
+**Pré-requisitos:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) ou Docker Engine + Compose (Linux).
+
+### 1. Criar o arquivo `.env` na raiz
+
+Na pasta `gestaoGarantia-pe-bfd26re`, crie um arquivo `.env`:
+
+```env
+DB_USER=postgres
+DB_PASS=postgres
+DB_NAME=garantias
+JWT_SECRET=sua_chave_secreta_aqui
+CORS_ORIGIN=http://localhost:5173
+BREVO_API_KEY=sua_chave_brevo
+```
+
+| Variável       | Descrição |
+|----------------|-----------|
+| `DB_USER`      | Usuário do PostgreSQL no container |
+| `DB_PASS`      | Senha do PostgreSQL |
+| `DB_NAME`      | Nome do banco de dados |
+| `JWT_SECRET`   | Chave para assinar tokens JWT (login e rotas autenticadas) |
+| `CORS_ORIGIN`  | Origem permitida do front-end (separe várias URLs com vírgula) |
+| `BREVO_API_KEY`| Chave da API Brevo para envio de e-mails |
+
+### 2. Subir os containers
+
+```bash
+docker compose up --build
+```
+
+O serviço `backend` aguarda o PostgreSQL ficar saudável, roda `db:migrate` e inicia o servidor com hot-reload. O código em `Back-End/src` é montado como volume — alterações locais refletem no container.
+
+### 3. Acessar
+
+| Serviço   | URL                      |
+|-----------|--------------------------|
+| API       | http://localhost:3000    |
+| Front-end | http://localhost:5173    |
+| PostgreSQL| `localhost:5433` (host) → porta `5432` no container |
+
+### Comandos úteis
+
+```bash
+# Rodar em segundo plano
+docker compose up -d --build
+
+# Ver logs do backend
+docker compose logs -f backend
+
+# Rodar migrations manualmente (se necessário)
+docker compose exec backend npx sequelize-cli db:migrate
+
+# Abrir shell no container do backend
+docker compose exec backend sh
+
+# Parar containers
+docker compose down
+
+# Parar e apagar dados do banco
+docker compose down -v
+```
+
+---
+
+## Desenvolvimento local (sem Docker)
+
+### Requisitos
+
+- Node.js >= 18
+- npm
 - PostgreSQL instalado e em execução
 
-## Instalação
-
-No terminal, a partir da raiz do projeto ou direto no diretório `Back-End`:
+### Instalação
 
 ```bash
 cd Back-End
 npm install
 ```
 
-## Configuração de ambiente
+### Configuração
 
-Crie um arquivo `.env` na pasta `Back-End` com os dados do seu banco de dados e as chaves necessárias.
-
-Exemplo de variáveis necessárias:
+Crie `Back-End/.env`:
 
 ```env
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=nome_do_banco
+DB_NAME=garantias
 DB_USER=seu_usuario
 DB_PASS=sua_senha
 JWT_SECRET=sua_chave_secreta
+CORS_ORIGIN=http://localhost:5173
+BREVO_API_KEY=sua_chave_brevo
 ```
 
-Ajuste `DB_NAME`, `DB_USER` e `DB_PASS` conforme a sua instalação local do PostgreSQL.
-No "JWT_SECRET" você vai criar uma chave secreta, e usará ela para requisições que exigem autenticação, exemplo: Login.
-
-## Banco de dados
-
-Execute os comandos abaixo para criar o banco e aplicar as migrations:
+### Banco de dados
 
 ```bash
 npx sequelize-cli db:create
 npx sequelize-cli db:migrate
 ```
 
-Se precisar, verifique os arquivos de migration em `src/migrations`.
+Migrations ficam em `src/migrations`.
 
-## Executar o backend
-
-Para rodar o servidor em modo de desenvolvimento com reinício automático (recomendável):
+### Executar
 
 ```bash
 npm run dev
 ```
 
-Para rodar sem `nodemon` (sem reinício automático):
+Modo produção (sem reinício automático):
 
 ```bash
 npm start
 ```
 
-## Rodando com Docker
+A API fica em http://localhost:3000. Suba o front-end separadamente — veja [Front-End/README.md](../Front-End/README.md).
 
-Pré-requisitos: Docker instalado.
-
-1. Cria o arquivo `.env` na raiz do projeto (usa o `.env.exemplo` como base)
-2. Sobe os containers:
-```bash
-   docker compose up --build
-```
-3. Roda as migrations (primeira vez):
-```bash
-   docker compose exec backend npx sequelize-cli db:migrate
-```
-4. Acessa http://localhost:5173
-
-Para derrubar:
-```bash
-docker compose down
-```
+---
 
 ## Observações
 
-- O servidor principal está em `src/app.js`.
-- Se houver erro de conexão, verifique as variáveis no `.env` e se o PostgreSQL está ativo.
-- Se a aplicação usar outros arquivos de configuração, revise `src/config/config.js`.
+- Ponto de entrada: `src/app.js`
+- Configuração do Sequelize: `src/config/config.js`
+- Erro de conexão: confira `.env` e se o PostgreSQL está ativo (local) ou se o container `db` está saudável (Docker)

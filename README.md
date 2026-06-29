@@ -52,3 +52,10 @@ Redução de perda de prazos
 9 CONSIDERAÇÕES FINAIS
 O projeto contribui para organização pessoal e desenvolvimento de soluções práticas com impacto direto no cotidiano.
 
+10 LINKS DE DOCUMENTAÇÕES
+- Aplicação Rodando: 
+
+- Drive para Documentações: https://drive.google.com/drive/folders/1O9WLPzcwqzq3n5sF0pt2zQPxqeWeCY45
+
+- Figma: https://www.figma.com/design/AJDnwBdXRk8WMx8Cs9bX9D/Gest%C3%A3o-de-Garantia-Aponti?node-id=0-1&t=TONBDUO0oC2G2rjp-0
+
