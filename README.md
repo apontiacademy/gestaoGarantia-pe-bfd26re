@@ -62,3 +62,5 @@ O projeto contribui para organização pessoal e desenvolvimento de soluções p
 - Slide do Pitch: https://canva.link/aponti-gestao-de-garantia
 
 - Linktree com Contas Pessoais da Equipe: https://linktr.ee/aponti.gestaodegarantia
+
+- Documentação pelo Postman (não atualizada): https://documenter.getpostman.com/view/51751781/2sBXwqsAuM
