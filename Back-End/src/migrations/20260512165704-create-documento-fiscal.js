@@ -59,14 +59,9 @@ module.exports = {
     });
 
     // CRITÉRIO DE ACEITAÇÃO: Data de compra não pode ser futura
-    await queryInterface.addConstraint('Documentos_Fiscais', {
-      fields: ['data_compra'],
-      type: 'check',
-      where: {
-        data_compra: { [Sequelize.Op.lte]: Sequelize.literal('CURRENT_DATE') }
-      },
-      name: 'check_data_compra_nao_futura'
-    });
+    await queryInterface.sequelize.query(
+      'ALTER TABLE "Documentos_Fiscais" ADD CONSTRAINT "check_data_compra_nao_futura" CHECK (data_compra <= CURRENT_DATE)'
+    );
   },
 
   async down(queryInterface, Sequelize) {

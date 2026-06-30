@@ -32,6 +32,11 @@ module.exports = {
       data_cadastro: {
         type: Sequelize.DATE
       },
+      status: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        defaultValue: 'ativo'
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

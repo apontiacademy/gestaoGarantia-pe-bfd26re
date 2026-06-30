@@ -1,41 +1,53 @@
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
-
-// Logs para debug
-console.log(".env carregado. DB_NAME =", process.env.DB_NAME ? "OK" : "FALTANDO");
-console.log("JWT_SECRET =", process.env.JWT_SECRET ? "OK" : "FALTANDO");
-
-if (!process.env.DB_NAME || !process.env.JWT_SECRET) {
-  console.error("ERRO: Variáveis de ambiente obrigatórias não encontradas!");
-  console.error("Verifique se o arquivo .env existe em:", path.resolve(__dirname, '../.env'));
-  // Não usar process.exit(1) em ambiente de desenvolvimento com nodemon
-  // process.exit(1); 
-}
-
-const jwt = require('jsonwebtoken');
-const express = require('express');
-const app = express();
-const cors = require('cors');
-
-app.use(express.json());
-app.use(cors({
-  origin: [
-    'http://localhost:5173',          // desenvolvimento local
-    'https://gestaogarantia-pe-bfd26re.onrender.com',   // coloca a URL do front aqui quando tiver
-  ],
-  credentials: true,
-}));
-
-// Rota de teste
-app.get('/', (req, res) => {
-  res.status(200).send({ message: 'API funcionando!' });
+require('dotenv').config({ 
+  path: path.resolve(__dirname, '../.env') 
 });
 
-// Rotas
+// Logs para debug
+console.log("✅ .env carregado. DB_NAME =", process.env.DB_NAME ? "OK" : "FALTANDO");
+console.log("✅ JWT_SECRET =", process.env.JWT_SECRET ? "OK" : "FALTANDO");
+
+if (!process.env.DB_NAME || !process.env.JWT_SECRET) {
+  console.error("❌ ERRO: Variáveis de ambiente obrigatórias não encontradas!");
+  console.error("Verifique o arquivo .env");
+  process.exit(1);
+}
+
+// ==================== IMPORTS ====================
+const express = require('express');
+const cors = require('cors');
+
+const app = express();
+
+// ==================== MIDDLEWARES ====================
+app.use(express.json());
+
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+  : ['http://localhost:5173'];
+
+app.use(cors({
+  origin: corsOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// ==================== ROTA DE TESTE ====================
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    message: 'API funcionando!',
+    environment: process.env.NODE_ENV || 'production'
+  });
+});
+
+// ==================== ROTAS ====================
 const routes = require('./routes');
 app.use(routes);
 
+// ==================== START SERVER ====================
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });

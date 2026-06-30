@@ -1,6 +1,12 @@
 import { isWarrantyDeleted, type Warranty } from "../../services/warrantyService";
 import { formatCnpj } from "../../utils/cnpj";
-import { calculateWarrantyStatus } from "../../utils/warrantyStatus";
+import {
+  formatDaysToExpireLabel,
+  getWarrantyExpirationInfo,
+  hasInformedFiscalValue,
+  isInformedNfNumber,
+  resolveWarrantyFiscalDisplay,
+} from "../../utils/warrantyDisplay";
 import WarrantyAttachmentsList from "./WarrantyAttachmentsList";
 
 function statusDotClass(status: string): string {
@@ -51,15 +57,40 @@ function DetailRow({
   );
 }
 
-interface WarrantyDetailViewProps {
-  warranty: Warranty;
+function formatWarrantyPeriodDays(days?: number): string | undefined {
+  if (days == null || days <= 0) return undefined;
+  if (days % 30 === 0 && days >= 30) {
+    const months = days / 30;
+    return months === 1 ? "1 mês" : `${months} meses`;
+  }
+  return days === 1 ? "1 dia" : `${days} dias`;
 }
 
-export default function WarrantyDetailView({ warranty }: WarrantyDetailViewProps) {
-  const { status } = calculateWarrantyStatus(warranty.expirationDate);
+interface WarrantyDetailViewProps {
+  warranty: Warranty;
+  onRemoveAttachment?: (attachmentId: string) => void;
+  removingAttachmentId?: string | null;
+}
+
+export default function WarrantyDetailView({
+  warranty,
+  onRemoveAttachment,
+  removingAttachmentId = null,
+}: WarrantyDetailViewProps) {
+  const { status, daysToExpire } = getWarrantyExpirationInfo(warranty);
+  const daysToExpireLabel = formatDaysToExpireLabel(daysToExpire, status);
   const hasExtendedWarranty =
     warranty.warrantyType?.toLowerCase().includes("estendida") ?? false;
   const inTrash = isWarrantyDeleted(warranty);
+
+  const fiscal = resolveWarrantyFiscalDisplay(warranty);
+  const showFiscalValue = hasInformedFiscalValue(warranty);
+  const nfNumberLabel = isInformedNfNumber(warranty.nfNumber)
+    ? warranty.nfNumber
+    : "Número não informado";
+  const warrantyPeriodLabel = formatWarrantyPeriodDays(
+    warranty.warrantyPeriodDays
+  );
 
   return (
     <>
@@ -72,15 +103,21 @@ export default function WarrantyDetailView({ warranty }: WarrantyDetailViewProps
         </div>
       ) : null}
 
-      <header className="flex items-center justify-between border-b pb-4 gap-4">
-        <div>
-          <h1 className="text-xl font-bold">{warranty.title}</h1>
-          {warranty.nfNumber ? (
-            <p className="text-sm text-gray-dark">
-              Nº da nota:{" "}
-              <span className="font-medium">{warranty.nfNumber}</span>
-            </p>
-          ) : null}
+      <header className="flex items-start justify-between border-b pb-4 gap-4 min-w-0">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-bold wrap-break-word">{warranty.productName ?? warranty.title}</h1>
+          <p className="text-sm text-gray-dark mt-1 break-all" title={nfNumberLabel}>
+            Nº da nota:{" "}
+            <span
+              className={
+                isInformedNfNumber(warranty.nfNumber)
+                  ? "font-medium"
+                  : "italic text-gray-dark/70"
+              }
+            >
+              {nfNumberLabel}
+            </span>
+          </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
@@ -99,7 +136,17 @@ export default function WarrantyDetailView({ warranty }: WarrantyDetailViewProps
           <h2 className="font-semibold text-lg">Detalhes</h2>
           <dl className="space-y-2 text-sm">
             <DetailRow label="Data da compra" value={warranty.purchaseDate} />
-            <DetailRow label="Vencimento" value={warranty.expirationDate} />
+            <DetailRow
+              label="Prazo de vencimento"
+              value={warranty.expirationDate}
+            />
+            {daysToExpireLabel ? (
+              <DetailRow label="Vence em" value={daysToExpireLabel} />
+            ) : null}
+            <DetailRow
+              label="Prazo da garantia"
+              value={warrantyPeriodLabel}
+            />
             <DetailRow label="Loja" value={warranty.story} />
             <DetailRow
               label="CNPJ da loja"
@@ -112,15 +159,45 @@ export default function WarrantyDetailView({ warranty }: WarrantyDetailViewProps
               <dt className="font-medium inline">Garantia estendida: </dt>
               <dd className="inline">{hasExtendedWarranty ? "Sim" : "Não"}</dd>
             </div>
+            {hasExtendedWarranty ? (
+              <DetailRow
+                label="Número da garantia estendida"
+                value={
+                  warranty.extendedWarrantyNumber?.trim() ||
+                  "Número não informado"
+                }
+              />
+            ) : null}
             <DetailRow label="Quantidade" value={warranty.quantity} />
           </dl>
 
-          {warranty.value ? (
+          {showFiscalValue ? (
+            <div className="mt-4 space-y-3">
+              {fiscal.unitValue ? (
+                <div>
+                  <p className="text-sm text-gray-500">Valor unitário</p>
+                  <p className="text-2xl font-bold text-green-600">{fiscal.unitValue}</p>
+                </div>
+              ) : null}
+              {fiscal.showTotalValue && fiscal.totalValue ? (
+                <div>
+                  <p className="text-sm text-gray-500">Valor total</p>
+                  <p className="text-2xl font-bold text-green-600">{fiscal.totalValue}</p>
+                </div>
+              ) : null}
+              {!fiscal.unitValue && fiscal.totalValue && !fiscal.showTotalValue ? (
+                <div>
+                  <p className="text-sm text-gray-500">Valor</p>
+                  <p className="text-2xl font-bold text-green-600">{fiscal.totalValue}</p>
+                </div>
+              ) : null}
+            </div>
+          ) : (
             <div className="mt-4">
               <p className="text-sm text-gray-500">Valor</p>
-              <p className="text-2xl font-bold text-green-600">{warranty.value}</p>
+              <p className="text-base italic text-gray-dark/70">Valor não informado</p>
             </div>
-          ) : null}
+          )}
         </section>
 
         <section className="space-y-4">
@@ -128,6 +205,8 @@ export default function WarrantyDetailView({ warranty }: WarrantyDetailViewProps
             <p className="font-medium mb-2">Arquivos</p>
             <WarrantyAttachmentsList
               attachments={warranty.attachments ?? []}
+              onRemove={!inTrash ? onRemoveAttachment : undefined}
+              removingId={removingAttachmentId}
             />
           </div>
 

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
-import logoAponti from '../Assets/logos/logoAponti.svg';
+import simboloAponti from "../Assets/logos/simboloAponti.svg"
 import { authService } from '../services/authService';
 import { getApiErrorMessage } from '../utils/apiError';
 
@@ -21,7 +21,8 @@ export default function ForgotPassword() {
 
   const inputsRef = useRef<HTMLInputElement[]>([]);
 
-  const handleSendEmail = async () => {
+  const handleSendEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!email) {
       setError('Informe seu email.');
       return;
@@ -66,7 +67,8 @@ export default function ForgotPassword() {
     }
   };
 
-  const handleVerifyCode = async () => {
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
     const fullCode = code.join('').trim();
 
     if (fullCode.length !== 6) {
@@ -78,22 +80,9 @@ export default function ForgotPassword() {
     setError('');
 
     try {
-      console.log("🔍 Enviando verificação:", { 
-        token: resetToken ? "presente" : "faltando", 
-        codigo: fullCode 
-      });
-
       await authService.verifyResetCode(resetToken, fullCode);
-      
-      console.log("✅ Código validado com sucesso!");
       navigate('/reset-password', { state: { token: resetToken } });
-
     } catch (err: unknown) {
-      console.error("❌ ERRO COMPLETO:", err);
-      if (err && typeof err === "object" && "response" in err) {
-        console.error("Response:", (err as { response?: { data?: unknown } }).response?.data);
-      }
-
       setError(getApiErrorMessage(err, 'Código inválido ou expirado.'));
     } finally {
       setLoading(false);
@@ -101,98 +90,101 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-fundo px-8">
-      <img src={logoAponti} alt="Logo Aponti" className="w-40 drop-shadow-lg mb-8" />
+    <div className="min-h-screen flex bg-fundo">
+      <div className="w-full flex items-center justify-center px-2 bg-fundo">
+        <div className="w-full max-w-md bg-white rounded-3xl shadow-lg px-10 py-12 flex flex-col gap-5">
 
-      <div className="w-full max-w-sm bg-gray rounded-xl p-6 shadow-xl flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-2 mb-2">
+            <img src={simboloAponti} alt="Símbolo Aponti" className="w-16" />
+            {step === 'email' ? (
+              <>
+                <h1 className="text-xl font-bold">Redefinir Senha</h1>
+                <p className="text-sm text-gray-dark text-center">
+                  Insira seu email para receber o código de verificação.
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className="text-xl font-bold">Digite o código</h1>
+                <p className="text-sm text-gray-dark text-center">
+                  Enviamos um código de 6 dígitos para <strong>{email}</strong>
+                </p>
+              </>
+            )}
+          </div>
 
-        {step === 'email' ? (
-          <>
-            <h1 className="text-lg font-semibold text-center">Redefinir Senha</h1>
-            <p className="text-sm text-gray-dark text-center">
-              Insira seu email para receber o código de verificação.
-            </p>
+          {step === 'email' ? (
+            <form onSubmit={handleSendEmail} className="flex flex-col gap-5">
+              <Input
+                label="Email"
+                type="email"
+                name="email"
+                placeholder="Seu email"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setError(''); }}
+                autoComplete="email"
+                className="bg-white border border-gray/50"
+              />
 
-            <Input
-              label="Email"
-              type="email"
-              placeholder="Seu email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setError('');
-              }}
-              className="bg-white border-none"
-            />
+              {error && <p className="text-xs text-red text-center">{error}</p>}
 
-            {error && <p className="text-xs text-red text-center">{error}</p>}
+              <Button type="submit" variant="primary" disabled={loading} className="w-full">
+                {loading ? 'Enviando...' : 'Enviar Código'}
+              </Button>
 
-            <Button 
-              variant="primary" 
-              onClick={handleSendEmail} 
-              disabled={loading}
-            >
-              {loading ? 'Enviando...' : 'Enviar Código'}
-            </Button>
+              <button
+                type="button"
+                onClick={() => navigate('/login')}
+                className="flex items-center justify-center gap-2 text-sm font-medium text-gray-dark hover:text-primary transition-colors"
+              >
+                <ArrowLeft size={16} />
+                Voltar para o Login
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyCode} className="flex flex-col gap-5">
+              <div className="flex justify-center gap-3">
+                {code.map((digit, index) => (
+                  <input
+                    key={index}
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                    aria-label={`Dígito ${index + 1}`}
+                    maxLength={1}
+                    value={digit}
+                    ref={(el) => { if (el) inputsRef.current[index] = el; }}
+                    onChange={(e) => handleCodeChange(e.target.value, index)}
+                    onKeyDown={(e) => handleKeyDown(e, index)}
+                    className="w-12 h-12 text-center text-2xl font-bold border border-gray/50 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                ))}
+              </div>
 
-            <button
-              onClick={() => navigate('/login')}
-              className="flex items-center gap-2 text-sm font-semibold text-gray-medium hover:text-primary-start transition-colors mx-auto"
-            >
-              <ArrowLeft size={18} />
-              Voltar para o Login
-            </button>
-          </>
-        ) : (
-          <>
-            <h2 className="text-lg font-semibold text-center">Digite o código</h2>
-            <p className="text-sm text-gray-dark text-center">
-              Enviamos um código de 6 dígitos para<br />
-              <strong>{email}</strong>
-            </p>
+              {error && <p className="text-xs text-red text-center">{error}</p>}
 
-            <div className="flex justify-center gap-3 my-6">
-              {code.map((digit, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  maxLength={1}
-                  value={digit}
-                  ref={(el) => { if (el) inputsRef.current[index] = el; }}
-                  onChange={(e) => handleCodeChange(e.target.value, index)}
-                  onKeyDown={(e) => handleKeyDown(e, index)}
-                  className="w-11 h-11 text-center text-2xl font-bold border border-gray-medium rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              ))}
-            </div>
+              <Button type="submit" variant="primary" disabled={loading} className="w-full">
+                {loading ? 'Verificando...' : 'Verificar Código'}
+              </Button>
 
-            {error && <p className="text-xs text-red text-center">{error}</p>}
+              <button
+                type="button"
+                className="text-xs font-medium text-gray-dark hover:text-primary transition-colors text-center"
+              >
+                Reenviar código
+              </button>
 
-            <Button 
-              variant="primary" 
-              onClick={handleVerifyCode} 
-              disabled={loading}
-              className="w-full"
-            >
-              {loading ? 'Verificando...' : 'Verificar Código'}
-            </Button>
-
-            <button
-              type="button"
-              className="text-xs font-semibold text-gray-medium hover:text-primary-start transition-colors mx-auto"
-            >
-              Reenviar código
-            </button>
-
-            <button
-              onClick={() => setStep('email')}
-              className="flex items-center gap-2 text-sm font-semibold text-gray-medium hover:text-primary-start transition-colors mx-auto"
-            >
-              <ArrowLeft size={18} />
-              Voltar
-            </button>
-          </>
-        )}
+              <button
+                type="button"
+                onClick={() => setStep('email')}
+                className="flex items-center justify-center gap-2 text-sm font-medium text-gray-dark hover:text-primary transition-colors"
+              >
+                <ArrowLeft size={16} />
+                Voltar
+              </button>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

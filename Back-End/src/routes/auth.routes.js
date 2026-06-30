@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const { Usuario } = require('../models');
 
 // Rotas de autenticação e gerenciamento de conta
 const controllerRegister = require('../controllers/RegisterUser');
 const controllerLogin = require('../controllers/loginAuth');
+const profileController = require('../controllers/ProfileUser');
 
 // Middleware para validação do token JWT
 function autenticarToken(req, res, next) {
@@ -18,7 +20,10 @@ function autenticarToken(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;        // ou req.usuario, dependendo do que você usa
+
+    req.user = decoded;      
+    req.usuario = decoded;
+    
     next();
   } catch (error) {
     return res.status(403).json({ message: 'Token inválido' });
@@ -28,7 +33,7 @@ function autenticarToken(req, res, next) {
 // Perfil do usuário autenticado
 router.get('/auth/profile', autenticarToken, async (req, res) => {
   try {
-    const userId = req.user.idUsuario || req.user.id;
+    const userId = req.user.id_usuario || req.user.id;
     const user = await Usuario.findByPk(userId);   // ← Você precisa importar Usuario
 
     if (!user) {
@@ -64,5 +69,9 @@ router.post('/auth/verify-reset-code', controllerLogin.VerificarCodigoReset);
 
 // Redefinição de senha via token enviado por e-mail (usuário não autenticado)
 router.post('/auth/reset-password', controllerLogin.ResetarSenha);
+
+router.get('/users/me', autenticarToken, profileController.BuscarPerfil);
+
+router.put('/users/me', autenticarToken, profileController.AtualizarPerfil);
 
 module.exports = router;

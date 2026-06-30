@@ -1,24 +1,22 @@
-import { Upload, FileCheck, X } from 'lucide-react';
-import React, { useState, useRef, useMemo } from 'react';
+import { FileCheck } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Input from '../components/ui/Input';
 import ActionButton from '../components/ui/ActionButton';
-import WarrantyCard from '../components/ui/WarrantyCard';
 import LayoutHome from '../layout/LayoutHome';
+import WarrantyAttachmentUpload from '../components/warranty/WarrantyAttachmentUpload';
 import { useWarranty } from '../contexts/WarrantyContext';
 import {
   computeExpirationDateBR,
   formatDateBRFromIso,
 } from '../utils/warrantyDates';
-import { buildWarrantyTitle } from '../services/warrantyService';
 import { fileToAttachment } from '../utils/warrantyAttachments';
 import { formatCnpj } from '../utils/cnpj';
 
 const CreateWarranty: React.FC = () => {
   const navigate = useNavigate();
   const { addWarranty } = useWarranty();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [hasExtendedWarranty, setHasExtendedWarranty] = useState(false);
   const [value, setValue] = useState('');
   const [step, setStep] = useState(1);
@@ -52,20 +50,6 @@ const CreateWarranty: React.FC = () => {
     }).format(numberValue);
   }
 
-  function removeFile() {
-    setFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }
-
-  function handleFileChange(
-    event: React.ChangeEvent<HTMLInputElement>
-  ): void {
-    const selectedFile = event.target.files?.[0] ?? null;
-    setFile(selectedFile);
-  }
-
   const periodNum = Number(warrantyPeriod);
   const extraMonths = hasExtendedWarranty
     ? Math.max(0, Number(extendedExtraMonths) || 0)
@@ -90,15 +74,6 @@ const CreateWarranty: React.FC = () => {
     ? 'Garantia Estendida'
     : 'Garantia de fábrica';
 
-  const previewTitle = useMemo(
-    () =>
-      buildWarrantyTitle(
-        productName,
-        brand.trim() || undefined,
-        model.trim() || undefined
-      ) || '—',
-    [productName, brand, model]
-  );
 
   async function handleSaveWarranty(): Promise<void> {
     const name = productName.trim();
@@ -128,39 +103,46 @@ const CreateWarranty: React.FC = () => {
     const nf = nfNumber.trim();
     const b = brand.trim();
     const m = model.trim();
-    const joinedTitle = buildWarrantyTitle(name, b || undefined, m || undefined);
 
     let attachments;
-    if (file) {
+    if (files.length > 0) {
       setIsSaving(true);
       try {
-        attachments = [await fileToAttachment(file)];
+        attachments = await Promise.all(files.map((file) => fileToAttachment(file)));
       } catch (err) {
         setIsSaving(false);
         window.alert(
-          err instanceof Error ? err.message : 'Não foi possível processar o arquivo.'
+          err instanceof Error ? err.message : 'Não foi possível processar os arquivos.'
         );
         return;
       }
     }
 
     try {
-      addWarranty({
-        title: joinedTitle,
-        story: storeName.trim() || undefined,
-        storeCnpj: cnpj.trim() ? formatCnpj(cnpj) : undefined,
+      setIsSaving(true);
+      await addWarranty({
+        productName: name,
+        brand: b,
+        model: m,
+        purchaseDate,
+        warrantyPeriod: periodNum,
+        warrantyUnit,
+        hasExtendedWarranty,
+        extendedExtraMonths: extraMonths,
+        extendedWarrantyNumber: extendedWarrantyNumber.trim() || undefined,
+        storeName: storeName.trim() || undefined,
+        cnpj: cnpj.trim() ? formatCnpj(cnpj) : undefined,
         nfNumber: nf || undefined,
         quantity: quantity.trim() || undefined,
-        purchaseDate: purchaseDateDisplay || undefined,
-        expirationDate: expiration,
-        warrantyType: warrantyTypeLabel,
         value: value || undefined,
         notes: notes.trim() || undefined,
         attachments,
       });
+      
       navigate('/home');
-    } catch {
-      window.alert('Não foi possível salvar a garantia. Tente um arquivo menor.');
+    } catch (error) {
+      console.log(error);
+      window.alert('Não foi possível salvar a garantia.');
     } finally {
       setIsSaving(false);
     }
@@ -345,7 +327,7 @@ const CreateWarranty: React.FC = () => {
                   />
 
                   <Input
-                    label="Valor"
+                    label="Valor unitario do produto"
                     type="text"
                     value={value}
                     placeholder="R$ 0,00"
@@ -438,99 +420,93 @@ const CreateWarranty: React.FC = () => {
                     />
                   </div>
 
-                  {/* Upload */}
-                  <div className="flex flex-col gap-1">
+                  <WarrantyAttachmentUpload
+                    files={files}
+                    onChange={setFiles}
+                    disabled={isSaving}
+                  />
+                </>
+              )}
 
-                    <label className="text-sm font-semibold text-gray-700 ml-1">
-                      Nota Fiscal (PDF ou Imagem)
-                    </label>
+              {/* ETAPA 4 - REVISÃO */}
+              {step === 4 && (
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 flex flex-col gap-4">
 
-                    <div
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`
-                        border-2 border-dashed rounded-lg p-6
-                        flex flex-col items-center justify-center
-                        cursor-pointer transition-all
-                        ${
-                          file
-                            ? 'border-green-500 bg-green-50'
-                            : 'border-gray-medium hover:border-primary hover:bg-gray-50'
-                        }
-                      `}
-                    >
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        className="hidden"
-                        onChange={handleFileChange}
-                        accept="image/*,.pdf"
-                      />
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-800">
+                      {productName || 'Produto sem nome'}
+                    </h2>
 
-                      {!file ? (
-                        <>
-                          <Upload
-                            className="text-gray-medium mb-2"
-                            size={32}
-                          />
+                    <p className="text-sm text-gray-500 italic">
+                      {storeName || 'Loja não informada'}
+                    </p>
+                  </div>
 
-                          <span className="text-sm text-gray-medium text-center">
-                            Clique para fazer upload da nota fiscal
-                          </span>
-                        </>
-                      ) : (
-                        <div className="flex items-center justify-between w-full">
+                  <div className="border-t border-gray-200 pt-4 flex flex-col gap-2">
 
-                          <div className="flex items-center gap-3">
+                    <p className="text-sm">
+                      <span className="font-semibold">Marca:</span> {brand || '—'}
+                    </p>
 
-                            <FileCheck
-                              className="text-green-600"
-                              size={24}
-                            />
+                    <p className="text-sm">
+                      <span className="font-semibold">Modelo:</span> {model || '—'}
+                    </p>
 
-                            <div className="flex flex-col">
+                    <p className="text-sm">
+                      <span className="font-semibold">Quantidade:</span> {quantity || '—'}
+                    </p>
 
-                              <span className="text-sm font-bold text-gray-dark truncate max-w-50">
+                    <p className="text-sm">
+                      <span className="font-semibold">Nº da Nota Fiscal:</span> {nfNumber || '—'}
+                    </p>
+
+                    <p className="text-sm">
+                      <span className="font-semibold">Data da Compra:</span> {purchaseDateDisplay || '—'}
+                    </p>
+
+                    <p className="text-sm">
+                      <span className="font-semibold">Garantia:</span> {warrantyPeriod} {warrantyUnit === 'months' ? 'meses' : 'dias'}
+                    </p>
+
+                    <p className="text-sm">
+                      <span className="font-semibold">Tipo:</span> {warrantyTypeLabel}
+                    </p>
+
+                    <p className="text-sm">
+                      <span className="font-semibold">Vencimento:</span> {expirationDateDisplay || '—'}
+                    </p>
+
+                    <p className="text-sm">
+                      <span className="font-semibold">Valor:</span> {value || 'R$ 0,00'}
+                    </p>
+
+                    {notes && (
+                      <div className="mt-2">
+                        <p className="font-semibold text-sm">Observações:</p>
+                        <p className="text-sm text-gray-600 wrap-break-word">{notes}</p>
+                      </div>
+                    )}
+
+                    {files.length > 0 && (
+                      <div className="mt-3 flex flex-col gap-2 border-t border-gray-100 pt-3">
+                        <p className="font-semibold text-sm mb-1 text-gray-700">Notas Fiscais Anexadas:</p>
+                        {files.map((file, index) => (
+                          <div key={index} className="flex items-center gap-2 bg-gray-100 rounded-lg p-3 border border-gray-200">
+                            <FileCheck size={20} className="text-green-600 shrink-0" />
+                            <div className="flex flex-col min-w-0 flex-1">
+                              <span className="text-sm font-medium truncate">
                                 {file.name}
                               </span>
-
-                              <span className="text-xs text-gray-medium">
+                              <span className="text-xs text-gray-500">
                                 {(file.size / 1024).toFixed(2)} KB
                               </span>
                             </div>
                           </div>
-
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeFile();
-                            }}
-                            className="
-                              p-1 hover:bg-red-100 rounded-full
-                              text-red-500 transition-colors
-                            "
-                          >
-                            <X size={20} />
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </>
-              )}
-
-              {/* ETAPA 4 */}
-              {step === 4 && (
-                <WarrantyCard
-                  title={previewTitle}
-                  story={storeName.trim() || undefined}
-                  nfNumber={nfNumber.trim() || undefined}
-                  purchaseDate={purchaseDateDisplay || undefined}
-                  expirationDate={expirationDateDisplay || undefined}
-                  warrantyType={warrantyTypeLabel}
-                  value={value || undefined}
-                  variant="home"
-                />
+                </div>
               )}
 
               {/* BOTÕES */}
@@ -541,25 +517,25 @@ const CreateWarranty: React.FC = () => {
                     action="create"
                     variant="primary"
                     label="Continuar"
-                    onClick={() => setStep(step + 1)}
+                    onClick={() => {
+                      setStep(step + 1);
+                    }}
                   />
                 ) : (
                   <ActionButton
                     action="create"
                     variant="primary"
                     label={isSaving ? 'Salvando...' : 'Salvar Garantia'}
-                    onClick={() => void handleSaveWarranty()}
+                    onClick={() => {
+                      void handleSaveWarranty();
+                    }}
                   />
                 )}
 
                 <ActionButton
                   action="edit"
                   variant="ghost"
-                  label={
-                    step === 1
-                      ? 'Cancelar'
-                      : 'Voltar'
-                  }
+                  label={step === 1 ? 'Cancelar' : 'Voltar'}
                   onClick={() => {
                     if (step === 1) {
                       navigate(-1);

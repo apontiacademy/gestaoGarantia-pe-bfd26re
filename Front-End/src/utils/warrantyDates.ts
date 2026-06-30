@@ -21,9 +21,18 @@ export function formatDateBR(d: Date): string {
   return `${day}/${month}/${year}`;
 }
 
+/** Converte ISO ou `AAAA-MM-DD` para `DD/MM/AAAA` sem deslocar fuso horário. */
 export function formatDateBRFromIso(iso: string): string {
-  if (!iso.trim()) return "";
-  const d = parseWarrantyDate(iso);
+  const trimmed = iso.trim();
+  if (!trimmed) return "";
+
+  const datePart = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (datePart) {
+    const [, year, month, day] = datePart;
+    return `${day}/${month}/${year}`;
+  }
+
+  const d = parseWarrantyDate(trimmed);
   if (Number.isNaN(d.getTime())) return "";
   return formatDateBR(d);
 }

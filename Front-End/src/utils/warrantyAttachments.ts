@@ -1,32 +1,53 @@
-import type { WarrantyAttachment } from "../services/warrantyService";
+import { uploadFileToCloudinary } from "../services/cloudinaryService";
+import {
+  type WarrantyAttachment,
+  normalizeAttachment,
+} from "../services/warrantyService";
 
-export const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 
-function readFileAsDataURL(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") resolve(reader.result);
-      else reject(new Error("Falha ao ler o arquivo."));
-    };
-    reader.onerror = () => reject(reader.error ?? new Error("Falha ao ler o arquivo."));
-    reader.readAsDataURL(file);
-  });
+const ACCEPTED_TYPES = new Set([
+  "application/pdf",
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
+
+export function isAcceptedAttachment(file: File): boolean {
+  if (ACCEPTED_TYPES.has(file.type)) return true;
+  const lower = file.name.toLowerCase();
+  return (
+    lower.endsWith(".pdf") ||
+    lower.endsWith(".jpg") ||
+    lower.endsWith(".jpeg") ||
+    lower.endsWith(".png") ||
+    lower.endsWith(".webp")
+  );
 }
 
 export async function fileToAttachment(file: File): Promise<WarrantyAttachment> {
-  if (file.size > MAX_ATTACHMENT_BYTES) {
-    throw new Error("Arquivo muito grande. O limite é 5 MB.");
+  if (!isAcceptedAttachment(file)) {
+    throw new Error("Envie a nota fiscal em PDF ou imagem (JPG, PNG ou WebP).");
   }
 
-  const dataUrl = await readFileAsDataURL(file);
-  return {
+  if (file.size > MAX_ATTACHMENT_BYTES) {
+    throw new Error("Arquivo muito grande. O limite é 10 MB.");
+  }
+
+  const uploaded = await uploadFileToCloudinary(file);
+
+  return normalizeAttachment({
     id: crypto.randomUUID(),
     name: file.name,
     mimeType: file.type || "application/octet-stream",
     size: file.size,
-    dataUrl,
-  };
+    url: uploaded.url,
+    publicId: uploaded.publicId,
+    resourceType: uploaded.resourceType,
+    deleteToken: uploaded.deleteToken,
+  });
 }
 
 export function formatFileSize(bytes: number): string {

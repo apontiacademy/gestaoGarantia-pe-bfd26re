@@ -52,3 +52,15 @@ Redução de perda de prazos
 9 CONSIDERAÇÕES FINAIS
 O projeto contribui para organização pessoal e desenvolvimento de soluções práticas com impacto direto no cotidiano.
 
+10 LINKS DE DOCUMENTAÇÕES
+- Aplicação Rodando: https://gerenciador-de-garantia-aponti.netlify.app
+
+- Drive para Documentações: https://drive.google.com/drive/folders/1O9WLPzcwqzq3n5sF0pt2zQPxqeWeCY45
+
+- Figma: https://www.figma.com/design/AJDnwBdXRk8WMx8Cs9bX9D/Gest%C3%A3o-de-Garantia-Aponti?node-id=0-1&t=TONBDUO0oC2G2rjp-0
+
+- Slide do Pitch: https://canva.link/aponti-gestao-de-garantia
+
+- Linktree com Contas Pessoais da Equipe: https://linktr.ee/aponti.gestaodegarantia
+
+- Documentação pelo Postman (não atualizada): https://documenter.getpostman.com/view/51751781/2sBXwqsAuM

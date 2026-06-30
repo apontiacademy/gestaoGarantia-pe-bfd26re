@@ -4,24 +4,46 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Notificacao extends Model {
     static associate(models) {
-      this.belongsTo(models.Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
-      this.belongsTo(models.Garantia, { foreignKey: 'garantia_id', as: 'garantia' });
+
+      this.belongsTo(models.Usuario, {
+        foreignKey: 'id_usuario',
+        as: 'usuario'
+      });
+
+      this.belongsTo(models.Garantia, {
+        foreignKey: 'garantia_id',
+        as: 'garantia'
+      });
+
     }
   }
 
   Notificacao.init({
-    usuario_id: DataTypes.INTEGER,
+    id_usuario: DataTypes.INTEGER,
+
     garantia_id: DataTypes.INTEGER,
+
     tipo: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    mensagem: DataTypes.TEXT,
+
+    mensagem: {
+      type: DataTypes.TEXT,
+      allowNull: false
+    },
+
+    lida: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+
     data_envio: DataTypes.DATE
+
   }, {
     sequelize,
     modelName: 'Notificacao',
-    tableName: 'Notificacoes', 
+    tableName: 'Notificacoes'
   });
 
   return Notificacao;

@@ -95,7 +95,12 @@ export default function VerifyCode() {
             {code.map((digit, index) => (
               <input
                 key={index}
+                id={`verify-code-${index}`}
+                name={`verify-code-${index}`}
                 type="text"
+                inputMode="numeric"
+                autoComplete={index === 0 ? "one-time-code" : "off"}
+                aria-label={`Dígito ${index + 1} do código de verificação`}
                 maxLength={1}
                 value={digit}
                 ref={(el) => { if (el) inputsRef.current[index] = el; }}

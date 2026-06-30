@@ -4,10 +4,12 @@ import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import { Eye, EyeOff, } from "lucide-react";
 import { authService } from "../services/authService";
+import { useAuth } from "../contexts/AuthContext";
 import simboloAponti from "../Assets/logos/simboloAponti.svg";
 
 export default function UserRegister() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -23,7 +25,8 @@ export default function UserRegister() {
     setError("");
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!form.nomeCompleto || !form.email || !form.senha) {
       setError("Preencha todos os campos.");
       return;
@@ -35,10 +38,9 @@ export default function UserRegister() {
 
     setLoading(true);
     try {
-      await authService.register(form);
-      navigate("/login", {
-        state: { message: "Conta criada com sucesso! Faça login para continuar." },
-      });
+      const response = await authService.register(form);
+      login(response.token, response.user);
+      navigate("/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao criar conta.");
     } finally {
@@ -61,9 +63,10 @@ export default function UserRegister() {
             </p>
           </div>
 
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <Input
             label="Nome Completo"
-            type="nome"
+            type="text"
             name="nomeCompleto"
             placeholder="Digite seu nome"
             value={form.nomeCompleto}
@@ -78,6 +81,7 @@ export default function UserRegister() {
             placeholder="Digite seu email"
             value={form.email}
             onChange={handleChange}
+            autoComplete="email"
             className="bg-white border border-gray/50"
           />
 
@@ -88,6 +92,7 @@ export default function UserRegister() {
             placeholder="Digite sua senha"
             value={form.senha}
             onChange={handleChange}
+            autoComplete="new-password"
             className="bg-white border border-gray/50"
             rightIcon={showPassword ? <EyeOff size={18} className="cursor-pointer" /> : <Eye size={18} className="cursor-pointer" />}
             onRightIconClick={() => setShowPassword((v) => !v)}
@@ -97,9 +102,10 @@ export default function UserRegister() {
             <p className="text-xs text-red text-center -mt-2">{error}</p>
           )}
 
-          <Button variant="primary" onClick={handleSubmit} disabled={loading} className="w-full cursor-pointer">
+          <Button type="submit" variant="primary" disabled={loading} className="w-full cursor-pointer">
             {loading ? "Criando..." : "Criar Conta"}
           </Button>
+          </form>
 
           <p className="text-sm text-gray-dark text-center font-medium">
             Já tem uma conta?{" "}

@@ -1,41 +1,57 @@
-const{Usuario} = require('../models');
+const { Usuario } = require('../models');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 // Função para registrar um novo usuário
 async function registerUser(req, res) {
   const { nomeCompleto, email, senha } = req.body;
 
-    const emailNormalizado = email.toLowerCase();
+  if (!nomeCompleto || !email || !senha) {
+    return res.status(400).json({ error: "Todos os campos são obrigatórios" });
+  }
 
-      if (!nomeCompleto || !email || !senha) {
-        return res.status(400).json({ error: "Todos os campos são obrigatórios" });
+  if (senha.length < 6) {
+    return res.status(400).json({ error: "A senha deve ter no mínimo 6 caracteres" });
+  }
+
+  const emailNormalizado = email.toLowerCase();
+
+  try {
+    const emailExistente = await Usuario.findOne({ where: { email: emailNormalizado } });
+    if (emailExistente) {
+      return res.status(400).json({ error: "Email já registrado" });
     }
 
     const hash = await bcrypt.hash(senha, 10);
 
-    const emailExistente = await Usuario.findOne({ where: { email: emailNormalizado } }); // Verificar se o email já existe no banco de dados
-    if (emailExistente) {
-        return res.status(400).json({ error: "Email já registrado" });
-    }
-  
-  try {
     const novoUsuario = await Usuario.create({
       nomeCompleto,
-      email : emailNormalizado,
-      senha : hash
+      email: emailNormalizado,
+      senha: hash
     });
 
-    res.status(201).json({
-      nomeCompleto: novoUsuario.nomeCompleto,
-      email: novoUsuario.email,
+    const token = jwt.sign(
+      { id_usuario: novoUsuario.id },
+      process.env.JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    return res.status(201).json({
+      token,
+      user: {
+        id: novoUsuario.id,
+        nomeCompleto: novoUsuario.nomeCompleto,
+        email: novoUsuario.email,
+        fotoPerfil: null,
+      }
     });
   } catch (error) {
     console.error("Erro ao registrar usuário:", error);
 
-    if(error.name === 'SequelizeUniqueConstraintError') {
-        return res.status(400).json({ error: "Email já registrado" });
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({ error: "Email já registrado" });
     }
-    res.status(500).json({ error: "Erro ao registrar usuário" });
+    return res.status(500).json({ error: "Erro ao registrar usuário" });
   }
 }
 

@@ -27,10 +27,13 @@ function autenticarToken(req, res, next) {
 
 // Rotas de garantias (protegidas por autenticação)
 router.get('/garantias', autenticarToken, controllerGarantia.listarGarantias);
+router.get('/garantias/lixeira', autenticarToken, controllerGarantia.listarLixeira);
 router.get('/garantias/:id', autenticarToken, controllerGarantia.listarGarantiaPorId);
 router.post('/garantias', autenticarToken, controllerGarantia.RegistrarGarantia);
 router.put('/garantias/:id', autenticarToken, controllerGarantia.atualizarGarantia);
+router.patch('/garantias/:id/restaurar', autenticarToken, controllerGarantia.restaurarGarantia);
 router.patch('/garantias/:id', autenticarToken, controllerGarantia.atualizarStatusGarantia);
+router.delete('/garantias/:id/permanente', autenticarToken, controllerGarantia.excluirPermanentemente);
 router.delete('/garantias/:id', autenticarToken, controllerGarantia.excluirGarantia);
 
 // Rotas de garantias estendidas (protegidas por autenticação)
@@ -38,6 +41,7 @@ router.get('/garantias-estendidas', autenticarToken, controllerGarantiaEstendida
 router.get('/garantias-estendidas/:id', autenticarToken, controllerGarantiaEstendida.listarGarantiaEstendidaPorId);
 router.post('/garantias-estendidas', autenticarToken, controllerGarantiaEstendida.registrarGarantiaEstendida);
 router.put('/garantias-estendidas/:id', autenticarToken, controllerGarantiaEstendida.atualizarGarantiaEstendida);
+router.patch('/garantias-estendidas/:id', autenticarToken, controllerGarantiaEstendida.atualizarStatusGarantiaEstendida);
 router.delete('/garantias-estendidas/:id', autenticarToken, controllerGarantiaEstendida.excluirGarantiaEstendida);
 
 module.exports = router;

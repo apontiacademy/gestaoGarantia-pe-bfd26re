@@ -1,16 +1,23 @@
-import type { Warranty } from "../services/warrantyService";
+import { buildWarrantyTitle, type Warranty } from "../services/warrantyService";
 import { formatCnpj } from "./cnpj";
+import { formatCurrencyBRL, parseCurrencyInput } from "./currency";
 import { parseWarrantyDate } from "./warrantyDates";
+import { resolveWarrantyFiscalDisplay } from "./warrantyDisplay";
 
 export interface WarrantyFormValues {
   title: string;
+  brand: string;
+  model: string;
   story: string;
   storeCnpj: string;
   nfNumber: string;
   quantity: string;
   purchaseDate: string;
+  warrantyPeriod: string;
+  warrantyUnit: "days" | "months";
   expirationDate: string;
   warrantyType: string;
+  extendedWarrantyNumber: string;
   value: string;
   notes: string;
 }
@@ -21,16 +28,36 @@ export const WARRANTY_TYPE_OPTIONS = [
 ] as const;
 
 export function warrantyToFormValues(warranty: Warranty): WarrantyFormValues {
+  const fiscal = resolveWarrantyFiscalDisplay(warranty);
+
+  let warrantyPeriod = "";
+  let warrantyUnit: "days" | "months" = "months";
+  if (warranty.warrantyPeriodDays && warranty.warrantyPeriodDays > 0) {
+    const days = warranty.warrantyPeriodDays;
+    if (days >= 30 && days % 30 === 0) {
+      warrantyPeriod = String(Math.round(days / 30));
+      warrantyUnit = "months";
+    } else {
+      warrantyPeriod = String(days);
+      warrantyUnit = "days";
+    }
+  }
+
   return {
-    title: warranty.title ?? "",
+    title: warranty.productName ?? warranty.title ?? "",
+    brand: warranty.brand ?? "",
+    model: warranty.model ?? "",
     story: warranty.story ?? "",
     storeCnpj: warranty.storeCnpj ? formatCnpj(warranty.storeCnpj) : "",
     nfNumber: warranty.nfNumber ?? "",
     quantity: warranty.quantity ?? "",
     purchaseDate: warranty.purchaseDate ?? "",
+    warrantyPeriod,
+    warrantyUnit,
     expirationDate: warranty.expirationDate ?? "",
     warrantyType: warranty.warrantyType ?? WARRANTY_TYPE_OPTIONS[0],
-    value: warranty.value ?? "",
+    extendedWarrantyNumber: warranty.extendedWarrantyNumber ?? "",
+    value: fiscal.unitValue ?? fiscal.totalValue ?? "",
     notes: warranty.notes ?? "",
   };
 }
@@ -49,6 +76,14 @@ export function validateWarrantyForm(
 
   if (!values.title.trim()) {
     errors.title = "Informe o nome do produto.";
+  }
+
+  if (!values.purchaseDate.trim()) {
+    errors.purchaseDate = "Informe a data de compra.";
+  }
+
+  if (!values.expirationDate.trim()) {
+    errors.expirationDate = "Informe a data de vencimento.";
   }
 
   if (!isValidDateBR(values.purchaseDate)) {
@@ -80,8 +115,28 @@ export function formValuesToWarrantyUpdate(
   values: WarrantyFormValues
 ): Omit<Warranty, "id" | "deletedAt"> {
   const trim = (s: string) => s.trim();
+  const qty = Math.max(1, Number(trim(values.quantity)) || 1);
+  const unitNum = parseCurrencyInput(trim(values.value));
+  const unitValue =
+    unitNum > 0 ? formatCurrencyBRL(unitNum) : undefined;
+  const totalValue =
+    unitNum > 0 ? formatCurrencyBRL(unitNum * qty) : undefined;
+  const isExtended = trim(values.warrantyType).toLowerCase().includes("estendida");
+
+  const productName = trim(values.title);
+  const brand = trim(values.brand);
+  const model = trim(values.model);
+  const builtTitle = buildWarrantyTitle(
+    productName,
+    brand || undefined,
+    model || undefined
+  );
+
   return {
-    title: trim(values.title),
+    title: builtTitle,
+    productName: productName || undefined,
+    brand: brand || undefined,
+    model: model || undefined,
     story: trim(values.story) || undefined,
     storeCnpj: trim(values.storeCnpj)
       ? formatCnpj(trim(values.storeCnpj))
@@ -91,7 +146,12 @@ export function formValuesToWarrantyUpdate(
     purchaseDate: trim(values.purchaseDate) || undefined,
     expirationDate: trim(values.expirationDate) || undefined,
     warrantyType: trim(values.warrantyType) || undefined,
-    value: trim(values.value) || undefined,
+    extendedWarrantyNumber: isExtended
+      ? trim(values.extendedWarrantyNumber) || undefined
+      : undefined,
+    unitValue,
+    totalValue,
+    value: totalValue ?? unitValue,
     notes: trim(values.notes) || undefined,
   };
 }

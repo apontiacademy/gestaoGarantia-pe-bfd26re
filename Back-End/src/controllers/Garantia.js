@@ -1,21 +1,37 @@
-const { Garantia, Produto } = require('../models');
-const {calcularStatusGarantia} = require('../utils/garantiaUtils');
+const { Garantia, Produto, Documento_Fiscal } = require('../models');
+const { Op } = require('sequelize');
+const { calcularStatusGarantia } = require('../utils/garantiaUtils');
+const { criarNotificacao } = require('../utils/notificacaoUtils');
+
+const produtoInclude = {
+  model: Produto,
+  as: 'produto',
+  include: [
+    {
+      model: Documento_Fiscal,
+      as: 'documento_fiscal',
+      required: false,
+    },
+  ],
+};
 
 async function RegistrarGarantia(req, res) {
   try {
     const { produto_id, prazo_dias, data_inicio, tipo, observacao } = req.body;
 
-      if (isNaN(prazo_dias) || prazo_dias < 0) {
-        return res.status(400).json({ erro: 'O prazo da garantia não pode ser negativo' });
-      }
+    if (isNaN(prazo_dias) || prazo_dias < 0) {
+      return res.status(400).json({
+        erro: 'O prazo da garantia não pode ser negativo'
+      });
+    }
 
     const tiposValidos = ['Normal', 'Estendida'];
 
     if (!tipo || !tiposValidos.includes(tipo)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         erro: 'Tipo inválido',
-        tiposAceitos: tiposValidos 
-      });  
+        tiposAceitos: tiposValidos
+      });
     }
 
     const dataFim = new Date(data_inicio);
@@ -31,7 +47,16 @@ async function RegistrarGarantia(req, res) {
       data_cadastro: new Date()
     });
 
+    
+    await criarNotificacao(
+      req.user.id_usuario,
+      'created',
+      'Garantia criada com sucesso',
+      garantia.id
+    );
+
     return res.status(201).json(garantia);
+
   } catch (error) {
     console.error("Erro ao registrar garantia:", error);
     return res.status(500).json({ erro: error.message });
@@ -40,17 +65,13 @@ async function RegistrarGarantia(req, res) {
 
 async function listarGarantias(req, res) {
   try {
+
     const garantias = await Garantia.findAll({
       where: { deletado_em: null },
-      include: [
-        {
-          model: Produto,
-          as: 'produto'
-        }
-      ]
+      include: [produtoInclude]
     });
 
-      const garantiasComStatus = garantias.map((garantia) => {
+    const garantiasComStatus = garantias.map((garantia) => {
 
       const infoGarantia = calcularStatusGarantia(
         garantia.data_fim
@@ -64,6 +85,7 @@ async function listarGarantias(req, res) {
     });
 
     return res.json(garantiasComStatus);
+
   } catch (error) {
     return res.status(500).json({ erro: error.message });
   }
@@ -71,20 +93,21 @@ async function listarGarantias(req, res) {
 
 async function listarGarantiaPorId(req, res) {
   try {
+
     const { id } = req.params;
 
     const garantia = await Garantia.findOne({
-      where: { id, deletado_em: null },
-      include: [
-        {
-          model: Produto,
-          as: 'produto'
-        }
-      ]
+      where: {
+        id,
+        deletado_em: null
+      },
+      include: [produtoInclude]
     });
 
     if (!garantia) {
-      return res.status(404).json({ mensagem: 'Garantia não encontrada' });
+      return res.status(404).json({
+        mensagem: 'Garantia não encontrada'
+      });
     }
 
     const infoGarantia = calcularStatusGarantia(
@@ -96,7 +119,6 @@ async function listarGarantiaPorId(req, res) {
       ...infoGarantia
     });
 
-    // return res.json(garantia);
   } catch (error) {
     return res.status(500).json({ erro: error.message });
   }
@@ -104,20 +126,28 @@ async function listarGarantiaPorId(req, res) {
 
 async function atualizarGarantia(req, res) {
   try {
+
     const { id } = req.params;
-    const { produto_id, prazo_dias, data_inicio, tipo, observacao } = req.body;
+    const {
+      produto_id,
+      prazo_dias,
+      data_inicio,
+      tipo,
+      observacao
+    } = req.body;
 
     if (isNaN(prazo_dias) || prazo_dias < 0) {
-  return res.status(400).json({
-    erro: 'O prazo da garantia não pode ser negativo'
-  });
-}
+      return res.status(400).json({
+        erro: 'O prazo da garantia não pode ser negativo'
+      });
+    }
 
     const tiposValidos = ['Normal', 'Estendida'];
+
     if (!tipo || !tiposValidos.includes(tipo)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         erro: 'Tipo inválido',
-        tiposAceitos: tiposValidos 
+        tiposAceitos: tiposValidos
       });
     }
 
@@ -135,8 +165,34 @@ async function atualizarGarantia(req, res) {
       where: { id }
     });
 
-    const garantiaAtualizada = await Garantia.findByPk(id);
-    return res.json(garantiaAtualizada);
+    
+    await criarNotificacao(
+      req.user.id_usuario,
+      'updated',
+      'Garantia alterada com sucesso',
+      id
+    );
+
+    const garantiaAtualizada = await Garantia.findOne({
+      where: { id },
+      include: [produtoInclude]
+    });
+
+    if (!garantiaAtualizada) {
+      return res.status(404).json({
+        mensagem: 'Garantia não encontrada'
+      });
+    }
+
+    const infoGarantia = calcularStatusGarantia(
+      garantiaAtualizada.data_fim
+    );
+
+    return res.json({
+      ...garantiaAtualizada.toJSON(),
+      ...infoGarantia
+    });
+
   } catch (error) {
     return res.status(500).json({ erro: error.message });
   }
@@ -144,40 +200,136 @@ async function atualizarGarantia(req, res) {
 
 async function atualizarStatusGarantia(req, res) {
   try {
+
     const { id } = req.params;
     const dados = req.body;
 
-    if (dados.prazo_dias !== undefined && (isNaN(dados.prazo_dias) || dados.prazo_dias < 0)) {
-      return res.status(400).json({ erro: 'O prazo da garantia não pode ser negativo' });
-    }
-
-
-    const tiposValidos = ['Normal', 'Estendida'];
-    if (dados.tipo && !tiposValidos.includes(dados.tipo)) {
-      return res.status(400).json({ 
-        erro: 'Tipo inválido',
-        tiposAceitos: tiposValidos 
+    if (
+      dados.prazo_dias !== undefined &&
+      (isNaN(dados.prazo_dias) || dados.prazo_dias < 0)
+    ) {
+      return res.status(400).json({
+        erro: 'O prazo da garantia não pode ser negativo'
       });
     }
+
+    const tiposValidos = ['Normal', 'Estendida'];
+
+    if (dados.tipo && !tiposValidos.includes(dados.tipo)) {
+      return res.status(400).json({
+        erro: 'Tipo inválido',
+        tiposAceitos: tiposValidos
+      });
+    }
+
+    const garantia = await Garantia.findByPk(id);
+
+    if (!garantia) {
+      return res.status(404).json({
+        mensagem: 'Garantia não encontrada'
+      });
+    }
+
+    if (dados.prazo_dias || dados.data_inicio) {
+
+      const dataInicio =
+        dados.data_inicio || garantia.data_inicio;
+
+      const prazo =
+        dados.prazo_dias || garantia.prazo_dias;
+
+      const dataFim = new Date(dataInicio);
+      dataFim.setDate(dataFim.getDate() + prazo);
+
+      dados.data_fim = dataFim;
+    }
+
+    await Garantia.update(dados, {
+      where: { id }
+    });
+
+    
+    await criarNotificacao(
+      req.user.id_usuario,
+      'updated',
+      'Status da garantia atualizado',
+      id
+    );
+
+    const garantiaAtualizada = await Garantia.findByPk(id);
+
+    return res.json(garantiaAtualizada);
+
+  } catch (error) {
+    return res.status(500).json({ erro: error.message });
+  }
+}
+
+async function listarLixeira(req, res) {
+  try {
+    const garantias = await Garantia.findAll({
+      where: { deletado_em: { [Op.ne]: null } },
+      include: [produtoInclude]
+    });
+
+    const garantiasComStatus = garantias.map((garantia) => {
+      const infoGarantia = calcularStatusGarantia(garantia.data_fim);
+      return { ...garantia.toJSON(), ...infoGarantia };
+    });
+
+    return res.json(garantiasComStatus);
+  } catch (error) {
+    return res.status(500).json({ erro: error.message });
+  }
+}
+
+async function restaurarGarantia(req, res) {
+  try {
+    const { id } = req.params;
 
     const garantia = await Garantia.findByPk(id);
     if (!garantia) {
       return res.status(404).json({ mensagem: 'Garantia não encontrada' });
     }
 
-    if (dados.prazo_dias || dados.data_inicio) {
-      const dataInicio = dados.data_inicio || garantia.data_inicio;
-      const prazo = dados.prazo_dias || garantia.prazo_dias;
+    await Garantia.update(
+      { deletado_em: null, deletado_por: null },
+      { where: { id } }
+    );
 
-      const dataFim = new Date(dataInicio);
-      dataFim.setDate(dataFim.getDate() + prazo);
-      dados.data_fim = dataFim;
+    await criarNotificacao(
+      req.user.id_usuario,
+      'restored',
+      'Garantia restaurada com sucesso',
+      id
+    );
+
+    const restaurada = await Garantia.findOne({
+      where: { id },
+      include: [produtoInclude]
+    });
+
+    const infoGarantia = calcularStatusGarantia(restaurada.data_fim);
+
+    return res.json({ ...restaurada.toJSON(), ...infoGarantia });
+  } catch (error) {
+    console.error('Erro ao restaurar garantia:', error);
+    return res.status(500).json({ erro: error.message });
+  }
+}
+
+async function excluirPermanentemente(req, res) {
+  try {
+    const { id } = req.params;
+
+    const garantia = await Garantia.findByPk(id);
+    if (!garantia) {
+      return res.status(404).json({ mensagem: 'Garantia não encontrada' });
     }
 
-    await Garantia.update(dados, { where: { id } });
+    await Garantia.destroy({ where: { id } });
 
-    const garantiaAtualizada = await Garantia.findByPk(id);
-    return res.json(garantiaAtualizada);
+    return res.json({ mensagem: 'Garantia excluída permanentemente' });
   } catch (error) {
     return res.status(500).json({ erro: error.message });
   }
@@ -185,18 +337,32 @@ async function atualizarStatusGarantia(req, res) {
 
 async function excluirGarantia(req, res) {
   try {
+
     const { id } = req.params;
 
     await Garantia.update({
       deletado_em: new Date(),
-      deletado_por: 'sistema'
+      deletado_por: String(req.user?.id_usuario ?? req.usuario?.id_usuario ?? 'sistema')
     }, {
       where: { id }
     });
 
-    return res.json({ mensagem: 'Garantia excluída com sucesso' });
+    
+    await criarNotificacao(
+      req.user.id_usuario,
+      'trashed',
+      'Garantia movida para a lixeira',
+      id
+    );
+
+    return res.json({
+      mensagem: 'Garantia excluída com sucesso'
+    });
+
   } catch (error) {
-    return res.status(500).json({ erro: error.message });
+    return res.status(500).json({
+      erro: error.message
+    });
   }
 }
 
@@ -204,7 +370,10 @@ module.exports = {
   RegistrarGarantia,
   listarGarantias,
   listarGarantiaPorId,
+  listarLixeira,
   atualizarGarantia,
   atualizarStatusGarantia,
-  excluirGarantia
+  restaurarGarantia,
+  excluirGarantia,
+  excluirPermanentemente,
 };

@@ -1,5 +1,11 @@
 import React from "react";
-import { calculateWarrantyStatus } from "../../utils/warrantyStatus";
+import {
+  getWarrantyExpirationInfo,
+  hasInformedFiscalValue,
+  isInformedNfNumber,
+  resolveWarrantyFiscalDisplay,
+} from "../../utils/warrantyDisplay";
+import type { WarrantyUiStatus } from "../../utils/warrantyStatus";
 
 interface WarrantyCardProps {
   title: string;
@@ -9,14 +15,23 @@ interface WarrantyCardProps {
   purchaseDate?: string; // data de compra
   expirationDate?: string; //data de vencimento
   warrantyType?: string; //tipo de garantia (de fabrica ou extendida)
-  value?: string; //valor da garantia/aparelho
+  quantity?: string;
+  value?: string; //valor total (legado / compatibilidade)
+  unitValue?: string;
+  totalValue?: string;
+  status?: WarrantyUiStatus;
+  daysToExpire?: number | null;
 
   variant: "home" | "trash"; // variação do card para lixeira ou home
   onViewMore?: () => void; //ver mais (home)
   onRestore?: () => void; //restaurar (lixiera)
 
-  selected?: boolean; //select para quadno estiver na lixeira
+  selected?: boolean; //select para quando estiver na lixeira
   onSelect?: (selected: boolean) => void;
+  warrantyId?: string;
+  
+  // SOLUÇÃO DO ERRO TS: Propriedade que identifica se o usuário atual é visitante
+  isGuest?: boolean; 
 }
 
 const WarrantyCard: React.FC<WarrantyCardProps> = ({
@@ -26,17 +41,40 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
   purchaseDate,
   expirationDate,
   warrantyType,
+  quantity,
   value,
+  unitValue,
+  totalValue,
+  status: statusProp,
+  daysToExpire: daysToExpireProp,
   variant,
   onViewMore,
   onRestore,
   selected = false,
   onSelect,
+  warrantyId,
+  isGuest = false, // Valor padrão como falso se não for enviado
 }) => {
-  const warrantyInfo = calculateWarrantyStatus(expirationDate);
+  const { status: currentStatus, daysToExpire: currentDaysToExpire } =
+    getWarrantyExpirationInfo({
+      expirationDate,
+      status: statusProp,
+      daysToExpire: daysToExpireProp,
+    });
 
-  const currentStatus = warrantyInfo.status;
-  const currentDaysToExpire = warrantyInfo.daysToExpire;
+  const fiscal = resolveWarrantyFiscalDisplay({
+    quantity,
+    unitValue,
+    totalValue,
+    value,
+  });
+  const showNfNumber = isInformedNfNumber(nfNumber);
+  const showFiscalValue = hasInformedFiscalValue({
+    quantity,
+    unitValue,
+    totalValue,
+    value,
+  });
 
   // Verifica se há algum campo de detalhe para renderizar o bloco do meio
   const hasDetails =
@@ -45,11 +83,15 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
     currentDaysToExpire !== undefined ||
     warrantyType;
 
-  // Verifica se há alguma info no lado direito do header
-  const hasHeaderRight = variant === "trash" || currentStatus || nfNumber;
+  // Verifica se há alguma info no lado direito do header (status / checkbox)
+  // O checkbox só aparece na lixeira se NÃO for visitante
+  const hasHeaderRight = (variant === "trash" && !isGuest) || currentStatus;
 
   // Verifica se há valor para exibir no rodapé
-  const hasFooter = value || variant === "home" || variant === "trash";
+  const hasFooter =
+    showFiscalValue ||
+    variant === "home" ||
+    variant === "trash";
 
   const statusColor =
     currentStatus === "Ativo"
@@ -61,74 +103,86 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
           : "";
 
   return (
-    <div className="group rounded-2xl p-4 shadow-sm border border-gray-dark/20 w-full max-w-md bg-white transition-all duration-300 ease-in-out hover:shadow-lg hover:-translate-y-1 hover:border-gray-dark/35 ">
+    <div className="group rounded-3xl p-4 shadow-lg border border-gray/50 w-full min-w-0 max-w-full bg-white overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1 hover:border-primary/40">
       {/* Header do Card */}
-      <div className="flex justify-between items-start mb-3">
-        <div className="min-w-0 flex-1 pr-2">
-          <h3 className="font-bold text-lg text-gray-dark transition-colors duration-200 group-hover:text-black leading-snug wrap-break-word">
-            {title}
-          </h3>
-          {story ? (
-            <p className="text-sm italic text-gray-dark/85 mt-1">{story}</p>
-          ) : null}
+      <div className="mb-3 min-w-0">
+        <div className="flex justify-between items-start gap-2">
+          <div className="min-w-0 flex-1">
+            <h3 className="font-bold text-lg text-gray-dark transition-colors duration-200 group-hover:text-black leading-snug wrap-break-word">
+              {title}
+            </h3>
+            {story ? (
+              <p className="text-sm italic text-gray-dark/85 mt-1 wrap-break-word">
+                {story}
+              </p>
+            ) : null}
+          </div>
+
+          {hasHeaderRight && (
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              {/* Checkbox oculto para visitantes para evitar ações de deleção/restauração */}
+              {variant === "trash" && !isGuest && (
+                <input
+                  id={warrantyId ? `warranty-select-${warrantyId}` : undefined}
+                  name={warrantyId ? `warranty-select-${warrantyId}` : undefined}
+                  type="checkbox"
+                  checked={selected}
+                  onChange={(e) => onSelect?.(e.target.checked)}
+                  aria-label={`Selecionar garantia ${title}`}
+                  className="w-5 h-5 rounded border-gray/50 accent-primary cursor-pointer"
+                />
+              )}
+              {currentStatus && (
+                <span className={`text-sm font-semibold whitespace-nowrap ${statusColor}`}>
+                  {currentStatus}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
-        {hasHeaderRight && (
-          <div className="flex flex-col items-end gap-1 shrink-0">
-            {variant === "trash" && (
-              <input
-                type="checkbox"
-                checked={selected}
-                onChange={(e) => onSelect?.(e.target.checked)}
-                className="w-5 h-5 rounded border-gray-dark/60 accent-gray-dark cursor-pointer"
-              />
-            )}
-            {currentStatus && (
-              <span className={`text-sm font-semibold ${statusColor}`}>
-                {currentStatus}
-              </span>
-            )}
-            {nfNumber && (
-              <span className="text-xs font-medium text-gray-dark/90">
-                Nº da nota: {nfNumber}
-              </span>
-            )}
-          </div>
-        )}
+        {showNfNumber ? (
+          <p
+            className="text-xs font-medium text-gray-dark/90 mt-2 break-all leading-relaxed"
+            title={`Nº da nota: ${nfNumber}`}
+          >
+            Nº da nota: {nfNumber}
+          </p>
+        ) : null}
       </div>
 
       {/* Detalhes */}
       {hasDetails && (
         <>
-          <div className="border-t border-gray/90 mb-3 transition-colors duration-200 group-hover:border-gray" />
-          <div className="space-y-1 mb-3">
+          <div className="border-t border-gray/50 mb-3 transition-colors duration-200 group-hover:border-gray" />
+          <div className="space-y-1 mb-3 min-w-0">
             {purchaseDate && (
-              <p className="text-sm text-gray-dark">
+              <p className="text-sm text-gray-dark wrap-break-word">
                 <span className="font-semibold">Data De Compra:</span>{" "}
                 {purchaseDate}
               </p>
             )}
             {expirationDate && (
-              <p className="text-sm text-gray-dark">
+              <p className="text-sm text-gray-dark wrap-break-word">
                 <span className="font-semibold">Data De Vencimento:</span>{" "}
                 {expirationDate}
               </p>
             )}
             {currentStatus === "Vencida" ? (
-              <p className="text-sm text-gray-dark">
+              <p className="text-sm text-gray-dark wrap-break-word">
                 <span className="font-semibold">Vence:</span>{" "}
                 <span className="text-red/90 font-semibold">
                   Garantia vencida
                 </span>
               </p>
             ) : currentDaysToExpire !== null ? (
-              <p className="text-sm text-gray-dark">
+              <p className="text-sm text-gray-dark wrap-break-word">
                 <span className="font-semibold">Vence:</span> {currentDaysToExpire}{" "}
                 dias para expirar
               </p>
             ) : null}
             {warrantyType && (
-              <p className="text-sm text-gray-dark">
+              <p className="text-sm text-gray-dark wrap-break-word">
                 <span className="font-semibold">Tipo de Garantia:</span>{" "}
                 {warrantyType}
               </p>
@@ -140,32 +194,34 @@ const WarrantyCard: React.FC<WarrantyCardProps> = ({
       {/* Rodapé */}
       {hasFooter && (
         <>
-          <div className="border-t border-gray/90 mb-3 transition-colors duration-200 group-hover:border-gray" />
-          <div className="flex justify-between items-center">
-            {value ? (
-              <p className="text-sm text-gray-dark font-medium">
+          <div className="border-t border-gray/50 mb-3 transition-colors duration-200 group-hover:border-gray" />
+          <div className="flex justify-between items-center gap-3 min-w-0">
+            {showFiscalValue && (fiscal.totalValue ?? fiscal.unitValue) ? (
+              <p className="text-sm text-gray-dark font-medium min-w-0 wrap-break-word">
                 <span className="font-semibold">Valor </span>
-                {value}
+                {fiscal.totalValue ?? fiscal.unitValue}
               </p>
             ) : (
-              <span />
+              <span className="min-w-0 flex-1" />
             )}
 
-            {/* Botão Ver Mais */}
+            {/* Botão Ver Mais - Fica liberado para todos lerem os dados */}
             {variant === "home" && (
               <button
+                type="button"
                 onClick={onViewMore}
-                className="border border-black rounded-full px-6 py-1 text-sm font-medium hover:bg-black hover:text-white transition-colors duration-200"
+                className="shrink-0 border border-primary text-primary rounded-full px-4 sm:px-6 py-1 text-sm font-medium hover:bg-primary hover:text-white transition-colors duration-200 whitespace-nowrap cursor-pointer"
               >
                 Ver Mais
               </button>
             )}
 
-            {/* Botão Restaurar */}
-            {variant === "trash" && (
+            {/* Botão Restaurar - Ocultado se for visitante para não alterar o banco de dados */}
+            {variant === "trash" && !isGuest && (
               <button
+                type="button"
                 onClick={onRestore}
-                className="border border-green/80 text-green rounded-full px-6 py-1 text-sm font-medium hover:bg-green/80 hover:text-white transition-colors duration-200"
+                className="shrink-0 border border-green/80 text-green rounded-full px-4 sm:px-6 py-1 text-sm font-medium hover:bg-green/80 hover:text-white transition-colors duration-200 whitespace-nowrap cursor-pointer"
               >
                 Restaurar
               </button>

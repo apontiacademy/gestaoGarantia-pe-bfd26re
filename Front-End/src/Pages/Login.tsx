@@ -26,7 +26,8 @@ export default function Login() {
     setError("");
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!form.email || !form.senha) {
       setError("Preencha todos os campos.");
       return;
@@ -43,10 +44,12 @@ export default function Login() {
     }
   };
 
-  // 2. Função que dispara o modo visitante e redireciona para /home
-  const handleVisitorLogin = () => {
-    loginAsVisitor();
-    navigate("/home");
+  // FUNÇÃO DO BOTÃO DE VISITANTE COM PREVENT DEFAULT
+  const handleGuestClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // Impede o formulário de tentar fazer login ou recarregar a página
+    
+    // Navega para a rota pública que aceita o parâmetro dinâmico :id enviado no App.tsx
+    navigate("/garantia/visitante"); 
   };
 
   return (
@@ -74,35 +77,49 @@ export default function Login() {
             </p>
           )}
 
-          <Input
-            label="Email"
-            type="email"
-            name="email"
-            placeholder="Seu email"
-            value={form.email}
-            onChange={handleChange}
-            className="bg-white border border-gray/50"
-          />
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <Input
+              label="Email"
+              type="email"
+              name="email"
+              placeholder="Seu email"
+              value={form.email}
+              onChange={handleChange}
+              autoComplete="email"
+              className="bg-white border border-gray/50"
+            />
 
-          <Input
-            label="Senha"
-            type={showPassword ? "text" : "password"}
-            name="senha"
-            placeholder="Sua senha"
-            value={form.senha}
-            onChange={handleChange}
-            className="bg-white border border-gray/50"
-            rightIcon={showPassword ? <EyeOff size={18} className="cursor-pointer" /> : <Eye size={18} className="cursor-pointer" />}
-            onRightIconClick={() => setShowPassword((v) => !v)}
-          />
+            <Input
+              label="Senha"
+              type={showPassword ? "text" : "password"}
+              name="senha"
+              placeholder="Sua senha"
+              value={form.senha}
+              onChange={handleChange}
+              autoComplete="current-password"
+              className="bg-white border border-gray/50"
+              rightIcon={showPassword ? <EyeOff size={18} className="cursor-pointer" /> : <Eye size={18} className="cursor-pointer" />}
+              onRightIconClick={() => setShowPassword((v) => !v)}
+            />
 
-          {error && <p className="text-xs text-red text-center -mt-1">{error}</p>}
+            {error && <p className="text-xs text-red text-center -mt-1">{error}</p>}
 
-          <div className="flex justify-center">
-            <Button variant="primary" onClick={handleSubmit} disabled={loading} className="w-full">
-              {loading ? "Entrando..." : "Login"}
-            </Button>
-          </div>
+            {/* SEÇÃO DE BOTÕES */}
+            <div className="flex flex-col gap-3 justify-center">
+              <Button type="submit" variant="primary" disabled={loading} className="w-full">
+                {loading ? "Entrando..." : "Login"}
+              </Button>
+
+              {/* BOTÃO DE VISITANTE INDEPENDENTE DO FORMULÁRIO */}
+              <button 
+                type="button" 
+                onClick={handleGuestClick} 
+                className="w-full py-2.5 rounded-xl border border-primary text-primary hover:bg-primary/5 font-medium text-sm transition-colors text-center cursor-pointer"
+              >
+                Acessar como Visitante
+              </button>
+            </div>
+          </form>
 
           <div className="flex justify-end">
             <Link
@@ -114,16 +131,13 @@ export default function Login() {
           </div>
 
           <button
+            type="button"
             className="text-sm text-gray-dark hover:underline text-center font-medium cursor-pointer"
             onClick={() => navigate("/register")}
           >
             Não tem uma conta? <span className="text-primary hover:text-gray-dark/70">Criar Conta</span>
           </button>
 
-          {/* 3. Botão alterado para chamar handleVisitorLogin ao invés de ir para a rota demo anterior */}
-          <Button variant="primary" onClick={handleVisitorLogin}>
-            Entrar como visitante
-          </Button>
         </div>
 
       </div>

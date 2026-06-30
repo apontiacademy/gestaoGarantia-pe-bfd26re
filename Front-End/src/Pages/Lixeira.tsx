@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { Trash2 } from "lucide-react";
 import LayoutHome from "../layout/LayoutHome";
 import WarrantyCard from "../components/ui/WarrantyCard";
-import Toast from "../components/ui/Toast";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import { useWarranty } from "../contexts/WarrantyContext";
 import { useToast } from "../hooks/useToast";
@@ -10,7 +9,7 @@ import { useToast } from "../hooks/useToast";
 export default function LixeiraScreen() {
   const { trashedWarranties, restoreFromTrash, permanentlyDelete } =
     useWarranty();
-  const { toast, showToast } = useToast();
+  const { showToast } = useToast();
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirmEmptyOpen, setConfirmEmptyOpen] = useState(false);
@@ -37,10 +36,10 @@ export default function LixeiraScreen() {
     });
   };
 
-  const handleRestore = (id: string) => {
+  const handleRestore = async (id: string) => {
     const item = trashedWarranties.find((w) => w.id === id);
-    const result = restoreFromTrash(id);
-    if (!result.success) {
+    const result = await restoreFromTrash(id);
+    if (result.success === false) {
       showToast(result.error, "error");
       return;
     }
@@ -59,13 +58,13 @@ export default function LixeiraScreen() {
     return trashedWarranties;
   }, [trashedWarranties, selectedIds]);
 
-  const handleConfirmEmpty = () => {
+  const handleConfirmEmpty = async () => {
     if (targetsToDelete.length === 0) return;
 
     setIsProcessing(true);
     let deleted = 0;
     for (const w of targetsToDelete) {
-      if (permanentlyDelete(w.id)) deleted++;
+      if (await permanentlyDelete(w.id)) deleted++;
     }
     setIsProcessing(false);
     setConfirmEmptyOpen(false);
@@ -122,7 +121,7 @@ export default function LixeiraScreen() {
 
         <div
           className="
-            p-4 grid grid-cols-1
+            p-4 grid grid-cols-1 min-w-0
             md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3
           "
         >
@@ -138,20 +137,27 @@ export default function LixeiraScreen() {
             </div>
           ) : (
             trashedWarranties.map((item) => (
+              <div key={item.id} className="min-w-0">
               <WarrantyCard
-                key={item.id}
-                title={item.title}
+                warrantyId={item.id}
+                title={item.productName ?? item.title}
                 story={item.story}
                 nfNumber={item.nfNumber}
                 purchaseDate={item.purchaseDate}
                 expirationDate={item.expirationDate}
                 warrantyType={item.warrantyType}
+                quantity={item.quantity}
                 value={item.value}
+                unitValue={item.unitValue}
+                totalValue={item.totalValue}
+                status={item.status}
+                daysToExpire={item.daysToExpire}
                 variant="trash"
                 selected={selectedIds.has(item.id)}
                 onSelect={(selected) => toggleSelect(item.id, selected)}
                 onRestore={() => handleRestore(item.id)}
               />
+              </div>
             ))
           )}
         </div>
@@ -169,12 +175,6 @@ export default function LixeiraScreen() {
           loading={isProcessing}
           onConfirm={handleConfirmEmpty}
           onCancel={() => setConfirmEmptyOpen(false)}
-        />
-
-        <Toast
-          message={toast.message}
-          visible={toast.visible}
-          variant={toast.variant}
         />
       </div>
     </LayoutHome>
