@@ -10,7 +10,9 @@ import { Eye, EyeOff } from "lucide-react";
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  
+  // 1. Buscando a função loginAsVisitor do useAuth
+  const { login, loginAsVisitor } = useAuth();
 
   const [form, setForm] = useState({ email: "", senha: "" });
   const [error, setError] = useState("");

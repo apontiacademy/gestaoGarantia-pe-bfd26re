@@ -109,6 +109,22 @@ export function setWarrantyStorageKey(userId?: string | number | null): void {
 /** Separador interno de `title` (nome + marca + modelo). */
 export const WARRANTY_TITLE_JOIN_SEP = ' ';
 
+// 2. Função auxiliar dinâmica para descobrir qual chave usar baseada no usuário atual
+function getActiveStorageKey(): string {
+  try {
+    const savedUser = localStorage.getItem("@garantias:user");
+    if (savedUser) {
+      const user = JSON.parse(savedUser);
+      if (user.role === 'visitor') {
+        return STORAGE_KEY_VISITOR;
+      }
+    }
+  } catch {
+    // Se der erro no parse, por segurança mantém a chave padrão
+  }
+  return STORAGE_KEY_EMPLOYEE;
+}
+
 export function buildWarrantyTitle(
   productName: string,
   brand?: string,
@@ -277,7 +293,7 @@ export function updateWarranty(
 
   if (!persistWarranties(nextList)) {
     return { success: false, error: 'Não foi possível salvar. Tente novamente.' };
-  }
+   }
 
   return { success: true, warranty: nextItem };
 }

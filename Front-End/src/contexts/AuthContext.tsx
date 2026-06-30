@@ -45,7 +45,9 @@ interface AuthContextData {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
+  isVisitor: boolean; // Flag para as outras telas descobrirem se é visitante
   login: (token: string, user: User) => void;
+  loginAsVisitor: () => void; // Nova função para o botão
   logout: () => void;
   updateUser: (data: Partial<User>) => void; // novo — atualiza sem fazer logout
 }
@@ -63,6 +65,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(token);
     setUser(user);
     notifySessionUpdated();
+  }, []);
+
+  // Função nova para o modo visitante
+  const loginAsVisitor = useCallback(() => {
+    const visitorUser: User = {
+      id: "visitor_mode",
+      nome: "Visitante",
+      email: "visitante@apontinote.local",
+      role: "visitor"
+    };
+    
+    // Limpa tokens antigos para evitar misturar funcionário com visitante
+    localStorage.removeItem("@garantias:token");
+    localStorage.setItem("@garantias:user", JSON.stringify(visitorUser));
+    
+    setToken(null);
+    setUser(visitorUser);
   }, []);
 
   const logout = useCallback(() => {

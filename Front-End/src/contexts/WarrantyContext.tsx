@@ -107,7 +107,7 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
   const [isLoadingWarranties, setIsLoadingWarranties] = useState(false);
 
   const refreshWarranties = useCallback(() => {
-    setWarranties(getWarranties());
+    setTick((t) => t + 1);
   }, []);
 
   const loadWarrantiesFromApi = useCallback(async () => {
