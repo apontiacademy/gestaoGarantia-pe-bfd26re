@@ -84,7 +84,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         <Trash2 size={18} />
                         Sair
                     </button>
-                </div>
+                </nav>
             </aside>
         </>
     );

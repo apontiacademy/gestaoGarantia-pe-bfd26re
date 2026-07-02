@@ -11,8 +11,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // 1. Buscando a função loginAsVisitor do useAuth
-  const { login, loginAsVisitor } = useAuth();
+  const { login } = useAuth();
 
   const [form, setForm] = useState({ email: "", senha: "" });
   const [error, setError] = useState("");

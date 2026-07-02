@@ -13,6 +13,18 @@ import { GARANTIAS_SESSION_EXPIRED_EVENT, emitSessionExpired } from "../services
 
 export type { User };
 
+const VISITOR_USER: User = {
+  id: 0,
+  nomeCompleto: "Visitante",
+  email: "visitante@apontinote.local",
+};
+
+export function isVisitorUser(user: User | null): boolean {
+  return (
+    user?.id === VISITOR_USER.id && user.email === VISITOR_USER.email
+  );
+}
+
 /** Disparado após login/logout para recarregar dados da API. */
 export const GARANTIAS_SESSION_EVENT = "garantias:session-updated";
 
@@ -69,19 +81,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Função nova para o modo visitante
   const loginAsVisitor = useCallback(() => {
-    const visitorUser: User = {
-      id: "visitor_mode",
-      nome: "Visitante",
-      email: "visitante@apontinote.local",
-      role: "visitor"
-    };
-    
-    // Limpa tokens antigos para evitar misturar funcionário com visitante
-    localStorage.removeItem("@garantias:token");
-    localStorage.setItem("@garantias:user", JSON.stringify(visitorUser));
-    
+    clearStoredAuth();
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(VISITOR_USER));
+
     setToken(null);
-    setUser(visitorUser);
+    setUser(VISITOR_USER);
+    notifySessionUpdated();
   }, []);
 
   const logout = useCallback(() => {
@@ -156,7 +161,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [token]);
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, login, logout, updateUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        isAuthenticated: !!token,
+        isVisitor: isVisitorUser(user),
+        login,
+        loginAsVisitor,
+        logout,
+        updateUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
