@@ -405,6 +405,13 @@ export function buildObservacaoFromWarranty(
   return buildObservacaoWithMeta(notes, meta);
 }
 
+export function resolveMesesAdicionais(
+  form: Pick<CreateWarrantyFormData, "hasExtendedWarranty" | "extendedExtraMonths">
+): number {
+  if (!form.hasExtendedWarranty) return 0;
+  return Math.max(0, Number(form.extendedExtraMonths) || 0);
+}
+
 export function computePrazoDias(form: CreateWarrantyFormData): number {
   const expiration = computeExpirationDateBR(
     form.purchaseDate,

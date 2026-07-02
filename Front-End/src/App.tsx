@@ -20,6 +20,7 @@ import LixeiraScreen from "./Pages/Lixeira";
 import AuthLayout from "./layout/AuthLayout";
 import ViewWarranty from "./Pages/ViewWarranty"; 
 import Settings from './Pages/Settings';
+import WarrantyExpirationAlerts from "./components/warranty/WarrantyExpirationAlerts";
 
 function App() {
   return (
@@ -68,6 +69,7 @@ function App() {
           {/* Rota curinga para redirecionamento */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
+        <WarrantyExpirationAlerts />
       </Router>
       </WarrantyProvider>
     </AuthProvider>

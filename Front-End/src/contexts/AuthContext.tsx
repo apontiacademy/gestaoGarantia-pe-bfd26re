@@ -57,6 +57,8 @@ interface AuthContextData {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
+  /** Sessão ativa: JWT válido ou modo visitante. */
+  hasAppSession: boolean;
   isVisitor: boolean; // Flag para as outras telas descobrirem se é visitante
   login: (token: string, user: User) => void;
   loginAsVisitor: () => void; // Nova função para o botão
@@ -166,6 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         token,
         isAuthenticated: !!token,
+        hasAppSession: !!token || isVisitorUser(user),
         isVisitor: isVisitorUser(user),
         login,
         loginAsVisitor,

@@ -74,6 +74,8 @@ export interface Warranty {
   warrantyPeriodDays?: number;
   /** Número da apólice / garantia estendida (`numero_apolice` na API) */
   extendedWarrantyNumber?: string;
+  /** Meses adicionais da garantia estendida (meta local) */
+  extendedExtraMonths?: number;
   notes?: string;
   attachments?: WarrantyAttachment[];
   /** Status da UI — vindo do back (`Ativa` → `Ativo`, etc.) ou calculado localmente */
@@ -242,6 +244,14 @@ function applyWarrantyUpdate(current: Warranty, updates: WarrantyUpdate): Warran
       delete next.warrantyPeriodDays;
     } else {
       next.warrantyPeriodDays = updates.warrantyPeriodDays;
+    }
+  }
+
+  if ("extendedExtraMonths" in updates) {
+    if (updates.extendedExtraMonths === undefined) {
+      delete next.extendedExtraMonths;
+    } else {
+      next.extendedExtraMonths = updates.extendedExtraMonths;
     }
   }
 

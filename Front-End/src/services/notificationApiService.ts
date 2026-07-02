@@ -1,7 +1,8 @@
 import { api } from "./api";
-import type {
-  AppNotification,
-  NotificationType,
+import {
+  NOTIFICATION_TITLES,
+  type AppNotification,
+  type NotificationType,
 } from "./notificationService";
 
 export interface ApiNotification {
@@ -15,14 +16,6 @@ export interface ApiNotification {
   createdAt: string;
   updatedAt: string;
 }
-
-const NOTIFICATION_TITLES: Record<NotificationType, string> = {
-  created: "Nova garantia criada",
-  updated: "Garantia atualizada",
-  trashed: "Enviada para a lixeira",
-  restored: "Garantia restaurada",
-  deleted_permanent: "Excluída permanentemente",
-};
 
 const NOTIFICATION_TYPES: NotificationType[] = [
   "created",
