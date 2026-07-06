@@ -36,6 +36,7 @@ import {
 import type { CreateWarrantyFormData } from "../utils/warrantyApiMapper";
 import { computePrazoDias, mergeAttachmentMetadataFromLocal } from "../utils/warrantyApiMapper";
 import { deleteWarrantyAttachmentsFromCloudinary } from "../utils/warrantyCloudinaryCleanup";
+import { AUTH_TOKEN_KEY } from "../utils/authToken";
 import { GARANTIAS_SESSION_EVENT, useAuth } from "./AuthContext";
 
 interface WarrantyContextData {
@@ -111,7 +112,9 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadWarrantiesFromApi = useCallback(async () => {
-    if (!isAuthenticated) {
+    // Checa o token no localStorage (não o estado React) para evitar 401 no logout,
+    // quando clearStoredAuth() roda antes do re-render atualizar isAuthenticated.
+    if (!localStorage.getItem(AUTH_TOKEN_KEY)) {
       setWarranties(getWarranties() || []);
       return;
     }
@@ -166,7 +169,7 @@ export function WarrantyProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoadingWarranties(false);
     }
-  }, [isAuthenticated, refreshWarranties]);
+  }, [refreshWarranties]);
 
   // Troca a namespace de armazenamento quando o usuário faz login ou logout.
   // Deve rodar ANTES do effect de sincronização da API.
