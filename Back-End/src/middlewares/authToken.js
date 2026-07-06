@@ -11,17 +11,15 @@ function autenticarToken(req, res, next) {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.usuario = decoded;   // Mantém compatibilidade com o que você já usa
-        req.user = decoded;      // Padrão mais comum
+        
+        req.usuario = decoded;
+        req.user = decoded;
 
         next();
     } catch (err) {
-        console.error("❌ Erro na verificação do token:", err.name, err.message);
-        
         if (err.name === 'TokenExpiredError') {
             return res.status(403).json({ error: "Token expirado" });
         }
-        
         return res.status(403).json({ error: "Token inválido" });
     }
 }

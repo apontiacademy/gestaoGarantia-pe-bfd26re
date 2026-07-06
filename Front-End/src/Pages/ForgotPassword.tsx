@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
-import simboloAponti from "../Assets/logos/simboloAponti.svg"
+import simboloAponti from "../Assets/logos/simboloAponti.svg";
 import { authService } from '../services/authService';
 import { getApiErrorMessage } from '../utils/apiError';
 
@@ -34,16 +34,14 @@ export default function ForgotPassword() {
     try {
       const response = await authService.forgotPassword(email);
       
-      if (response.resetToken) {
+      if (response?.resetToken) {
         setResetToken(response.resetToken);
       }
 
       setStep('code');
       setError('');
     } catch (err: unknown) {
-      setError(
-        getApiErrorMessage(err, 'Erro ao enviar o código de verificação.')
-      );
+      setError(getApiErrorMessage(err, 'Erro ao enviar o código de verificação.'));
     } finally {
       setLoading(false);
     }
@@ -88,7 +86,7 @@ export default function ForgotPassword() {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="min-h-screen flex bg-fundo">
       <div className="w-full flex items-center justify-center px-2 bg-fundo">
