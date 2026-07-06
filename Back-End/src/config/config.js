@@ -23,14 +23,23 @@ module.exports = {
     "dialect": "postgres",
     "port": 5432
   },
-  "production": {
-    "use_env_variable": "DATABASE_URL",
-    "dialect": "postgres",
-    "dialectOptions": {
-      "ssl": {
-        "require": true,
-        "rejectUnauthorized": false
+  "production": process.env.DATABASE_URL
+    ? {
+        "use_env_variable": "DATABASE_URL",
+        "dialect": "postgres",
+        "dialectOptions": {
+          "ssl": {
+            "require": true,
+            "rejectUnauthorized": false
+          }
+        }
       }
-    }
-  }
+    : {
+        "username": process.env.DB_USER,
+        "password": process.env.DB_PASS,
+        "database": process.env.DB_NAME,
+        "host": process.env.DB_HOST,
+        "dialect": "postgres",
+        "port": process.env.DB_PORT
+      }
 }

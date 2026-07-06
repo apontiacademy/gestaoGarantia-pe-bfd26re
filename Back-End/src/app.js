@@ -22,9 +22,11 @@ const app = express();
 // ==================== MIDDLEWARES ====================
 app.use(express.json());
 
+const normalizeOrigin = (origin) => origin.replace(/\/+$/, '');
+
 const corsOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
-  : ['http://localhost:5173'];
+  ? process.env.CORS_ORIGIN.split(',').map((o) => normalizeOrigin(o.trim()))
+  : ['https://gerenciador-de-garantia-aponti.netlify.app'];
 
 app.use(cors({
   origin: corsOrigins,
@@ -47,7 +49,19 @@ app.use(routes);
 
 // ==================== START SERVER ====================
 const PORT = process.env.PORT || 3000;
+const { runMigrations } = require('./utils/runMigrations');
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
-});
+async function startServer() {
+  try {
+    runMigrations();
+  } catch (error) {
+    console.error('❌ Falha ao executar migrations:', error.message);
+    process.exit(1);
+  }
+
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor rodando na porta ${PORT}`);
+  });
+}
+
+startServer();
